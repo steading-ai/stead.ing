@@ -306,7 +306,7 @@ test.describe("a project's front page", () => {
 
   test("shows one node of the plan at a time, and the one that is picked", async ({ page }) => {
     await page.goto(`${fixture}/`);
-    const plan = page.locator("[data-plan]");
+    const plan = page.locator("[data-plan]", { has: page.locator("svg") });
     await expect(plan.locator("[data-card].shown")).toHaveCount(1);
     await plan.getByRole("link", { name: /#3 A question/ }).click();
     await expect(plan.locator("[data-card].shown")).toContainText("Needs a person");
@@ -314,6 +314,18 @@ test.describe("a project's front page", () => {
     // Picking a node stops the card moving on by itself.
     await page.waitForTimeout(4600);
     await expect(plan.locator("[data-card].shown")).toContainText("A question");
+  });
+
+  test("shows one step of a run at a time, with the fact that closed it", async ({ page }) => {
+    await page.goto(`${fixture}/`);
+    const run = page.locator("[data-plan]", { has: page.locator("ol") });
+    await expect(run.locator("[data-card].shown")).toHaveCount(1);
+    await expect(run.getByRole("link", { name: /write closed on 3f9c2ab/ })).toBeVisible();
+    await run.getByRole("link", { name: /approve/ }).click();
+    await expect(run.locator("[data-card].shown")).toContainText("Needs a person");
+    await expect(run.locator("[data-card].shown")).toContainText("Only a person can close it.");
+    await run.getByRole("link", { name: /write/ }).click();
+    await expect(run.locator("[data-card].shown")).toContainText("3f9c2ab");
   });
 
   test("sends what a project is not to the project that is", async ({ page }) => {

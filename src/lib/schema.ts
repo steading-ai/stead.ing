@@ -55,6 +55,36 @@ export const landingSchema = z.strictObject({
         .min(2),
     })
     .optional(),
+  /**
+   * One piece of work to show in the hero, taken through a workflow: the
+   * steps in order, who runs each, and the fact that closed it. The page draws
+   * it as a ledger with a card for one step at a time.
+   */
+  run: z
+    .strictObject({
+      title: z.string().min(1),
+      /** The work being delivered. */
+      work: z.strictObject({ ref: z.string().min(1), title: z.string().min(1) }),
+      workflow: z.string().min(1),
+      steps: z
+        .array(
+          z.strictObject({
+            name: z.string().min(1),
+            kind: z.string().min(1),
+            state: z.enum(["closed", "running", "needs-you", "open"]),
+            /** Who or what runs the step. */
+            who: z.string().min(1),
+            /** What has to be true for the step to close. */
+            closes: z.string().min(1),
+            /** The fact on record, once there is one: a commit, an exit code, an address. */
+            proof: z.string().min(1).optional(),
+            /** What this step shows about the project, in a sentence or two. */
+            note: z.string().min(1),
+          }),
+        )
+        .min(2),
+    })
+    .optional(),
   /** A demonstration on video. Until there is an address, the page holds its place. */
   video: z.strictObject({ caption: z.string().min(1), url: z.url().optional() }).optional(),
   /** What the project offers, said plainly: a heading, and a list. */

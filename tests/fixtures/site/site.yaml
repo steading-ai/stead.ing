@@ -40,6 +40,38 @@ demo:
       who: any agent
       note: It waits on two others.
       waits: ["#2", "#3"]
+run:
+  title: A fixture run
+  work:
+    ref: "#2"
+    title: The second thing
+  workflow: fixture-flow
+  steps:
+    - name: write
+      kind: agent session
+      state: closed
+      who: an agent
+      closes: A commit that exists
+      proof: 3f9c2ab
+      note: The commit was looked up, not taken on trust.
+    - name: test
+      kind: command
+      state: running
+      who: the runner
+      closes: An exit code of 0
+      note: A command with an exit code.
+    - name: approve
+      kind: gate
+      state: needs-you
+      who: a person
+      closes: A yes from a person
+      note: Only a person can close it.
+    - name: merge
+      kind: command
+      state: open
+      who: the runner
+      closes: The change on the default branch
+      note: It has not started.
 video:
   caption: A fixture demonstration.
 offers:

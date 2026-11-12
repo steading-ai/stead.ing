@@ -1,0 +1,53 @@
+---
+// The frame a hero's demonstration sits in: a picture of the project at work
+// on one side, and beside it a card that spells out one part of the picture
+// at a time. The card moves from part to part by itself until someone picks
+// one. Without JavaScript the first card shows, and a part's link jumps to
+// its card.
+interface Props {
+  /** What the picture shows, for someone who can't see it. */
+  title: string;
+  /** Unique on the page, so the caption can name the figure. */
+  id: string;
+}
+
+const { title, id } = Astro.props;
+---
+
+<figure class="plan" data-plan aria-labelledby={id}>
+  <figcaption id={id} class="sr-only">{title}</figcaption>
+  <div class="picture"><slot /></div>
+  <div class="cards"><slot name="cards" /></div>
+</figure>
+
+<script>
+  import { start } from "../../lib/cards-client.ts";
+
+  start(document);
+</script>
+
+<style>
+  .plan {
+    display: grid;
+    gap: 1.5rem 2.5rem;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: var(--surface);
+  }
+  @media (min-width: 56rem) {
+    .plan {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    }
+  }
+  .picture {
+    min-width: 0;
+  }
+  /* The cards share one cell, so the frame is as tall as the longest of them. */
+  .cards {
+    display: grid;
+    min-width: 0;
+  }
+</style>

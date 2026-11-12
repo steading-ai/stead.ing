@@ -9,6 +9,7 @@ import type { Landing } from "../lib/schema.ts";
 import { STATUS_LABEL } from "../projects.ts";
 import { SITE } from "../site.ts";
 import NodeGraph from "./demos/NodeGraph.astro";
+import RunLedger from "./demos/RunLedger.astro";
 import Hero from "./Hero.astro";
 import IsNot from "./IsNot.astro";
 import JoinIn from "./JoinIn.astro";
@@ -56,6 +57,7 @@ const band = (name: (typeof present)[number][0]) => ["band", { "band-surface": s
     {docs && <a href={SITE.mount}>Read the docs</a>}
   </p>
   {landing.demo && <NodeGraph demo={landing.demo} />}
+  {landing.run && <RunLedger run={landing.run} />}
 </Hero>
 
 {

@@ -40,6 +40,7 @@ Nothing is written twice. The README people read on GitHub is the docs' overview
 | `install` | no | `command`, and an optional `note` under it. |
 | `facts` | no | Short labels under the prompt: "Open source", "Built in Go". |
 | `demo` | no | A small plan to draw in the hero: a `title`, and `nodes`, each with a `ref`, `title`, `kind`, `priority`, `state`, `who`, `note`, and the refs it `waits` on. |
+| `run` | no | One piece of work going through a workflow, to draw in the hero: a `title`, the `work` (`ref` and `title`), the `workflow`, and `steps`, each with a `name`, `kind`, `state` (`closed`, `running`, `needs-you`, or `open`), `who` runs it, what it `closes` on, the `proof` on record once there is one, and a `note`. |
 | `video` | no | A demonstration: a `caption`, and a `url` once there is one. Until then the page holds its place. |
 | `offers` | no | What the project offers: a `title`, and `items` of `title` and `body`. |
 | `thinking` | no | How the project thinks about its problem: a `title`, and `items` of `title`, `body`, and an `href` into the docs. |

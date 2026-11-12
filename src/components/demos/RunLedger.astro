@@ -1,0 +1,144 @@
+---
+// One piece of work going through a workflow, drawn as its ledger: the steps
+// in order, each with the fact that closed it, and a card that spells out one
+// step at a time (what kind it is, who runs it, what closes it and why).
+import type { Landing } from "../../lib/schema.ts";
+import DemoCard from "./DemoCard.astro";
+import DemoFrame from "./DemoFrame.astro";
+
+interface Props {
+  run: NonNullable<Landing["run"]>;
+}
+
+const { run } = Astro.props;
+type State = (typeof run.steps)[number]["state"];
+const LABEL: Record<State, string> = { closed: "Closed", running: "Running", "needs-you": "Needs a person", open: "Not yet" };
+const TONE = { closed: "solid", running: "accent", "needs-you": "ember", open: "plain" } as const;
+const slug = (name: string) => `step-${name.replace(/[^a-z0-9]+/gi, "-")}`;
+---
+
+<DemoFrame title={run.title} id="run-title">
+  <div class="ledger">
+    <p class="work">
+      <span class="ref">{run.work.ref}</span>
+      {run.work.title}
+      <span class="flow">{run.workflow}</span>
+    </p>
+    <ol>
+      {
+        run.steps.map((step) => (
+          <li>
+            <a href={`#${slug(step.name)}`} class={`step ${step.state}`} data-node={slug(step.name)}>
+              <span class="mark" aria-hidden="true" />
+              <span class="name">{step.name}</span>
+              {step.proof && <span class="sr-only">{LABEL[step.state].toLowerCase()} on</span>}
+              <span class="proof">{step.proof ?? LABEL[step.state].toLowerCase()}</span>
+            </a>
+          </li>
+        ))
+      }
+    </ol>
+  </div>
+  <Fragment slot="cards">
+    {
+      run.steps.map((step, index) => (
+        <DemoCard
+          id={slug(step.name)}
+          meta={[step.name, step.kind, `step ${index + 1} of ${run.steps.length}`]}
+          state={LABEL[step.state]}
+          tone={TONE[step.state]}
+          over="Closes on"
+          title={step.closes}
+          rows={[
+            { label: "Run by", value: step.who },
+            { label: "On record", value: step.proof ? `\`${step.proof}\`` : "nothing yet" },
+          ]}
+          note={step.note}
+        />
+      ))
+    }
+  </Fragment>
+</DemoFrame>
+
+<style>
+  .ledger {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .work {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    gap: 0 0.6rem;
+    padding-bottom: 0.6rem;
+    border-bottom: 1px solid var(--line);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+  }
+  .ref {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  .flow {
+    margin-left: auto;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  ol {
+    display: grid;
+    margin-top: 0.4rem;
+  }
+  .step {
+    display: grid;
+    grid-template-columns: 0.8rem minmax(0, auto) minmax(0, 1fr);
+    position: relative;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.28rem 0.5rem;
+    border: 1.5px solid transparent;
+    border-radius: 0.4rem;
+    color: var(--ink);
+    text-decoration: none;
+    cursor: pointer;
+  }
+  .step.picked,
+  .step:hover {
+    border-color: var(--ink);
+  }
+  .name {
+    font-weight: 600;
+  }
+  .proof {
+    overflow: hidden;
+    color: var(--muted);
+    text-align: right;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  /* How each step stands. Shape and stroke differ as well as color. */
+  .mark {
+    width: 0.8rem;
+    height: 0.8rem;
+    box-sizing: border-box;
+    border: 1.5px solid var(--muted);
+    border-radius: 2px;
+  }
+  .closed .mark {
+    border-color: var(--ink);
+    background: var(--ink);
+  }
+  .running .mark {
+    border: 2.5px solid var(--accent);
+  }
+  .needs-you .mark {
+    border: 2.5px solid var(--ember);
+  }
+  .open .mark {
+    border-style: dashed;
+  }
+  .open .name {
+    color: var(--muted);
+    font-weight: 400;
+  }
+</style>

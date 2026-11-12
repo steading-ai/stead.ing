@@ -1,0 +1,129 @@
+---
+// One card of a demonstration (DemoFrame.astro): what one part of the picture
+// is, how it stands, a few facts about it, and why.
+import { inline } from "../../lib/markdown.ts";
+
+interface Props {
+  id: string;
+  /** Short facts across the top. The first is the part's name or reference. */
+  meta: string[];
+  /** How the part stands, in a word or two. */
+  state: string;
+  /** How loudly the state is drawn: `solid` for finished, `accent` for in play, `ember` for a person's turn. */
+  tone: "solid" | "accent" | "ember" | "plain";
+  title: string;
+  /** What the title is, when it isn't a name: "Closes on". */
+  over?: string;
+  rows: { label: string; value: string }[];
+  note: string;
+}
+
+const { id, meta, state, tone, title, over, rows, note } = Astro.props;
+---
+
+<article id={id} class={`card ${tone}`} data-card>
+  <header>
+    <p class="meta">
+      {meta.map((fact, index) => <span class:list={{ ref: index === 0 }}>{fact}</span>)}
+    </p>
+    <p class="state">{state}</p>
+  </header>
+  <h3>
+    {over && <span class="over">{over}</span>}
+    {title}
+  </h3>
+  <dl>
+    {
+      rows.map((row) => (
+        <div>
+          <dt>{row.label}</dt>
+          <dd set:html={inline(row.value)} />
+        </div>
+      ))
+    }
+  </dl>
+  <p class="note" set:html={inline(note)} />
+</article>
+
+<style>
+  /* One card at a time. Without the script, the first shows, or whichever a link points at. */
+  .card {
+    display: none;
+    grid-area: 1 / 1;
+  }
+  :global(.plan:not(.live)) .card:target,
+  :global(.plan:not(.live) .cards:not(:has(:target))) .card:first-child,
+  :global(.plan.live) .card.shown {
+    display: block;
+  }
+  header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0 0.75rem;
+    color: var(--muted);
+  }
+  .ref {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .state {
+    padding: 0.05rem 0.5rem;
+    border: 1.5px solid var(--muted);
+    border-radius: 0.3rem;
+    font-weight: 600;
+  }
+  .accent .state {
+    border-color: var(--accent);
+  }
+  .ember .state {
+    border-color: var(--ember);
+  }
+  .solid .state {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--ground);
+  }
+  h3 {
+    margin-top: 0.6rem;
+    font-size: 1.25rem;
+    line-height: 1.25;
+  }
+  .over {
+    display: block;
+    margin-bottom: 0.15rem;
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 0.95rem;
+    font-weight: 400;
+  }
+  dl {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.9rem;
+    font-size: 0.95rem;
+  }
+  dl div {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+  }
+  dt {
+    color: var(--muted);
+  }
+  .note {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.95rem;
+    /* Cards differ in length; holding room for the longest keeps the page from jumping as they turn. */
+    min-height: 5.5rem;
+  }
+</style>

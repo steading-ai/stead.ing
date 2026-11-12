@@ -1,12 +1,11 @@
 ---
 // A small plan, drawn: each piece of work a box, a line to everything it
 // waits on, and a card that spells out one node at a time (what kind it is,
-// who it is for, what it waits on, how it stands and why). The card moves from
-// node to node by itself until someone picks one. Without JavaScript the
-// first card shows, and a node's link jumps to its card.
+// who it is for, what it waits on, how it stands and why).
 import { layout } from "../../lib/graph.ts";
-import { inline } from "../../lib/markdown.ts";
 import type { Landing } from "../../lib/schema.ts";
+import DemoCard from "./DemoCard.astro";
+import DemoFrame from "./DemoFrame.astro";
 
 interface Props {
   demo: NonNullable<Landing["demo"]>;
@@ -22,6 +21,7 @@ const LABEL: Record<(typeof demo.nodes)[number]["state"], string> = {
   "needs-you": "Needs a person",
   held: "Held",
 };
+const TONE = { done: "solid", ready: "accent", claimed: "accent", blocked: "plain", "needs-you": "ember", held: "plain" } as const;
 
 const BOX = { w: 76, h: 36, gapX: 60, gapY: 18 };
 const layers = Math.max(...placed.map((item) => item.layer)) + 1;
@@ -46,8 +46,7 @@ const edges = placed.flatMap((item) =>
 );
 ---
 
-<figure class="plan" data-plan aria-labelledby="plan-title">
-  <figcaption id="plan-title" class="sr-only">{demo.title}</figcaption>
+<DemoFrame title={demo.title} id="plan-title">
   <div class="graph">
     <svg viewBox={`0 0 ${width} ${height}`} role="group" aria-label={demo.title}>
       <g aria-hidden="true">{edges.map((edge) => <path class:list={["edge", { open: edge.open }]} d={edge.d} />)}</g>
@@ -72,86 +71,31 @@ const edges = placed.flatMap((item) =>
       ))}
     </ul>
   </div>
-  <div class="cards">
+  <Fragment slot="cards">
     {
       placed.map((item) => (
-        <article id={slug(item.node.ref)} class={`card ${item.node.state}`} data-card>
-          <header>
-            <p class="meta">
-              <span class="ref">{item.node.ref}</span>
-              <span>{item.node.kind}</span>
-              <span>{item.node.priority}</span>
-            </p>
-            <p class="state">{LABEL[item.node.state]}</p>
-          </header>
-          <h3>{item.node.title}</h3>
-          <dl>
-            <div>
-              <dt>For</dt>
-              <dd>{item.node.who}</dd>
-            </div>
-            <div>
-              <dt>Waits on</dt>
-              <dd>{item.node.waits.length > 0 ? item.node.waits.map((ref) => `${ref} (${LABEL[state.get(ref) ?? "done"].toLowerCase()})`).join(", ") : "nothing"}</dd>
-            </div>
-            <div>
-              <dt>Unblocks</dt>
-              <dd>{item.unblocks.length > 0 ? item.unblocks.join(", ") : "nothing"}</dd>
-            </div>
-          </dl>
-          <p class="note" set:html={inline(item.node.note)} />
-        </article>
+        <DemoCard
+          id={slug(item.node.ref)}
+          meta={[item.node.ref, item.node.kind, item.node.priority]}
+          state={LABEL[item.node.state]}
+          tone={TONE[item.node.state]}
+          title={item.node.title}
+          rows={[
+            { label: "For", value: item.node.who },
+            {
+              label: "Waits on",
+              value: item.node.waits.length > 0 ? item.node.waits.map((ref) => `${ref} (${LABEL[state.get(ref) ?? "done"].toLowerCase()})`).join(", ") : "nothing",
+            },
+            { label: "Unblocks", value: item.unblocks.length > 0 ? item.unblocks.join(", ") : "nothing" },
+          ]}
+          note={item.node.note}
+        />
       ))
     }
-  </div>
-</figure>
-
-<script>
-  // The card moves to the next node every few seconds, unless the visitor has
-  // asked for less motion, and stops for good once they pick a node themselves.
-  for (const plan of document.querySelectorAll<HTMLElement>("[data-plan]")) {
-    const nodes = [...plan.querySelectorAll<SVGAElement>("[data-node]")];
-    const cards = [...plan.querySelectorAll<HTMLElement>("[data-card]")];
-    let current = 0;
-    const show = (index: number) => {
-      current = index;
-      cards.forEach((card, at) => card.classList.toggle("shown", at === index));
-      nodes.forEach((node, at) => node.classList.toggle("picked", at === index));
-    };
-    plan.classList.add("live");
-    show(0);
-    let turning = matchMedia("(prefers-reduced-motion: reduce)").matches ? undefined : setInterval(() => show((current + 1) % cards.length), 4200);
-    const pick = (index: number) => {
-      clearInterval(turning);
-      turning = undefined;
-      show(index);
-    };
-    nodes.forEach((node, index) => {
-      node.addEventListener("click", (event) => {
-        event.preventDefault();
-        pick(index);
-      });
-      node.addEventListener("focus", () => pick(index));
-    });
-  }
-</script>
+  </Fragment>
+</DemoFrame>
 
 <style>
-  .plan {
-    display: grid;
-    gap: 1.5rem 2.5rem;
-    align-items: center;
-    margin-top: 1rem;
-    padding: 1.25rem;
-    border: 1px solid var(--line);
-    border-radius: 0.75rem;
-    background: var(--surface);
-  }
-  @media (min-width: 56rem) {
-    .plan {
-      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
-    }
-  }
   svg {
     display: block;
     width: 100%;
@@ -260,81 +204,5 @@ const edges = placed.flatMap((item) =>
   }
   .key .held .swatch {
     border-style: dotted;
-  }
-
-  /* One card at a time. Without the script, the first shows, or whichever a node's link points at. */
-  .cards {
-    display: grid;
-  }
-  .card {
-    display: none;
-    grid-area: 1 / 1;
-  }
-  .plan:not(.live) .card:target,
-  .plan:not(.live) .cards:not(:has(:target)) .card:first-child,
-  .plan.live .card.shown {
-    display: block;
-  }
-  .card header {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: baseline;
-    justify-content: space-between;
-    gap: 0.25rem 1rem;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-  }
-  .meta {
-    display: flex;
-    gap: 0.75rem;
-    color: var(--muted);
-  }
-  .ref {
-    color: var(--ink);
-    font-weight: 600;
-  }
-  .state {
-    padding: 0.05rem 0.5rem;
-    border: 1.5px solid var(--muted);
-    border-radius: 0.3rem;
-    font-weight: 600;
-  }
-  .card.ready .state,
-  .card.claimed .state {
-    border-color: var(--accent);
-  }
-  .card.needs-you .state {
-    border-color: var(--ember);
-  }
-  .card.done .state {
-    border-color: var(--ink);
-    background: var(--ink);
-    color: var(--ground);
-  }
-  .card h3 {
-    margin-top: 0.6rem;
-    font-size: 1.25rem;
-    line-height: 1.25;
-  }
-  dl {
-    display: grid;
-    gap: 0.3rem;
-    margin-top: 0.9rem;
-    font-size: 0.95rem;
-  }
-  dl div {
-    display: grid;
-    grid-template-columns: 5.5rem minmax(0, 1fr);
-  }
-  dt {
-    color: var(--muted);
-  }
-  .note {
-    margin-top: 0.9rem;
-    padding-top: 0.9rem;
-    border-top: 1px solid var(--line);
-    font-size: 0.95rem;
-    /* Cards differ in length; holding room for the longest keeps the page from jumping as they turn. */
-    min-height: 5.5rem;
   }
 </style>
