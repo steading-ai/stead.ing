@@ -2,9 +2,7 @@
 // A workbench for comparing designs before one is chosen. Built only when
 // STEADING_LAB is set, so it never reaches a published site.
 import type { GetStaticPaths } from "astro";
-import DayStrip from "../../components/motifs/DayStrip.astro";
-import Receipt from "../../components/motifs/Receipt.astro";
-import RunSheet from "../../components/motifs/RunSheet.astro";
+import Timeline from "../../components/motifs/Timeline.astro";
 import PromptBox from "../../components/PromptBox.astro";
 import { getLanding } from "../../lib/content.ts";
 import Base from "../../layouts/Base.astro";
@@ -15,22 +13,28 @@ const landing = await getLanding();
 const sentences = landing.headline.split(/(?<=\.)\s+/);
 const variations = [
   {
-    id: "receipt",
-    name: "1. The receipt",
-    idea: "One finished task, itemised: each step, the project that took it, what a program checked, and what it cost. Your lines are the only ember. It includes the moment the agent says done and the check says otherwise.",
-    shape: "split",
+    id: "tracks",
+    name: "1. Tracks",
+    idea: "The arrangement. A lane for you and one for each project. Work appears at the line marked now and slides into the past.",
+    view: { pxPerHour: 110, backlog: false, threads: false, speed: 1 / 6 },
   },
   {
-    id: "sheet",
-    name: "2. The run sheet",
-    idea: "A night's work, one row per task and one square per step. Solid means a program checked it. The round ember marks are the only places you were needed.",
-    shape: "wide",
+    id: "burndown",
+    name: "2. Burn-down",
+    idea: "The same day, with skift's lane drawn as the backlog: it steps up when work is filed and steps down as mill merges it.",
+    view: { pxPerHour: 110, backlog: true, threads: false, speed: 1 / 6 },
   },
   {
-    id: "day",
-    name: "3. One day",
-    idea: "Midnight to midnight. Your rail is nearly empty, and the work runs on underneath it through the night.",
-    shape: "wide",
+    id: "threads",
+    name: "3. Threads",
+    idea: "Lines join what caused what: an advisory, the task filed for it, the workspace, the fix, the note written afterwards. Point at any event to light up its whole story.",
+    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 7 },
+  },
+  {
+    id: "week",
+    name: "4. One week",
+    idea: "Seven days across. The work becomes texture, the nights are plain to see, and your whole week is a handful of ember dots.",
+    view: { pxPerHour: 7, backlog: true, threads: false, speed: 3 },
   },
 ] as const;
 ---
@@ -39,8 +43,8 @@ const variations = [
   <div class="wrap intro">
     <h1 class="title">Hero variations</h1>
     <p class="measure mt-2 text-muted">
-      Three ways to open the page with the product's own record of work, each in a full hero. The step names are mill's real
-      ones. The tasks, times and costs are placeholders, to be replaced by a real run before anything ships.
+      Four takes on one idea: a compact strip showing a day on a steading as it is meant to run. Point at any event for
+      what it is. Everything shown is invented to illustrate the design; none of it is a record of real work.
     </p>
   </div>
   {
@@ -50,7 +54,7 @@ const variations = [
           <p class="caption">
             <strong id={`v-${variation.id}`}>{variation.name}</strong> {variation.idea}
           </p>
-          <div class={`hero ${variation.shape}`}>
+          <div class="hero wide">
             <div class="text">
               <h2 class="display">
                 {sentences.map((sentence) => (
@@ -63,9 +67,7 @@ const variations = [
               </div>
             </div>
             <div class="picture">
-              {variation.id === "receipt" && <Receipt />}
-              {variation.id === "sheet" && <RunSheet />}
-              {variation.id === "day" && <DayStrip />}
+              <Timeline id={variation.id} view={variation.view} />
             </div>
           </div>
         </div>
@@ -112,20 +114,6 @@ const variations = [
     /* The headline on one line across the page. */
     .display span {
       display: inline;
-    }
-    /* Split: the words on the left, the record beside them. */
-    .split {
-      grid-template-columns: minmax(0, 1fr) 34rem;
-      align-items: start;
-    }
-    .split .text {
-      display: contents;
-    }
-    .split .display {
-      grid-column: 1 / -1;
-    }
-    .split .words {
-      padding-top: 1rem;
     }
     /* Wide: the first step beside the summary, the record across the page beneath. */
     .wide .words {
