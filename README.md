@@ -163,7 +163,7 @@ Then, once per site, in this order:
 1. In the repository's settings, set Pages to deploy from GitHub Actions and run the workflow.
 2. Set the custom domain to `<project>.stead.ing` in the same settings.
 3. Add the DNS record: a `CNAME` from `<project>` to `steading-ai.github.io`, DNS-only. `stead.ing`'s records are managed in `ivy/homestead`'s Terraform.
-4. When GitHub has issued the certificate, turn on "Enforce HTTPS".
+4. When GitHub has issued the certificate, turn on "Enforce HTTPS". Because the domain was set before its record existed, GitHub's first check of it failed, and it can be slow to look again. If no certificate has appeared a few minutes after the record resolves, clear the custom domain and set it again straight away; the certificate follows within a minute.
 5. Set the project's `site` in `src/projects.ts`, so the hub and the other sites start linking to it.
 
 The domain is set before the record exists so that nobody else can claim the address in between.
