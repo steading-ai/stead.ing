@@ -20,17 +20,13 @@ const running = PROJECTS.filter((project) => project.status === "running").lengt
 
 <section class="hero wrap">
   <h1 class="display">{sentences.map((sentence) => <span>{sentence} </span>)}</h1>
-  <div class="words">
-    <div class="about">
-      <p class="lead measure">{landing.summary}</p>
-      <p class="facts">
-        Open source under the ISC license. Runs on machines you own. {running} of {PROJECTS.length} projects run every day;{" "}
-        <a href="#projects">find the one for your problem</a>.
-      </p>
-    </div>
-    <PromptBox prompt={landing.prompt} />
-  </div>
-  <Timeline id="hero" view={{ pxPerHour: 130, backlog: false, threads: true, speed: 1 / 7 }} />
+  <p class="lead measure">{landing.summary}</p>
+  <PromptBox prompt={landing.prompt} />
+  <p class="facts">
+    Open source under the ISC license. Runs on machines you own. {running} of {PROJECTS.length} projects run every day;{" "}
+    <a href="#projects">find the one for your problem</a>.
+  </p>
+  <Timeline id="hero" view={{ pxPerHour: 130, backlog: false, threads: true, speed: 1 / 10, tone: "muted", compact: true }} />
 </section>
 
 <section class="band band-surface" aria-labelledby="projects">
@@ -173,35 +169,34 @@ const running = PROJECTS.filter((project) => project.status === "running").lengt
 <style>
   .hero {
     display: grid;
-    gap: 1.75rem;
+    gap: 1.5rem;
     padding-block: clamp(1.25rem, 4vw, 2.5rem) clamp(2.5rem, 6vw, 4rem);
   }
   /* A grid item is as wide as its widest content unless told otherwise. The day strip is another component's element, so the rule has to reach past this one's own. */
-  .hero > :global(*),
-  .words > :global(*) {
+  .hero > :global(*) {
     min-width: 0;
   }
   .display span {
     display: block;
   }
-  .words,
-  .about {
-    display: grid;
-    gap: 1.25rem;
-    align-content: start;
+  /* The first step is the point of the page: it takes the full width, at a size that says so. */
+  .hero :global(.prompt) {
+    padding: 1.1rem 1.25rem;
+  }
+  .hero :global(.prompt pre) {
+    font-size: 1.05rem;
   }
   .facts {
     color: var(--muted);
     font-size: 0.95rem;
   }
+  .hero :global(.timeline) {
+    margin-top: 1rem;
+  }
   @media (min-width: 72rem) {
-    /* The headline on one line, the first step beside the summary, and the day across the page beneath. */
+    /* The headline on one line across the page. */
     .display span {
       display: inline;
-    }
-    .words {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 3.5rem;
     }
   }
 
