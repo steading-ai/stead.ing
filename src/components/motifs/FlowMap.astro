@@ -1,0 +1,249 @@
+---
+// The product map as a small machine. Tasks travel the lines between the
+// projects, each project lights while it is busy, and requests leave through
+// the gateway all the while. It is drawn small and quiet, like the hero's day
+// strip: the projects in the text color, and color only on what is moving.
+import { AROUND, AROUND_ROW, BURSTS, BUSY, CORE, CYCLE, during, EDGES, type Kind, shownDuring, SIZE, STEPS, STREAMS, travel, YOU } from "../../lib/flow.ts";
+import { LIGHT_BOX, LIGHTS } from "../../lib/mark.ts";
+import { PROJECTS } from "../../projects.ts";
+
+interface Props {
+  /** Names this map, so several can share a page. */
+  id: string;
+  /** `core` draws the projects a task passes through; `all` adds the console, stead and fallow. */
+  cast?: "core" | "all";
+  /** Draw each project as a labelled box, or as its mark and name alone. */
+  nodes?: "boxes" | "marks";
+  /** Say what is happening in a sentence under the map, in step with it. */
+  narrate?: boolean;
+}
+
+const { id, cast = "core", nodes: style = "boxes", narrate = false } = Astro.props;
+const shift = cast === "all" ? 40 : 0;
+const height = SIZE.height + shift + (cast === "all" ? AROUND_ROW : 0);
+const drawn = cast === "all" ? [...CORE, ...AROUND] : CORE;
+const project = (name: string) => PROJECTS.find((candidate) => candidate.id === name);
+// Solid for what runs every day, dashed for what is early or still in design.
+const dashed = (name: string) => (project(name)?.status ?? "running") !== "running";
+
+const COLOR: Record<Kind, string> = { said: "said", task: "p-skift", event: "p-almanac", request: "p-gateway", question: "p-knowledge", change: "change" };
+const round = (kind: Kind) => kind === "said" || kind === "request" || kind === "question";
+
+const tokens = [
+  ...BURSTS.flatMap((burst, index) =>
+    Array.from({ length: burst.count }, (_, item) => ({
+      kind: burst.kind,
+      style: `offset-path:path('${EDGES[burst.edge]}');animation:${id}-b${index} ${CYCLE}s linear ${(item * burst.gap).toFixed(2)}s infinite`,
+    })),
+  ),
+  ...STREAMS.flatMap((stream, index) =>
+    Array.from({ length: stream.count }, (_, item) => ({
+      kind: stream.kind,
+      style: `offset-path:path('${EDGES[stream.edge]}');animation:${id}-s${index} ${stream.every}s linear ${((item * stream.every) / stream.count).toFixed(2)}s infinite`,
+    })),
+  ),
+];
+
+const keyframes = [
+  ...BURSTS.map((burst, index) => travel(`${id}-b${index}`, burst.from, burst.takes)),
+  ...STREAMS.map((stream, index) => {
+    const arrives = ((stream.takes / stream.every) * 100).toFixed(1);
+    return `@keyframes ${id}-s${index}{0%{offset-distance:0%;opacity:1}${arrives}%{offset-distance:100%;opacity:1}${(Number(arrives) + 0.5).toFixed(1)}%,100%{offset-distance:100%;opacity:0}}`;
+  }),
+  ...Object.entries(BUSY).map(([node, spans]) => during(`${id}-n-${node}`, spans)),
+  ...STEPS.map((step, index) => shownDuring(`${id}-t${index}`, step.from, step.to)),
+].join("");
+const loop = (name: string) => `animation:${id}-${name} ${CYCLE}s linear infinite`;
+---
+
+<style is:inline set:html={keyframes}></style>
+
+<figure class="flow">
+  <!-- On a narrow screen the map scrolls sideways, so it has to be reachable by keyboard. -->
+  <div class="scroll" tabindex="0" role="region" aria-label="Product map">
+    <svg viewBox={`0 0 ${SIZE.width} ${height}`} role="img" aria-labelledby={`${id}-title`} aria-describedby={`${id}-about`}>
+      <title id={`${id}-title`}>How work moves through Steading</title>
+      {
+        cast === "all" && (
+          <g class="p-console">
+            <rect class="box" x="76" y="2" width="1044" height="26" rx="6" />
+            <svg class="project-mark" x="88" y="6" width="18" height="18" viewBox={LIGHT_BOX} set:html={LIGHTS.console} />
+            <text class="name" x="112" y="20">
+              console
+            </text>
+            <text class="role" x="178" y="20">
+              watches everything, and asks you when a decision is yours
+            </text>
+          </g>
+        )
+      }
+      <g transform={`translate(0 ${shift})`}>
+        {Object.values(EDGES).map((d) => <path class="edge" d={d} />)}
+
+        <circle class="said" cx={YOU.x} cy={YOU.y} r="6"></circle>
+        <text class="role" x={YOU.x} y={YOU.y + 22} text-anchor="middle">you</text>
+        <text class="role" x="914" y="164">models, GitHub, APIs</text>
+
+        {
+          drawn.map((node) => (
+            <g class={node.id === "merged" ? "merged" : `p-${node.id}`}>
+              {style === "boxes" ? (
+                <>
+                  <rect class:list={["box", { dashed: dashed(node.id) }]} x={node.x} y={node.y} width={node.w} height={node.h} rx="6" />
+                  {BUSY[node.id] && <rect class="lit" style={loop(`n-${node.id}`)} x={node.x} y={node.y} width={node.w} height={node.h} rx="6" />}
+                  {node.id !== "merged" && (
+                    <svg class="project-mark" x={node.x + 8} y={node.y + 11} width="18" height="18" viewBox={LIGHT_BOX} set:html={LIGHTS[project(node.id)?.glyph ?? "console"]} />
+                  )}
+                  <text class="name" x={node.x + (node.id === "merged" ? 12 : 32)} y={node.y + 17}>
+                    {node.id === "merged" ? node.role : node.id}
+                  </text>
+                  <text class="role" x={node.x + (node.id === "merged" ? 12 : 32)} y={node.y + 31}>
+                    {node.id === "merged" ? "your idea, shipped" : node.role}
+                  </text>
+                </>
+              ) : (
+                <>
+                  {BUSY[node.id] && <circle class="halo" style={loop(`n-${node.id}`)} cx={node.x + 20} cy={node.y + node.h / 2} r="19" />}
+                  {node.id === "merged" ? (
+                    <rect class="shipped" x={node.x + 10} y={node.y + node.h / 2 - 10} width="20" height="20" />
+                  ) : (
+                    <svg class="project-mark" x={node.x + 8} y={node.y + node.h / 2 - 12} width="24" height="24" viewBox={LIGHT_BOX} set:html={LIGHTS[project(node.id)?.glyph ?? "console"]} />
+                  )}
+                  <text class="name" x={node.x + 42} y={node.y + node.h / 2 + 5}>
+                    {node.id === "merged" ? "merged" : node.id}
+                  </text>
+                </>
+              )}
+            </g>
+          ))
+        }
+
+        {tokens.map((token) => (round(token.kind) ? <circle class:list={["token", COLOR[token.kind]]} r={token.kind === "said" ? 4.5 : 3} style={token.style} /> : <rect class:list={["token", COLOR[token.kind]]} x="-3.5" y="-3.5" width="7" height="7" style={token.style} />))}
+      </g>
+    </svg>
+  </div>
+  {
+    narrate && (
+      <p class="steps" aria-hidden="true">
+        {STEPS.map((step, index) => (
+          <span style={loop(`t${index}`)}>{step.text}</span>
+        ))}
+      </p>
+    )
+  }
+  <label for={`${id}-pause`}><input type="checkbox" id={`${id}-pause`} /> Pause</label>
+  <figcaption id={`${id}-about`} class="sr-only">
+    You talk an idea through with thicket, which files it in skift as tasks; almanac files tasks too, when something in the
+    world changes. Skift hands mill whatever is ready. Mill works each task inside a croft, which asks knowledge what it
+    needs and sends every outside request through the gateway. The work comes back checked, mill merges it, and knowledge
+    indexes what changed.
+  </figcaption>
+</figure>
+
+<style>
+  .scroll {
+    overflow-x: auto;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    min-width: 46rem;
+    height: auto;
+    font-family: var(--font-sans);
+    fill: var(--ink);
+  }
+  .edge {
+    fill: none;
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+  .box {
+    fill: var(--surface);
+    stroke: var(--line);
+    stroke-width: 1.2;
+  }
+  .box.dashed {
+    fill: var(--ground);
+    stroke: var(--muted);
+    stroke-dasharray: 5 4;
+  }
+  /* A project lights in its own color while it is busy, and goes quiet again. */
+  .lit {
+    fill: color-mix(in srgb, var(--accent) 16%, transparent);
+    stroke: var(--accent);
+    stroke-width: 2;
+    opacity: 0;
+  }
+  .halo {
+    fill: color-mix(in srgb, var(--accent) 26%, transparent);
+    opacity: 0;
+  }
+  .merged .box {
+    stroke: var(--ember);
+  }
+  .merged .lit {
+    fill: color-mix(in srgb, var(--ember) 18%, transparent);
+    stroke: var(--ember);
+  }
+  .merged .halo {
+    fill: color-mix(in srgb, var(--ember) 30%, transparent);
+  }
+  .shipped {
+    fill: var(--ground);
+    stroke: var(--ember);
+    stroke-width: 2;
+  }
+  .name {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .role {
+    fill: var(--muted);
+    font-size: 11px;
+  }
+  /* What moves: hidden until its turn, and never turned to face the way it is going. */
+  .token {
+    fill: var(--accent);
+    opacity: 0;
+    offset-rotate: 0deg;
+  }
+  .token.change {
+    fill: var(--ink);
+  }
+  .said,
+  .token.said {
+    fill: var(--ember);
+  }
+  .flow:has(input:checked) :global(svg *),
+  .flow:has(input:checked) .steps span {
+    animation-play-state: paused !important;
+  }
+  /* One sentence at a time, each in the place of the last. */
+  .steps {
+    display: grid;
+    margin-top: 0.6rem;
+    font-size: 0.95rem;
+  }
+  .steps span {
+    grid-area: 1 / 1;
+    visibility: hidden;
+  }
+  /* Without motion the first sentence stands for the rest, which the hidden caption carries in full. */
+  @media (prefers-reduced-motion: reduce) {
+    .steps span:first-child {
+      visibility: visible;
+    }
+  }
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  input {
+    accent-color: var(--accent);
+  }
+</style>

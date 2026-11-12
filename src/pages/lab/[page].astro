@@ -2,90 +2,122 @@
 // A workbench for comparing designs before one is chosen. Built only when
 // STEADING_LAB is set, so it never reaches a published site.
 import type { GetStaticPaths } from "astro";
-import Timeline from "../../components/motifs/Timeline.astro";
-import PromptBox from "../../components/PromptBox.astro";
-import { getLanding } from "../../lib/content.ts";
+import FlowMap from "../../components/motifs/FlowMap.astro";
+import Steps from "../../components/motifs/Steps.astro";
 import Base from "../../layouts/Base.astro";
 
-export const getStaticPaths = (() => (process.env.STEADING_LAB ? [{ params: { page: "heroes" } }] : [])) satisfies GetStaticPaths;
+export const getStaticPaths = (() =>
+  process.env.STEADING_LAB ? [{ params: { page: "map" } }, { params: { page: "story" } }] : []) satisfies GetStaticPaths;
 
-const landing = await getLanding();
-const sentences = landing.headline.split(/(?<=\.)\s+/);
+const { page } = Astro.params;
+
+const stories = [
+  { id: "chain", name: "1. Chain", idea: "What the hub has now, with a drawing beside each step." },
+  { id: "row", name: "2. Row", idea: "The five steps side by side, each drawing above its words." },
+  { id: "rail", name: "3. Rail", idea: "Down a line, with larger drawings in rings, like stops on a route." },
+  { id: "turns", name: "4. Turns", idea: "The row, with a bar over each step that lights in its turn, ending on the blocked agent." },
+] as const;
+
 const variations = [
   {
-    id: "muted",
-    name: "1. Muted",
-    idea: "The whole day in the text color. A project's color appears only on the story happening now, and on whatever you point at, so the Copy button is the brightest thing on the page.",
-    layout: "beside",
-    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 7, tone: "muted" },
+    id: "line",
+    name: "1. Line",
+    idea: "The projects a task passes through, as labelled boxes. Tasks travel the lines, each project lights while it is busy, and requests leave through the gateway the whole time.",
+    props: { cast: "core", nodes: "boxes", narrate: false },
   },
   {
-    id: "thin",
-    name: "2. Thin",
-    idea: "The same strip at about two thirds the height and half the speed, kept in color.",
-    layout: "beside",
-    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 14, compact: true },
+    id: "marks",
+    name: "2. Marks",
+    idea: "The same machine with no boxes: each project is its mark and its name. The quietest of the four.",
+    props: { cast: "core", nodes: "marks", narrate: false },
   },
   {
-    id: "first",
-    name: "3. The prompt first",
-    idea: "The prompt box runs the full width under the headline, at a larger size, and the day sits beneath it, thin and muted, as what comes after.",
-    layout: "first",
-    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 10, tone: "muted", compact: true },
+    id: "told",
+    name: "3. Narrated",
+    idea: "The line, with one sentence under it that changes in step with what is moving, so nobody has to work out what they are watching.",
+    props: { cast: "core", nodes: "boxes", narrate: true },
   },
   {
-    id: "still",
-    name: "4. Still",
-    idea: "In color, but nothing moves until you press Play. Pointing at an event still explains it.",
-    layout: "beside",
-    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 7, autoplay: false },
+    id: "all",
+    name: "4. Everyone",
+    idea: "All ten projects: the console across the top, and stead and fallow alongside. Narrated.",
+    props: { cast: "all", nodes: "boxes", narrate: true },
   },
 ] as const;
 ---
 
-<Base title="Hero variations" noindex bleed>
-  <div class="wrap intro">
-    <h1 class="title">Hero variations</h1>
-    <p class="measure mt-2 text-muted">
-      Four quieter takes on the hub's hero, so the day strip supports "Paste this into your agent" instead of competing
-      with it. The hub itself has the full-color strip for now.
-    </p>
-  </div>
-  {
-    variations.map((variation) => (
-      <section class="variation" aria-labelledby={`v-${variation.id}`}>
-        <div class="wrap">
-          <p class="caption">
-            <strong id={`v-${variation.id}`}>{variation.name}</strong> {variation.idea}
-          </p>
-          <div class={`hero ${variation.layout}`}>
-            <div class="text">
-              <h2 class="display">
-                {sentences.map((sentence) => (
-                  <span>{sentence} </span>
-                ))}
-              </h2>
-              <div class="words">
-                <p class="lead measure">{landing.summary}</p>
-                <PromptBox prompt={landing.prompt} id={`prompt-${variation.id}`} />
-              </div>
-            </div>
-            <div class="picture">
-              <Timeline id={variation.id} view={variation.view} />
+{
+  page === "map" && (
+    <Base title="Product map variations" noindex bleed>
+      <div class="wrap intro">
+        <h1 class="title">Product map variations</h1>
+        <p class="measure mt-2 text-muted">
+          Four takes on a small, moving product map, each shown where it would sit on the hub. The one on the hub today is
+          about three times as tall.
+        </p>
+      </div>
+      {variations.map((variation) => (
+        <section class="variation" aria-labelledby={`v-${variation.id}`}>
+          <div class="wrap">
+            <p class="caption">
+              <strong id={`v-${variation.id}`}>{variation.name}</strong> {variation.idea}
+            </p>
+            <h2 class="display-2">A platform you can take apart</h2>
+            <p class="subtitle">Great on its own, better together</p>
+            <p class="lead measure mt-4">
+              Everyone else is building one big system for you to move into. Steading is a platform too, but it's made of
+              projects, each built to do one job well, each with an open interface. If you have a better idea for a project,
+              swap in your own; the rest keeps working.
+            </p>
+            <div class="mt-8">
+              <FlowMap id={variation.id} {...variation.props} />
             </div>
           </div>
-        </div>
-      </section>
-    ))
-  }
-</Base>
+        </section>
+      ))}
+    </Base>
+  )
+}
+
+{
+  page === "story" && (
+    <Base title="Story step variations" noindex bleed>
+      <div class="wrap intro">
+        <h1 class="title">Story step variations</h1>
+        <p class="measure mt-2 text-muted">
+          Four ways to draw the day spent babysitting agents, each shown in the column it sits in on the hub.
+        </p>
+      </div>
+      {stories.map((story) => (
+        <section class="variation band-surface" aria-labelledby={`v-${story.id}`}>
+          <div class="wrap">
+            <p class="caption">
+              <strong id={`v-${story.id}`}>{story.name}</strong> {story.idea}
+            </p>
+            <div class:list={["column", { wide: story.id === "row" || story.id === "turns" }]}>
+              <h2 class="display-2">You've got more ideas than hours.</h2>
+              <p class="mt-6 measure">
+                You pay for a model subscription (or <em>four</em>) and either max it out or barely use it. Not for lack of
+                ideas, but because babysitting agents eats up most of your time.
+              </p>
+              <Steps variant={story.id} />
+              <p class="monday">
+                <em>Every morning feels like Monday brain.</em>
+              </p>
+            </div>
+          </div>
+        </section>
+      ))}
+    </Base>
+  )
+}
 
 <style>
   .intro {
     padding-block: 1.5rem;
   }
   .variation {
-    padding-block: 2rem 4.5rem;
+    padding-block: 2rem 4rem;
     border-top: 1px solid var(--line);
   }
   .caption {
@@ -96,41 +128,20 @@ const variations = [
     background: var(--surface);
     font-size: 0.95rem;
   }
-  .hero,
-  .text,
-  .words {
-    display: grid;
-    gap: 1.5rem;
+  .subtitle {
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
   }
-  .hero {
-    gap: 2rem 3.5rem;
+  /* The hub's story sits in half the page; a row of five needs more. */
+  .column {
+    max-width: 36rem;
   }
-  /* A grid item is as wide as its widest content unless told otherwise. */
-  .hero > *,
-  .text > *,
-  .words > * {
-    min-width: 0;
+  .column.wide {
+    max-width: 52rem;
   }
-  .display span {
-    display: block;
-  }
-  @media (min-width: 72rem) {
-    /* The headline on one line across the page. */
-    .display span {
-      display: inline;
-    }
-    /* Beside: the first step next to the summary, the day across the page beneath. */
-    .beside .words {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 3.5rem;
-      align-items: start;
-    }
-  }
-  /* The prompt first: it takes the full width, at a size that says it is the point. */
-  .first .words :global(.prompt) {
-    padding: 1.25rem 1.4rem;
-  }
-  .first .words :global(.prompt pre) {
-    font-size: 1.05rem;
+  .monday {
+    font-size: 1.25rem;
   }
 </style>
