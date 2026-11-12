@@ -1,0 +1,36 @@
+// Every project's site is built from this repository's lockfile, so keeping
+// these dependencies current keeps every site current.
+{
+  $schema: "https://docs.renovatebot.com/renovate-schema.json",
+  extends: ["github>ivy/renovate-config"],
+  enabledManagers: ["npm", "github-actions", "mise"],
+  lockFileMaintenance: { enabled: true },
+  postUpdateOptions: ["pnpmDedupe"],
+  packageRules: [
+    {
+      description: "Astro and its Markdown processor move together",
+      groupName: "astro",
+      matchPackageNames: ["astro", "@astrojs/**", "satteri"],
+    },
+    {
+      description: "Tailwind and its plugins move together",
+      groupName: "tailwind",
+      matchPackageNames: ["tailwindcss", "@tailwindcss/**"],
+    },
+    {
+      description: "astro check supports TypeScript 5 and 6 only; hold TypeScript 7 until it does",
+      matchPackageNames: ["typescript"],
+      allowedVersions: "<7",
+    },
+    {
+      description: "The two halves of the WebAssembly runtime pinned in pnpm-workspace.yaml move together",
+      groupName: "emnapi",
+      matchPackageNames: ["@emnapi/**"],
+    },
+    {
+      description: "mise writes versions without the v that GitHub tags carry",
+      matchManagers: ["mise"],
+      extractVersion: "^v?(?<version>.+)$",
+    },
+  ],
+}

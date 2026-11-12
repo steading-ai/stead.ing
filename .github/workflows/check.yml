@@ -1,0 +1,62 @@
+name: Check
+
+# Every check here comes from hk.pkl, so anything CI catches the pre-commit and
+# pre-push hooks would have caught too. Add new checks to hk.pkl, not here.
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+permissions: {}
+
+concurrency:
+  group: check-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hk:
+    name: hk check and pre-push
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Install tools
+        uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+
+      - name: Install dependencies
+        run: pnpm install --frozen-lockfile
+
+      - name: Install Chromium for the browser tests
+        run: pnpm exec playwright install --with-deps chromium
+
+      - name: Pre-commit checks
+        run: hk check --all
+
+      - name: Pre-push checks (tests and builds)
+        run: hk run pre-push --all
+
+  # Builds a project's site the way a project's repository will, without publishing.
+  action:
+    name: site action builds a project
+    runs-on: ubuntu-24.04
+    timeout-minutes: 10
+    permissions:
+      contents: read
+    steps:
+      - name: Checkout
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Build the skift example
+        uses: ./
+        with:
+          content: examples/skift
+          deploy: "false"
