@@ -122,6 +122,70 @@ test.describe("a project's site", () => {
   });
 });
 
+test.describe("the day strip", () => {
+  const merged = (page: import("@playwright/test").Page) =>
+    page.locator("[data-count=merged]").evaluate((element) => Number(element.textContent?.replace(/,/g, "")));
+
+  test("counts merged pull requests upward as the day runs", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const before = await merged(page);
+    await expect.poll(() => merged(page), { timeout: 15_000 }).toBeGreaterThan(before);
+  });
+
+  test("says what an event was, and what set it off, when pointed at", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const strip = page.locator("[data-timeline]");
+    // Runs still ahead of "now" are drawn but out of sight, so pick one in the middle of the strip.
+    const frame = await strip.locator("svg[role=img]").boundingBox();
+    const boxes = await strip.locator("[data-scroll] .clip.p-mill").evaluateAll((clips) => clips.map((clip) => clip.getBoundingClientRect().toJSON()));
+    const box = boxes.find((candidate) => frame && candidate.x > frame.x + frame.width * 0.4 && candidate.x < frame.x + frame.width * 0.8);
+    if (!box) throw new Error("no mill run is drawn in the middle of the strip");
+    await page.mouse.move(box.x + 2, box.y + 2);
+    const tip = strip.locator("[data-tip]");
+    await expect(tip).toBeVisible();
+    await expect(tip).toContainText("mill");
+    await expect(tip).toContainText(/merged|Planning/);
+    // Its story is picked out, and the rest of the day is quieted.
+    await expect(strip.locator("svg[role=img]")).toHaveClass(/focused/);
+    expect(await strip.locator(".in-story").count()).toBeGreaterThan(1);
+  });
+
+  test("stops and starts from its button", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const strip = page.locator("[data-timeline]");
+    const position = () => strip.locator("[data-scroll]").getAttribute("transform");
+    await strip.getByRole("button", { name: "Pause" }).click();
+    const held = await position();
+    await page.waitForTimeout(500);
+    expect(await position()).toBe(held);
+    await strip.getByRole("button", { name: "Play" }).click();
+    await expect.poll(position).not.toBe(held);
+  });
+
+  test("holds still for someone who asked for less motion", async ({ browser }) => {
+    const context = await browser.newContext({ reducedMotion: "reduce" });
+    const page = await context.newPage();
+    await page.goto(`${hub}/`);
+    const strip = page.locator("[data-timeline]");
+    await expect(strip.getByRole("button", { name: "Play" })).toBeVisible();
+    const held = await strip.locator("[data-scroll]").getAttribute("transform");
+    await page.waitForTimeout(500);
+    expect(await strip.locator("[data-scroll]").getAttribute("transform")).toBe(held);
+    await context.close();
+  });
+
+  test("is one drawn frame without JavaScript, with no dead button", async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    await page.goto(`${hub}/`);
+    const strip = page.locator("[data-timeline]");
+    expect(await strip.locator("[data-scroll] .clip").count()).toBeGreaterThan(10);
+    await expect(strip.getByRole("button")).toHaveCount(0);
+    await expect(strip.locator("[data-latest]")).not.toBeEmpty();
+    await context.close();
+  });
+});
+
 test.describe("the hub's list of projects", () => {
   test("a row that leads somewhere is clickable anywhere on it", async ({ page }) => {
     await page.goto(`${hub}/`);

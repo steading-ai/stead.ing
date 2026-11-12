@@ -3,8 +3,8 @@
 // this, does it fix my problem, how does it fit together, is it real, and
 // only then why it exists. The hero's words come from content/site.yaml.
 import type { Landing } from "../lib/schema.ts";
-import { PROJECTS, STEADING } from "../projects.ts";
-import Field from "./Field.astro";
+import { PROJECTS } from "../projects.ts";
+import Timeline from "./motifs/Timeline.astro";
 import ProductMap from "./ProductMap.astro";
 import ProjectIndex from "./ProjectIndex.astro";
 import PromptBox from "./PromptBox.astro";
@@ -19,18 +19,18 @@ const running = PROJECTS.filter((project) => project.status === "running").lengt
 ---
 
 <section class="hero wrap">
+  <h1 class="display">{sentences.map((sentence) => <span>{sentence} </span>)}</h1>
   <div class="words">
-    <h1 class="display">{sentences.map((sentence) => <span>{sentence} </span>)}</h1>
-    <p class="lead measure">{landing.summary}</p>
+    <div class="about">
+      <p class="lead measure">{landing.summary}</p>
+      <p class="facts">
+        Open source under the ISC license. Runs on machines you own. {running} of {PROJECTS.length} projects run every day;{" "}
+        <a href="#projects">find the one for your problem</a>.
+      </p>
+    </div>
     <PromptBox prompt={landing.prompt} />
-    <p class="facts">
-      Open source under the ISC license. Runs on machines you own. {running} of {PROJECTS.length} projects run every day;{" "}
-      <a href="#projects">find the one for your problem</a>.
-    </p>
   </div>
-  <div class="picture">
-    <Field project={STEADING} everyProject />
-  </div>
+  <Timeline id="hero" view={{ pxPerHour: 130, backlog: false, threads: true, speed: 1 / 7 }} />
 </section>
 
 <section class="band band-surface" aria-labelledby="projects">
@@ -173,31 +173,35 @@ const running = PROJECTS.filter((project) => project.status === "running").lengt
 <style>
   .hero {
     display: grid;
-    gap: 2.5rem;
-    padding-block: clamp(1.25rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4rem);
+    gap: 1.75rem;
+    padding-block: clamp(1.25rem, 4vw, 2.5rem) clamp(2.5rem, 6vw, 4rem);
   }
-  .words {
-    display: grid;
-    gap: 1.25rem;
-    align-content: center;
+  /* A grid item is as wide as its widest content unless told otherwise. The day strip is another component's element, so the rule has to reach past this one's own. */
+  .hero > :global(*),
+  .words > :global(*) {
+    min-width: 0;
   }
   .display span {
     display: block;
+  }
+  .words,
+  .about {
+    display: grid;
+    gap: 1.25rem;
+    align-content: start;
   }
   .facts {
     color: var(--muted);
     font-size: 0.95rem;
   }
-  .picture {
-    width: 100%;
-    max-width: 26rem;
-    margin-inline: auto;
-  }
   @media (min-width: 72rem) {
-    .hero {
-      grid-template-columns: minmax(0, 1fr) 26rem;
+    /* The headline on one line, the first step beside the summary, and the day across the page beneath. */
+    .display span {
+      display: inline;
+    }
+    .words {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 3.5rem;
-      align-items: center;
     }
   }
 
