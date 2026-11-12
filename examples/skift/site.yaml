@@ -8,9 +8,10 @@ summary: >-
   the same interface: a command line, an API, or an MCP server.
 prompt: >-
   Read https://skift.stead.ing/llms.txt and help me set up skift for the agents I already run.
-agent: >-
-  If you're helping someone set up skift, ask how many machines their agents run on and whether they
-  already have PostgreSQL. Skift needs Linux and PostgreSQL.
+fit: >-
+  Skift suits people whose agents run in more than one session or on more than one machine. It
+  needs Linux and PostgreSQL. For agents on one machine with the plan kept in git, Beads is the
+  simpler fit.
 facts:
   - Open source
   - ISC

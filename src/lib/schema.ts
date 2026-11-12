@@ -1,4 +1,19 @@
 import { z } from "astro/zod";
+import { instructionIn } from "./policy.ts";
+
+/** Text that ends up in llms.txt: it may state facts, and may not tell an agent what to do (policy.ts). */
+const facts = z
+  .string()
+  .min(1)
+  .superRefine((text, context) => {
+    const found = instructionIn(text);
+    if (found) {
+      context.addIssue({
+        code: "custom",
+        message: `"${found.phrase}" ${found.why}. This text is published in llms.txt, which states facts and never instructs an agent.`,
+      });
+    }
+  });
 
 const item = z.strictObject({ title: z.string().min(1), body: z.string().min(1) });
 
@@ -6,11 +21,11 @@ const item = z.strictObject({ title: z.string().min(1), body: z.string().min(1) 
 export const landingSchema = z.strictObject({
   project: z.string().min(1),
   headline: z.string().min(1),
-  summary: z.string().min(1),
+  summary: facts,
   /** The prompt a visitor pastes into their agent. It should only point at this site's llms.txt. */
   prompt: z.string().min(1),
-  /** Advice to an agent helping someone with this project; goes in llms.txt. */
-  agent: z.string().optional(),
+  /** Who the project suits and who it does not, as statements of fact. Published in llms.txt. */
+  fit: facts.optional(),
   install: z.strictObject({ command: z.string().min(1), note: z.string().optional() }).optional(),
   facts: z.array(z.string().min(1)).default([]),
   starts: z.array(item).default([]),

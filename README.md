@@ -33,7 +33,7 @@ site/
 | `headline` | yes | The front page's heading. |
 | `summary` | yes | One paragraph under it. Also the description in `llms.txt`. |
 | `prompt` | yes | The prompt a visitor pastes into their agent. It should only point at the site's `llms.txt`. |
-| `agent` | no | Advice to an agent helping someone with this project. Goes in `llms.txt`. |
+| `fit` | no | Who the project suits and who it does not, as statements of fact. Goes in `llms.txt`. |
 | `install` | no | `command`, and an optional `note` under it. |
 | `facts` | no | Short labels under the prompt: "Open source", "Built in Go". |
 | `starts` | no | "Pick your starting point": a list of `title` and `body`. |
@@ -43,6 +43,16 @@ site/
 | `pairs` | no | "Works better with": a list of `project` (an id) and `body`. |
 
 `body`, `note`, and `instead` may use `` `code` ``, `**bold**`, and `[links](https://example.com)`. [`examples/skift/site.yaml`](examples/skift/site.yaml) is a complete one.
+
+### What the sites say to agents
+
+`llms.txt`, `/index.md`, and `robots.txt` state facts. They never tell an agent what to do.
+
+Text that instructs its reader ("ask them what they are building", "say so if it is not a fit") reads as a prompt injection to a model and to anything guarding it, whatever was meant, and gets a site flagged. A visitor who wants their agent to do something says so themselves, in the prompt they paste; that is what `prompt` is for.
+
+So `summary` and `fit` are checked when a site is built, and a build fails on wording such as "you should", "if you are an agent", or a sentence that opens with a command. [`src/lib/policy.ts`](src/lib/policy.ts) holds the rule and the wording it catches. Write what is true of the project: who it suits, what it needs, what it is not.
+
+A page's own Markdown is documentation for people, and a how-to may tell its reader to run a command. That is carried into `llms-full.txt` as written.
 
 ### Pages
 

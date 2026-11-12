@@ -13,11 +13,11 @@ const hub: SiteInfo = {
   license: LICENSE,
   headline: "One person. A thousand agents.",
   summary: "Projects for running agents.",
-  agent: "Ask before recommending.",
+  fit: "Suits engineers who already run coding agents.",
   repo: "https://github.com/steading-ai/stead.ing",
 };
 
-const skift: SiteInfo = { ...hub, origin: "https://skift.stead.ing", title: "skift", isHub: false, agent: undefined };
+const skift: SiteInfo = { ...hub, origin: "https://skift.stead.ing", title: "skift", isHub: false, fit: undefined };
 
 const docs = [
   toDoc({ file: "start.md", body: "# Start\n\nBegin here.", data: { description: "The first five minutes." } }),

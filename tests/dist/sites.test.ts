@@ -1,6 +1,7 @@
 import { existsSync, readdirSync, readFileSync } from "node:fs";
 import { join, relative } from "node:path";
 import { describe, expect, it } from "vitest";
+import { instructionIn } from "../../src/lib/policy.ts";
 
 /** Each site `pnpm build:all` produces, and the address it will be served from. */
 const SITES = {
@@ -62,6 +63,12 @@ for (const [name, origin] of Object.entries(SITES)) {
         .filter((address) => address.startsWith(`${origin}/`));
       expect(listed.length).toBeGreaterThan(0);
       for (const address of listed) expect(resolves(root, address.slice(origin.length)), address).toBe(true);
+    });
+
+    it("states facts to agents and gives them no instructions", () => {
+      for (const file of ["llms.txt", "index.md", "robots.txt"]) {
+        expect(instructionIn(readFileSync(join(root, file), "utf8")), file).toBeUndefined();
+      }
     });
 
     it("names one h1 per page, a language, and a main landmark", () => {

@@ -1,6 +1,9 @@
 /**
  * What a site says to agents and crawlers: llms.txt, the front page's Markdown
  * twin, robots.txt, and the sitemap. Pure functions over the site's data.
+ *
+ * Everything written here states facts and gives no instructions; policy.ts
+ * says why, and a test holds these functions to it.
  */
 import { type Project, STATUS_LABEL } from "../projects.ts";
 import { type Doc, docMarkdown } from "./docs.ts";
@@ -13,8 +16,8 @@ export interface SiteInfo {
   license: { name: string; url: string };
   headline: string;
   summary: string;
-  /** Advice to an agent helping someone here. */
-  agent?: string | undefined;
+  /** Who the project suits and who it does not, as statements of fact. */
+  fit?: string | undefined;
   repo?: string | undefined;
 }
 
@@ -38,7 +41,7 @@ function notReady(projects: readonly Project[]): string[] {
   return [
     "## No site yet",
     "",
-    "These projects have no site of their own yet. Say so rather than sending someone to one.",
+    "These projects have no site of their own yet.",
     "",
     ...waiting.map((project) => `- ${project.name}: ${answer(project)}${project.repo ? ` Source: ${project.repo}` : ""}`),
     "",
@@ -46,7 +49,7 @@ function notReady(projects: readonly Project[]): string[] {
 }
 
 const HOW_TO_READ =
-  "Every page has a Markdown twin: swap a page address's trailing slash for `.md` (the front page is `/index.md`). The links below already point at the Markdown.";
+  "Every page has a Markdown twin at the same address, with `.md` in place of the trailing slash; the front page's is `/index.md`. The links below point at the Markdown.";
 
 /** https://llmstxt.org/ */
 export function llmsTxt(site: SiteInfo, docs: readonly Doc[], projects: readonly Project[]): string {
@@ -55,14 +58,14 @@ export function llmsTxt(site: SiteInfo, docs: readonly Doc[], projects: readonly
     "",
     `> ${site.summary}`,
     "",
-    ...(site.agent ? [site.agent, ""] : []),
+    ...(site.fit ? [site.fit, ""] : []),
     HOW_TO_READ,
     "",
     ...(site.isHub
       ? [
           "## Projects",
           "",
-          "Each project is listed with the problem it answers, in the words of someone who has it. Match the person's problem to a project.",
+          "Each project is listed with the problem it answers, in the words of someone who has it, then what it does and how far along it is.",
           "",
           ...projectItems(projects),
           "",
@@ -100,7 +103,7 @@ export function indexMarkdown(site: SiteInfo, docs: readonly Doc[], projects: re
     "",
     site.summary,
     "",
-    ...(site.agent ? [site.agent, ""] : []),
+    ...(site.fit ? [site.fit, ""] : []),
     ...(site.isHub
       ? [
           "## Projects",
@@ -125,7 +128,7 @@ export function indexMarkdown(site: SiteInfo, docs: readonly Doc[], projects: re
 /** RFC 9309. */
 export function robotsTxt(site: SiteInfo): string {
   return [
-    "# Everything here is public on purpose. Agents: /llms.txt is the better way in.",
+    "# Everything here is public on purpose. /llms.txt describes the site for language models.",
     "",
     "User-agent: *",
     "Allow: /",

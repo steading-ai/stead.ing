@@ -48,7 +48,7 @@ export async function getSiteInfo(): Promise<SiteInfo> {
     license: SITE.license,
     headline: landing.headline,
     summary: landing.summary,
-    agent: landing.agent,
+    fit: landing.fit,
     repo: SITE.project.repo,
   };
 }
