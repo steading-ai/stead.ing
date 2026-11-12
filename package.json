@@ -1,0 +1,37 @@
+{
+  "name": "stead.ing",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "astro dev",
+    "dev:skift": "STEADING_CONTENT=examples/skift astro dev",
+    "build": "astro build",
+    "build:skift": "STEADING_CONTENT=examples/skift astro build",
+    "build:fixture": "STEADING_CONTENT=tests/fixtures/site STEADING_OUT=dist/fixture astro build",
+    "build:all": "pnpm build && pnpm build:skift && pnpm build:fixture",
+    "serve": "node scripts/serve.ts dist/steading:4410 dist/skift:4411 dist/fixture:4412",
+    "check": "astro check",
+    "test": "vitest run",
+    "test:dist": "vitest run --config vitest.dist.config.ts",
+    "test:e2e": "playwright test"
+  },
+  "dependencies": {
+    "@astrojs/markdown-satteri": "0.4.7",
+    "@fontsource/ibm-plex-mono": "5.3.0",
+    "@fontsource/ibm-plex-sans": "5.3.0",
+    "@tailwindcss/typography": "0.5.20",
+    "@tailwindcss/vite": "4.3.5",
+    "astro": "7.4.7",
+    "satteri": "0.11.7",
+    "tailwindcss": "4.3.5",
+    "yaml": "2.9.1"
+  },
+  "devDependencies": {
+    "@astrojs/check": "0.9.12",
+    "@axe-core/playwright": "4.14.0",
+    "@playwright/test": "1.65.0",
+    "@types/node": "26.6.6",
+    "typescript": "^6.0.3",
+    "vitest": "5.1.0"
+  }
+}

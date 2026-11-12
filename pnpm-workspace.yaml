@@ -1,0 +1,15 @@
+# Supply-chain delay: don't install versions published less than 3 days ago.
+minimumReleaseAge: 4320
+
+# Dependencies allowed to run install scripts. Everything else is blocked.
+allowBuilds:
+  esbuild: true
+  sharp: true
+
+# @astrojs/check's astro2tsx runs on a WebAssembly runtime made of two halves,
+# @emnapi/core and @emnapi/runtime. Left alone, pnpm pairs core 1.x with the
+# runtime 2.0.0 beta that rolldown's unused wasm build asks for, and
+# `astro check` dies on load. Keep the halves on one stable version.
+overrides:
+  "@emnapi/core": 1.11.3
+  "@emnapi/runtime": 1.11.3

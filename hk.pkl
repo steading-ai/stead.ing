@@ -1,0 +1,72 @@
+amends "package://github.com/jdx/hk/releases/download/v2.12.0/hk@2.12.0#/Config.pkl"
+
+import "package://github.com/jdx/hk/releases/download/v2.12.0/hk@2.12.0#/Builtins.pkl"
+
+// Written by tools; regenerate them instead of reformatting.
+local generated = List("mise.lock", ".mise/locks/**", "pnpm-lock.yaml")
+
+local linters = new Mapping<String, Step | Group> {
+  ["check-merge-conflict"] = (Builtins.check_merge_conflict) { exclude = generated }
+  ["check-symlinks"] = Builtins.check_symlinks
+  ["mixed-line-ending"] = Builtins.mixed_line_ending
+  ["trailing-whitespace"] = (Builtins.trailing_whitespace) { exclude = generated }
+  ["newlines"] = (Builtins.newlines) { exclude = generated }
+  ["detect-private-key"] = Builtins.detect_private_key
+  // tsconfig.json is JSONC by convention and pnpm owns package.json's layout.
+  ["jq"] = (Builtins.jq) { exclude = generated + List("tsconfig.json", "package.json") }
+  ["markdown-lint"] = Builtins.markdown_lint
+  ["mise"] = Builtins.mise
+  ["pkl"] = Builtins.pkl
+  ["pkl-format"] = Builtins.pkl_format
+  ["ghalint-workflow"] = Builtins.ghalint_workflow
+  ["ghalint-action"] = new Step {
+    glob = List("action.yml")
+    check = "ghalint run-action {{files}}"
+  }
+  ["actionlint"] = Builtins.actionlint
+
+  // astro check scans the whole project, so it only runs when code changes.
+  ["astro-check"] = new Step {
+    glob = List("**/*.astro", "**/*.ts")
+    exclude = List("dist/**", "node_modules/**", ".astro/**")
+    check = "pnpm check"
+  }
+}
+
+hooks {
+  ["pre-commit"] {
+    fix = true
+    stash = "git"
+    steps = linters
+  }
+  ["pre-push"] {
+    steps {
+      ["test"] = new Step { check = "pnpm test" }
+      ["build"] = new Step {
+        depends = List("test")
+        check = "pnpm build:all"
+      }
+      ["test-dist"] = new Step {
+        depends = List("build")
+        check = "pnpm test:dist"
+      }
+      // Needs Chromium: `pnpm exec playwright install chromium`.
+      ["test-e2e"] = new Step {
+        depends = List("test-dist")
+        check = "pnpm test:e2e"
+      }
+    }
+  }
+  ["commit-msg"] {
+    steps {
+      ["check-conventional-commit"] = Builtins.check_conventional_commit
+    }
+  }
+  ["check"] {
+    steps = linters
+  }
+  ["fix"] {
+    fix = true
+    steps = linters
+  }
+}
