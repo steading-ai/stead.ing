@@ -57,6 +57,9 @@ quickstart:
   title: Run your first fixture
   steps:
     - title: Set it up
+      body: Paste this into your agent.
+      prompt: true
+    - title: Run it
       body: Do the **first** thing.
       code: skift ready
     - title: Use it

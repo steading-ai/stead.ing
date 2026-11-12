@@ -70,7 +70,17 @@ export const landingSchema = z.strictObject({
   quickstart: z
     .strictObject({
       title: z.string().min(1),
-      steps: z.array(z.strictObject({ title: z.string().min(1), body: z.string().min(1), code: z.string().min(1).optional() })).min(1),
+      steps: z
+        .array(
+          z.strictObject({
+            title: z.string().min(1),
+            body: z.string().min(1),
+            code: z.string().min(1).optional(),
+            /** Show the site's prompt, with its copy button, in this step. A step never sends the reader elsewhere on the page for it. */
+            prompt: z.boolean().optional(),
+          }),
+        )
+        .min(1),
     })
     .optional(),
   /** Where to begin, by the situation someone is in. */

@@ -43,7 +43,7 @@ Nothing is written twice. The README people read on GitHub is the docs' overview
 | `video` | no | A demonstration: a `caption`, and a `url` once there is one. Until then the page holds its place. |
 | `offers` | no | What the project offers: a `title`, and `items` of `title` and `body`. |
 | `thinking` | no | How the project thinks about its problem: a `title`, and `items` of `title`, `body`, and an `href` into the docs. |
-| `quickstart` | no | The first few minutes: a `title`, and `steps` of `title`, `body`, and optional `code`. |
+| `quickstart` | no | The first few minutes: a `title`, and `steps` of `title`, `body`, optional `code`, and `prompt: true` to show the site's prompt and its copy button in that step. |
 | `starts` | no | "Pick your starting point": a list of `title` and `body`. |
 | `not` | no | "What it is not": a list of `title`, `body` (why not), and `use` (the id of the project to use for that). |
 | `instead` | no | A line after the "is not" table, saying what the project is for. |

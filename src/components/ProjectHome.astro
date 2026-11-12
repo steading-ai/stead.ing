@@ -12,6 +12,7 @@ import NodeGraph from "./demos/NodeGraph.astro";
 import Hero from "./Hero.astro";
 import IsNot from "./IsNot.astro";
 import JoinIn from "./JoinIn.astro";
+import PromptBox from "./PromptBox.astro";
 import WorksBetterWith from "./WorksBetterWith.astro";
 
 interface Props {
@@ -128,11 +129,16 @@ const band = (name: (typeof present)[number][0]) => ["band", { "band-surface": s
       <div class="wrap">
         <h2 id="quickstart" class="display-2">{landing.quickstart.title}</h2>
         <ol class="steps">
-          {landing.quickstart.steps.map((step) => (
+          {landing.quickstart.steps.map((step, index) => (
             <li>
               <h3 class="title">{step.title}</h3>
               <div>
                 <p set:html={inline(step.body)} />
+                {step.prompt && (
+                  <div class="again">
+                    <PromptBox prompt={landing.prompt} id={`prompt-step-${index + 1}`} />
+                  </div>
+                )}
                 {step.code && (
                   <pre tabindex="0" aria-label={`Commands for: ${step.title}`}><code>{step.code}</code></pre>
                 )}
@@ -254,7 +260,8 @@ const band = (name: (typeof present)[number][0]) => ["band", { "band-surface": s
     content: counter(step) ". ";
     color: var(--muted);
   }
-  .steps pre {
+  .steps pre,
+  .steps .again {
     margin-top: 0.75rem;
   }
   @media (min-width: 60rem) {

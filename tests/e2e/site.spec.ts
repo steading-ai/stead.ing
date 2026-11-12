@@ -292,6 +292,42 @@ test.describe("color", () => {
   });
 });
 
+test.describe("a project's front page", () => {
+  test("repeats the prompt in the quick start, where it is needed, and it copies there too", async ({ page, context }) => {
+    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+    await page.goto(`${fixture}/`);
+    const step = page.locator("#quickstart").locator("xpath=..").getByRole("listitem").first();
+    await step.getByRole("button", { name: "Copy" }).click();
+    expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
+      "Read https://skift.stead.ing/llms.txt and help me figure out if skift is a good fit for my work.",
+    );
+  });
+
+  test("shows one node of the plan at a time, and the one that is picked", async ({ page }) => {
+    await page.goto(`${fixture}/`);
+    const plan = page.locator("[data-plan]");
+    await expect(plan.locator("[data-card].shown")).toHaveCount(1);
+    await plan.getByRole("link", { name: /#3 A question/ }).click();
+    await expect(plan.locator("[data-card].shown")).toContainText("Needs a person");
+    await expect(plan.locator("[data-card].shown")).toContainText("Only a person can do it.");
+    // Picking a node stops the card moving on by itself.
+    await page.waitForTimeout(4600);
+    await expect(plan.locator("[data-card].shown")).toContainText("A question");
+  });
+
+  test("sends what a project is not to the project that is", async ({ page }) => {
+    await page.goto(`${fixture}/`);
+    const row = page.getByRole("row", { name: /Not a runner/ });
+    await expect(row.getByRole("link", { name: "mill" })).toHaveAttribute("href", "https://stead.ing/#mill");
+  });
+
+  test("ends on the invitation, with a way to start", async ({ page }) => {
+    await page.goto(`${fixture}/`);
+    await expect(page.getByRole("heading", { name: "Don't build it all on your own!" })).toBeVisible();
+    await expect(page.getByRole("link", { name: "Get started" })).toHaveAttribute("href", "#quickstart");
+  });
+});
+
 test.describe("a project's docs", () => {
   test("open on the project's README, called the overview", async ({ page }) => {
     await page.goto(`${fixture}/`);
