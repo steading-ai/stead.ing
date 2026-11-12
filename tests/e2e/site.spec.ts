@@ -201,18 +201,36 @@ test.describe("the day strip", () => {
 test.describe("the product map", () => {
   test("takes a small part of the screen", async ({ page }) => {
     await page.goto(`${hub}/`);
-    const box = await page.getByRole("img", { name: "How work moves through Steading" }).boundingBox();
+    const box = await page.locator("figure.flow .scroll > svg").boundingBox();
     expect(box?.height).toBeLessThan(300);
   });
 
-  test("moves, and stops when asked", async ({ page }) => {
+  test("comes before the list of projects, and every project on it leads to its entry there", async ({ page }) => {
     await page.goto(`${hub}/`);
     const map = page.locator("figure.flow");
-    const token = map.locator(".token").nth(1);
-    const state = () => token.evaluate((element) => getComputedStyle(element).animationPlayState);
-    expect(await state()).toBe("running");
-    await map.getByLabel("Pause").check();
-    expect(await state()).toBe("paused");
+    const links = map.getByRole("link");
+    await expect(links).toHaveCount(7);
+    const above = await page.evaluate(() => {
+      const idea = document.querySelector("#idea");
+      const projects = document.querySelector("#projects");
+      return Boolean(idea && projects && idea.compareDocumentPosition(projects) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(above).toBe(true);
+    await map.getByRole("link", { name: /croft/ }).click();
+    await expect(page).toHaveURL(/#croft$/);
+    await expect(page.locator("#croft")).toBeInViewport();
+  });
+
+  test("moves, and holds still for someone who asked for less motion", async ({ page, browser }) => {
+    await page.goto(`${hub}/`);
+    const playing = (target: import("@playwright/test").Page) =>
+      target.locator("figure.flow .token").nth(1).evaluate((element) => getComputedStyle(element).animationName);
+    expect(await playing(page)).not.toBe("none");
+    const context = await browser.newContext({ reducedMotion: "reduce" });
+    const still = await context.newPage();
+    await still.goto(`${hub}/`);
+    expect(await playing(still)).toBe("none");
+    await context.close();
   });
 
   test("describes the loop in words for anyone who cannot see it", async ({ page }) => {
