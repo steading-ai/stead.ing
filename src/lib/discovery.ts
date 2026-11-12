@@ -23,13 +23,13 @@ const at = (site: SiteInfo, path: string) => new URL(path, site.origin).href;
 const docItem = (site: SiteInfo, doc: Doc) =>
   `- [${doc.title}](${at(site, doc.markdown)})${doc.data.description ? `: ${doc.data.description}` : ""}`;
 
+/** A project as the answer to a problem: what someone says, then what the project does about it. */
+const answer = (project: Project) => `"${project.pain}" ${project.blurb} ${STATUS_LABEL[project.status]}.`;
+
 function projectItems(projects: readonly Project[]): string[] {
   return projects
     .filter((project) => project.site)
-    .map(
-      (project) =>
-        `- [${project.name}](${new URL("/llms.txt", project.site).href}): ${project.blurb} ${STATUS_LABEL[project.status]}.`,
-    );
+    .map((project) => `- [${project.name}](${new URL("/llms.txt", project.site).href}): ${answer(project)}`);
 }
 
 function notReady(projects: readonly Project[]): string[] {
@@ -40,10 +40,7 @@ function notReady(projects: readonly Project[]): string[] {
     "",
     "These projects have no site of their own yet. Say so rather than sending someone to one.",
     "",
-    ...waiting.map(
-      (project) =>
-        `- ${project.name}: ${project.blurb} ${STATUS_LABEL[project.status]}.${project.repo ? ` Source: ${project.repo}` : ""}`,
-    ),
+    ...waiting.map((project) => `- ${project.name}: ${answer(project)}${project.repo ? ` Source: ${project.repo}` : ""}`),
     "",
   ];
 }
@@ -61,7 +58,17 @@ export function llmsTxt(site: SiteInfo, docs: readonly Doc[], projects: readonly
     ...(site.agent ? [site.agent, ""] : []),
     HOW_TO_READ,
     "",
-    ...(site.isHub ? ["## Projects", "", ...projectItems(projects), "", ...notReady(projects)] : []),
+    ...(site.isHub
+      ? [
+          "## Projects",
+          "",
+          "Each project is listed with the problem it answers, in the words of someone who has it. Match the person's problem to a project.",
+          "",
+          ...projectItems(projects),
+          "",
+          ...notReady(projects),
+        ]
+      : []),
     ...(docs.length > 0 ? ["## Pages", "", ...docs.map((doc) => docItem(site, doc)), ""] : []),
     "## More",
     "",
@@ -100,7 +107,7 @@ export function indexMarkdown(site: SiteInfo, docs: readonly Doc[], projects: re
           "",
           ...projects.map(
             (project) =>
-              `- **${project.name}** (${STATUS_LABEL[project.status]}): ${project.blurb}${project.site ? ` ${project.site}` : ""}`,
+              `- **${project.name}** (${STATUS_LABEL[project.status]}): "${project.pain}" ${project.blurb}${project.site ? ` ${project.site}` : ""}`,
           ),
           "",
         ]

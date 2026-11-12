@@ -1,10 +1,12 @@
 ---
-// stead.ing's front page. The hero's words come from content/site.yaml; the
-// rest of the story is written here.
+// stead.ing's front page, in the order an impatient visitor asks: what is
+// this, does it fix my problem, how does it fit together, is it real, and
+// only then why it exists. The hero's words come from content/site.yaml.
 import type { Landing } from "../lib/schema.ts";
-import { PROJECTS } from "../projects.ts";
+import { PROJECTS, STEADING } from "../projects.ts";
+import Field from "./Field.astro";
 import ProductMap from "./ProductMap.astro";
-import ProjectCard from "./ProjectCard.astro";
+import ProjectIndex from "./ProjectIndex.astro";
 import PromptBox from "./PromptBox.astro";
 
 interface Props {
@@ -12,111 +14,272 @@ interface Props {
 }
 
 const { landing } = Astro.props;
-const section = "mt-16 space-y-4";
-const reading = "max-w-prose space-y-4";
+const sentences = landing.headline.split(/(?<=\.)\s+/);
+const running = PROJECTS.filter((project) => project.status === "running").length;
 ---
 
-<section class="space-y-6">
-  <h1 class="text-4xl font-semibold sm:text-5xl">{landing.headline}</h1>
-  <p class="max-w-prose text-xl">{landing.summary}</p>
-  <div class="max-w-prose">
+<section class="hero wrap">
+  <div class="words">
+    <h1 class="display">{sentences.map((sentence) => <span>{sentence} </span>)}</h1>
+    <p class="lead measure">{landing.summary}</p>
     <PromptBox prompt={landing.prompt} />
+    <p class="facts">
+      Open source under the ISC license. Runs on machines you own. {running} of {PROJECTS.length} projects run every day;{" "}
+      <a href="#projects">find the one for your problem</a>.
+    </p>
   </div>
-  <p><a href="#projects">Browse the projects</a></p>
-</section>
-
-<section class={section} aria-labelledby="pain">
-  <h2 id="pain" class="text-2xl font-semibold">You've got more ideas than hours.</h2>
-  <div class={reading}>
-    <p>
-      You pay for a model subscription and never come close to using it up. Not for lack of ideas: every idea turns into
-      something you have to babysit. Approve a tool call. Answer a question. Switch windows. Lose the thread. Every morning is
-      Monday brain.
-    </p>
-    <p>
-      So you build tools to fix it, and every tool becomes one more thing to patch, deploy, sandbox, and secure. Stop building
-      and nothing changes. Keep building and the upkeep buries you.
-    </p>
-    <p>
-      The shortcut everyone's taking (a spare Mac, an agent with free rein, every secret you own) works right up until one
-      prompt injection loses you the farm.
-    </p>
-    <p>
-      The hard part is the plan. Dream big, plan hard, and let your agents break it into tasks that know what depends on what.
-      After that, it's a loop. Steading is that loop, with the fences, the upkeep, and the proof already built in, so you stop
-      pushing buttons and start building what you actually wanted.
-    </p>
+  <div class="picture">
+    <Field project={STEADING} everyProject />
   </div>
 </section>
 
-<section class={section} aria-labelledby="idea">
-  <h2 id="idea" class="text-2xl font-semibold">A platform you can take apart</h2>
-  <p class="max-w-prose">
-    Everyone else is building one big system for you to move into. Steading is a platform too, but it's made of projects, each
-    built to do one job well, each with an open interface. Start with the project that fixes today's problem, and add another
-    when you need it. If you have a better idea for a project, swap in your own; the rest keeps working.
-  </p>
-  <ProductMap />
-</section>
-
-<section class={section} aria-labelledby="projects">
-  <h2 id="projects" class="text-2xl font-semibold">What's inside</h2>
-  <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-    {PROJECTS.map((project) => <ProjectCard project={project} />)}
-  </ul>
-</section>
-
-<section class={section} aria-labelledby="proof">
-  <h2 id="proof" class="text-2xl font-semibold">Proof</h2>
-  <div class={reading}>
-    <h3 class="text-lg font-semibold">One line, tens of cents.</h3>
-    <p>
-      <code>@types/node</code> 26 broke a build in{" "}
-      <a href="https://github.com/ivy/thicket/pull/159"><code>ivy/thicket#159</code></a>. Nobody was going to look at it.
-      Almanac had an agent fix one line in a sandbox with no network. Plain code checked the patch, Almanac pushed it, and CI
-      passed.
-    </p>
-    <pre class="rounded-lg border border-line bg-surface p-4 font-mono text-sm" tabindex="0" aria-label="The repair, as a diff"><code>-      body: new Blob([bytes]),
-+      body: new Blob([new Uint8Array(bytes)]),</code></pre>
-    <h3 class="pt-4 text-lg font-semibold">Steading builds Steading.</h3>
-    <p>
-      Skift is built from <a href="https://github.com/steading-ai/skift/blob/main/backlog.toml">its own backlog</a>: every
-      task a work order an agent picks up with an empty context window.
-    </p>
+<section class="band band-surface" aria-labelledby="projects">
+  <div class="wrap">
+    <h2 id="projects" class="display-2">What's slowing you down?</h2>
+    <p class="lead measure mt-4">Each project fixes one of these. Start with yours, and add another when you need it.</p>
+    <div class="mt-10">
+      <ProjectIndex />
+    </div>
   </div>
 </section>
 
-<section class={section} aria-labelledby="beliefs">
-  <h2 id="beliefs" class="text-2xl font-semibold">What we believe</h2>
-  <ul class="max-w-prose space-y-3">
-    <li><strong>You decide what. Agents do the rest.</strong> Nobody should have to sit in a chat window for work to move.</li>
-    <li><strong>Proof, not promises.</strong> "Done" means a program checked it.</li>
-    <li>
-      <strong>Real fences, not polite requests.</strong> What an agent can touch is limited by the operating system, the
-      network, or a virtual machine, not by a sentence in a prompt.
-    </li>
-    <li><strong>Code over prompts.</strong> A model is called only where judgment is actually needed.</li>
-    <li><strong>Yours.</strong> Your hardware, your database, your rules.</li>
-  </ul>
-</section>
-
-<section class={section} aria-labelledby="open">
-  <h2 id="open" class="text-2xl font-semibold">Open for good</h2>
-  <div class={reading}>
-    <p>
-      Steading is open source, permanently. Contributors keep their copyright, so nobody, including us, can change the license
-      later. <a href="/open-for-good/">How we keep that promise</a>.
+<section class="band" aria-labelledby="idea">
+  <div class="wrap">
+    <h2 id="idea" class="display-2">A platform you can take apart</h2>
+    <p class="lead measure mt-4">
+      Everyone else is building one big system for you to move into. Steading is a platform too, but it's made of projects,
+      each built to do one job well, each with an open interface. If you have a better idea for a project, swap in your own;
+      the rest keeps working.
     </p>
+    <div class="mt-10">
+      <ProductMap />
+    </div>
   </div>
 </section>
 
-<section class={section} aria-labelledby="join">
-  <h2 id="join" class="text-2xl font-semibold">Don't build it all yourself.</h2>
-  <div class={reading}>
-    <p>
+<section class="band band-surface" aria-labelledby="proof">
+  <div class="wrap">
+    <h2 id="proof" class="display-2">Proof</h2>
+    <div class="proofs mt-10">
+      <article>
+        <h3 class="title">One line, tens of cents.</h3>
+        <p class="mt-3">
+          <code>@types/node</code> 26 broke a build in{" "}
+          <a href="https://github.com/ivy/thicket/pull/159"><code>ivy/thicket#159</code></a>. Nobody was going to look at it.
+          Almanac had an agent fix one line in a sandbox with no network. Plain code checked the patch, Almanac pushed it, and
+          CI passed.
+        </p>
+        <pre class="diff" tabindex="0" aria-label="The repair, as a diff"><code><span class="removed">-      body: new Blob([bytes]),</span>
+<span class="added">+      body: new Blob([new Uint8Array(bytes)]),</span></code></pre>
+      </article>
+      <article>
+        <h3 class="title">Steading builds Steading.</h3>
+        <p class="mt-3">
+          Skift is built from <a href="https://github.com/steading-ai/skift/blob/main/backlog.toml">its own backlog</a>: every
+          task a work order an agent picks up with an empty context window.
+        </p>
+      </article>
+    </div>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="why">
+  <div class="wrap why">
+    <div>
+      <h2 id="why" class="display-2">You've got more ideas than hours.</h2>
+      <p class="mt-6 measure">
+        You pay for a model subscription and never come close to using it up. Not for lack of ideas: every idea turns into
+        something you have to babysit.
+      </p>
+      <!-- Each line sits further off course than the last. -->
+      <ul class="drift" role="list">
+        <li>Approve a tool call.</li>
+        <li>Answer a question.</li>
+        <li>Switch windows.</li>
+        <li>Lose the thread.</li>
+      </ul>
+      <p class="measure">Every morning is Monday brain.</p>
+    </div>
+    <div class="space-y-4 measure">
+      <p>
+        So you build tools to fix it, and every tool becomes one more thing to patch, deploy, sandbox, and secure. Stop
+        building and nothing changes. Keep building and the upkeep buries you.
+      </p>
+      <p>
+        The shortcut everyone's taking (a spare Mac, an agent with free rein, every secret you own) works right up until one
+        prompt injection loses you the farm.
+      </p>
+      <p>
+        The hard part is the plan. Dream big, plan hard, and let your agents break it into tasks that know what depends on
+        what. After that, it's a loop. Steading is that loop, with the fences, the upkeep, and the proof already built in, so
+        you stop pushing buttons and start building what you actually wanted.
+      </p>
+    </div>
+  </div>
+</section>
+
+<section class="band band-surface" aria-labelledby="beliefs">
+  <div class="wrap">
+    <h2 id="beliefs" class="display-2">What we believe</h2>
+    <dl class="beliefs mt-10">
+      <div>
+        <dt>You decide what. Agents do the rest.</dt>
+        <dd>Nobody should have to sit in a chat window for work to move.</dd>
+      </div>
+      <div>
+        <dt>Proof, not promises.</dt>
+        <dd>"Done" means a program checked it.</dd>
+      </div>
+      <div>
+        <dt>Real fences, not polite requests.</dt>
+        <dd>
+          What an agent can touch is limited by the operating system, the network, or a virtual machine, not by a sentence in a
+          prompt.
+        </dd>
+      </div>
+      <div>
+        <dt>Code over prompts.</dt>
+        <dd>A model is called only where judgment is actually needed.</dd>
+      </div>
+      <div>
+        <dt>Yours.</dt>
+        <dd>Your hardware, your database, your rules.</dd>
+      </div>
+      <div>
+        <dt>Open for good.</dt>
+        <dd>
+          Contributors keep their copyright, so nobody, including us, can change the license later.{" "}
+          <a href="/open-for-good/">How we keep that promise</a>.
+        </dd>
+      </div>
+    </dl>
+  </div>
+</section>
+
+<section class="band" aria-labelledby="join">
+  <div class="wrap">
+    <h2 id="join" class="display">Don't build it all yourself.</h2>
+    <p class="lead measure mt-6">
       Steading is built by a crew of friends, and there's room for more. Pick up an open task, or bring a project of your own
-      and keep your name on it. <a href="/how-we-work/">How we work, and how a project joins</a>.
+      and keep your name on it.
     </p>
-    <p><a href="https://github.com/steading-ai">Steading on GitHub</a></p>
+    <p class="mt-6 flex flex-wrap gap-x-8 gap-y-2">
+      <a href="/how-we-work/">How we work, and how a project joins</a>
+      <a href="https://github.com/steading-ai">Steading on GitHub</a>
+    </p>
   </div>
 </section>
+
+<style>
+  .hero {
+    display: grid;
+    gap: 2.5rem;
+    padding-block: clamp(1.25rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4rem);
+  }
+  .words {
+    display: grid;
+    gap: 1.25rem;
+    align-content: center;
+  }
+  .display span {
+    display: block;
+  }
+  .facts {
+    color: var(--muted);
+    font-size: 0.95rem;
+  }
+  .picture {
+    width: 100%;
+    max-width: 26rem;
+    margin-inline: auto;
+  }
+  @media (min-width: 72rem) {
+    .hero {
+      grid-template-columns: minmax(0, 1fr) 26rem;
+      gap: 3.5rem;
+      align-items: center;
+    }
+  }
+
+  .proofs,
+  .why {
+    display: grid;
+    gap: 2.5rem;
+  }
+  @media (min-width: 60rem) {
+    .proofs,
+    .why {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 4rem;
+    }
+  }
+  /* A grid item is as wide as its longest line unless told otherwise, and the diff's lines are long. */
+  .proofs > article {
+    min-width: 0;
+  }
+  .diff {
+    margin-top: 1.25rem;
+    padding: 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--ground);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    line-height: 1.7;
+  }
+  .diff span {
+    display: block;
+    width: max-content;
+    min-width: 100%;
+  }
+  /* The sign carries the meaning; weight and a bar repeat it for the eye. */
+  .diff span {
+    padding-left: 0.75rem;
+    border-left: 3px solid transparent;
+  }
+  .removed {
+    color: var(--muted);
+  }
+  .added {
+    border-left-color: var(--accent);
+    font-weight: 600;
+  }
+
+  .drift {
+    margin-block: 1.5rem;
+    font-family: var(--font-mono);
+    font-size: clamp(1.05rem, 3.4vw, 1.5rem);
+    font-weight: 600;
+    line-height: 1.5;
+  }
+  .drift li:nth-child(2) {
+    padding-left: 8%;
+  }
+  .drift li:nth-child(3) {
+    padding-left: 16%;
+  }
+  .drift li:nth-child(4) {
+    padding-left: 24%;
+  }
+
+  .beliefs {
+    display: grid;
+    border-top: 1px solid var(--line);
+  }
+  .beliefs > div {
+    display: grid;
+    gap: 0.25rem 3rem;
+    padding-block: 1.1rem;
+    border-bottom: 1px solid var(--line);
+  }
+  .beliefs dt {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  @media (min-width: 60rem) {
+    .beliefs > div {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    }
+  }
+</style>

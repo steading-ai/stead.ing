@@ -33,6 +33,13 @@ for (const name of Object.keys(THEMES) as ThemeName[]) {
     });
 
     it.each(ALL.map((project) => [project.id, project.color[name]] as const))(
+      "the primary button's label is readable on %s's color",
+      (_id, color) => {
+        expect(contrast(theme.onEmber, color)).toBeGreaterThanOrEqual(TEXT);
+      },
+    );
+
+    it.each(ALL.map((project) => [project.id, project.color[name]] as const))(
       "%s's color is visible on the ground and on a card",
       (_id, color) => {
         expect(contrast(color, theme.ground)).toBeGreaterThanOrEqual(GRAPHIC);

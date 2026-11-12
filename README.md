@@ -87,7 +87,7 @@ pnpm serve              # http://127.0.0.1:4410, :4411, :4412
 
 ## Adding a project
 
-Add it to `PROJECTS` in [`src/projects.ts`](src/projects.ts): its name, its job in a few words, its status, its two colors, and its mark's shape (drawn in [`src/lib/mark.ts`](src/lib/mark.ts)). A test fails if either color is too faint against the theme it belongs to. Leave `site` unset until the project's site is deployed; nothing links to a site before that.
+Add it to `PROJECTS` in [`src/projects.ts`](src/projects.ts): its name, the problem it answers in the words of someone who has it, what it does about that, its status, its two colors, and its mark's shape (drawn in [`src/lib/mark.ts`](src/lib/mark.ts)). The hub lists projects by those problems, and so does `llms.txt`, because a visitor arrives with a problem and not with a project's name. A test fails if either color is too faint against the theme it belongs to. Leave `site` unset until the project's site is deployed; nothing links to a site before that.
 
 ## Publishing a project's site
 

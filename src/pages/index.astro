@@ -10,6 +10,6 @@ const landing = await getLanding();
 const nav = navigation(await getDocs());
 ---
 
-<Base title={SITE.title} description={landing.summary} path="/" markdownPath="/index.md" wide>
+<Base title={SITE.title} description={landing.summary} path="/" markdownPath="/index.md" bleed>
   {SITE.isHub ? <HubHome landing={landing} /> : <ProjectHome landing={landing} nav={nav} />}
 </Base>

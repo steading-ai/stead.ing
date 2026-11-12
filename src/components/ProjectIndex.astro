@@ -1,0 +1,122 @@
+---
+// The hub's router: every row starts with a problem in the words of someone
+// who has it, and ends at the project that answers it. Rows are grouped by how
+// far along each project is, so "can I use it today?" is answered by where a
+// row sits.
+import { PROJECTS, type Status, STATUS_LABEL } from "../projects.ts";
+import ProjectMark from "./ProjectMark.astro";
+
+const ORDER: Status[] = ["running", "early", "design"];
+const NOTE: Record<Status, string> = {
+  running: "Used every day to build Steading itself.",
+  early: "Working, with rough edges.",
+  design: "Not built yet. Shown so you know where this is going.",
+};
+const groups = ORDER.map((status) => ({ status, projects: PROJECTS.filter((project) => project.status === status) }));
+---
+
+{
+  groups.map(({ status, projects }) => (
+    <section class="group" aria-labelledby={`status-${status}`}>
+      <header>
+        <h3 id={`status-${status}`}>{STATUS_LABEL[status]}</h3>
+        <p>{NOTE[status]}</p>
+      </header>
+      <ul>
+        {projects.map((project) => (
+          <li class={`p-${project.id}`}>
+            <p class="pain">
+              “{project.pain}”{project.measured && <span class="measured"> {project.measured}</span>}
+            </p>
+            <div class="answer">
+              <ProjectMark glyph={project.glyph} size={44} />
+              <div>
+                <p class="name">
+                  {project.site ? <a href={project.site}>{project.name}</a> : project.name}
+                  <span class="job">{project.job}</span>
+                </p>
+                <p class="blurb">{project.blurb}</p>
+                {!project.site && project.repo && (
+                  <p class="source">
+                    <a href={project.repo}>
+                      Source<span class="sr-only"> for {project.name}</span>
+                    </a>
+                  </p>
+                )}
+              </div>
+            </div>
+          </li>
+        ))}
+      </ul>
+    </section>
+  ))
+}
+
+<style>
+  .group {
+    display: grid;
+    gap: 0.5rem 3rem;
+    padding-block: 1.75rem;
+    border-top: 1px solid var(--line);
+  }
+  header h3 {
+    font-size: 1rem;
+  }
+  header p {
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  li {
+    display: grid;
+    gap: 0.75rem 2.5rem;
+    padding-block: 1.1rem;
+  }
+  li + li {
+    border-top: 1px solid var(--line);
+  }
+  .pain {
+    font-size: 1.25rem;
+    line-height: 1.35;
+    text-wrap: balance;
+  }
+  .measured {
+    display: block;
+    margin-top: 0.25rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+  .answer {
+    display: flex;
+    gap: 1rem;
+  }
+  .name {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .job {
+    margin-left: 0.75rem;
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 0.9rem;
+    font-weight: 400;
+  }
+  .source {
+    margin-top: 0.25rem;
+    font-size: 0.9rem;
+  }
+  @media (min-width: 48rem) {
+    li {
+      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+      align-items: start;
+    }
+  }
+  @media (min-width: 64rem) {
+    .group {
+      grid-template-columns: 13rem minmax(0, 1fr);
+    }
+    li:first-child {
+      padding-top: 0;
+    }
+  }
+</style>

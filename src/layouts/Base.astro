@@ -8,6 +8,7 @@ import AgentNote from "../components/AgentNote.astro";
 import ProjectColors from "../components/ProjectColors.astro";
 import ProjectMark from "../components/ProjectMark.astro";
 import SuiteStrip from "../components/SuiteStrip.astro";
+import { getDocs } from "../lib/content.ts";
 import { absolute, SITE } from "../site.ts";
 
 interface Props {
@@ -17,14 +18,22 @@ interface Props {
   path?: string;
   /** The address of the page's Markdown twin. */
   markdownPath?: string;
-  /** Wider than a reading column, for front pages. */
-  wide?: boolean;
+  /** Front pages lay out their own full-width sections; other pages get one column. */
+  bleed?: boolean;
   noindex?: boolean;
 }
 
-const { title, description, path, markdownPath, wide = false, noindex = false } = Astro.props;
+const { title, description, path, markdownPath, bleed = false, noindex = false } = Astro.props;
 const { project } = SITE;
-const width = wide ? "max-w-5xl" : "max-w-3xl";
+const fullTitle = title === SITE.title ? `${title}: ${project.job}` : `${title} · ${SITE.title}`;
+
+// The few places most visitors want next: the projects, the first pages, the source.
+const pages = (await getDocs()).filter((doc) => !doc.file.includes("/")).slice(0, 3);
+const links = [
+  ...(SITE.isHub ? [{ href: "/#projects", label: "Projects" }] : []),
+  ...pages.map((doc) => ({ href: doc.path, label: doc.title })),
+  ...(project.repo ? [{ href: SITE.isHub ? "https://github.com/steading-ai" : project.repo, label: "GitHub" }] : []),
+];
 ---
 
 <!doctype html>
@@ -32,7 +41,7 @@ const width = wide ? "max-w-5xl" : "max-w-3xl";
   <head>
     <meta charset="utf-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1" />
-    <title>{title === SITE.title ? `${title}: ${project.job}` : `${title} · ${SITE.title}`}</title>
+    <title>{fullTitle}</title>
     {description && <meta name="description" content={description} />}
     {noindex && <meta name="robots" content="noindex" />}
     {path && <link rel="canonical" href={absolute(path)} />}
@@ -40,21 +49,41 @@ const width = wide ? "max-w-5xl" : "max-w-3xl";
     <link rel="help" type="text/plain" href={absolute("/llms.txt")} title="llms.txt" />
     <link rel="license" href={SITE.license.url} title={SITE.license.name} />
     <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <meta property="og:site_name" content={SITE.title} />
+    <meta property="og:title" content={fullTitle} />
+    {description && <meta property="og:description" content={description} />}
+    {path && <meta property="og:url" content={absolute(path)} />}
+    <meta property="og:type" content="website" />
     <ProjectColors />
   </head>
   <body class="bg-ground text-ink">
     <a class="skip-link" href="#main">Skip to content</a>
     <SuiteStrip />
-    <header class={`mx-auto ${width} px-4 pt-6`}>
-      <a href="/" class="wordmark inline-flex items-center gap-3 text-xl font-semibold no-underline">
-        <ProjectMark glyph={project.glyph} size={32} />
+    <header class="wrap site-header">
+      <a href="/" class="wordmark">
+        <ProjectMark glyph={project.glyph} size={36} />
         {project.name}
       </a>
+      {
+        links.length > 0 && (
+          <nav aria-label="Site">
+            <ul>
+              {links.map((link) => (
+                <li>
+                  <a href={link.href} aria-current={link.href === path ? "page" : undefined}>
+                    {link.label}
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </nav>
+        )
+      }
     </header>
-    <main id="main" class={`mx-auto ${width} px-4 py-8`}>
+    <main id="main" class:list={[{ "wrap page": !bleed }]}>
       <slot />
     </main>
-    <footer class={`mx-auto ${width} space-y-4 px-4 pb-10 text-sm text-muted`}>
+    <footer class="wrap site-footer">
       {markdownPath && <AgentNote markdownPath={markdownPath} />}
       <p>
         <a href={SITE.license.url}>{SITE.license.name}</a> licensed. Contributors keep their copyright, so Steading stays open
@@ -65,3 +94,54 @@ const width = wide ? "max-w-5xl" : "max-w-3xl";
     </footer>
   </body>
 </html>
+
+<style>
+  .site-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: space-between;
+    gap: 0.5rem 2rem;
+    padding-block: 1rem;
+  }
+  .wordmark {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.75rem;
+    font-size: 1.5rem;
+    letter-spacing: -0.02em;
+    text-decoration: none;
+  }
+  nav ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.5rem;
+    font-size: 0.95rem;
+  }
+  @media (max-width: 47.99rem) {
+    .wordmark {
+      font-size: 1.25rem;
+    }
+    nav ul {
+      font-size: 0.875rem;
+      gap: 0.25rem 1.1rem;
+    }
+  }
+  nav a {
+    text-decoration-color: transparent;
+  }
+  nav a:hover,
+  nav a[aria-current="page"] {
+    text-decoration-color: var(--accent);
+  }
+  .page {
+    padding-block: 2.5rem 4rem;
+  }
+  .site-footer {
+    display: grid;
+    gap: 1rem;
+    padding-block: 2.5rem;
+    color: var(--muted);
+    font-size: 0.9rem;
+  }
+</style>

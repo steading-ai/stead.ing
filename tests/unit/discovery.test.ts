@@ -43,6 +43,11 @@ describe("llms.txt", () => {
     expect(text).toContain("## No site yet");
   });
 
+  it("on the hub, gives every project the problem it answers", () => {
+    const text = llmsTxt(hub, docs, PROJECTS);
+    for (const project of PROJECTS) expect(text, project.name).toContain(`"${project.pain}"`);
+  });
+
   it("on a project's site, points back to the hub and lists no other projects", () => {
     const text = llmsTxt(skift, docs, PROJECTS);
     expect(text).toContain("- [Steading](https://stead.ing/llms.txt)");
