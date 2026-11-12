@@ -100,7 +100,6 @@ export const PROJECTS: readonly Project[] = [
     status: "running",
     color: { dark: "#7FB2E5", light: "#2E62A3" },
     glyph: "skift",
-    site: "https://skift.stead.ing/",
     repo: "https://github.com/steading-ai/skift",
   },
   {

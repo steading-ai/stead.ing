@@ -40,7 +40,6 @@ describe("llms.txt", () => {
       const linked = text.includes(`- [${project.name}](`);
       expect(linked, project.name).toBe(project.site !== undefined);
     }
-    expect(text).toContain("## No site yet");
   });
 
   it("on the hub, gives every project the problem it answers", () => {

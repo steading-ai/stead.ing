@@ -29,23 +29,13 @@ const docItem = (site: SiteInfo, doc: Doc) =>
 /** A project as the answer to a problem: what someone says, then what the project does about it. */
 const answer = (project: Project) => `"${project.pain}" ${project.blurb} ${STATUS_LABEL[project.status]}.`;
 
+/** Every project: linked to its own llms.txt once it has a site, and to its source until then. */
 function projectItems(projects: readonly Project[]): string[] {
-  return projects
-    .filter((project) => project.site)
-    .map((project) => `- [${project.name}](${new URL("/llms.txt", project.site).href}): ${answer(project)}`);
-}
-
-function notReady(projects: readonly Project[]): string[] {
-  const waiting = projects.filter((project) => !project.site);
-  if (waiting.length === 0) return [];
-  return [
-    "## No site yet",
-    "",
-    "These projects have no site of their own yet.",
-    "",
-    ...waiting.map((project) => `- ${project.name}: ${answer(project)}${project.repo ? ` Source: ${project.repo}` : ""}`),
-    "",
-  ];
+  return projects.map((project) =>
+    project.site
+      ? `- [${project.name}](${new URL("/llms.txt", project.site).href}): ${answer(project)}`
+      : `- ${project.name}: ${answer(project)}${project.repo ? ` Source: ${project.repo}` : ""}`,
+  );
 }
 
 const HOW_TO_READ =
@@ -65,11 +55,10 @@ export function llmsTxt(site: SiteInfo, docs: readonly Doc[], projects: readonly
       ? [
           "## Projects",
           "",
-          "Each project is listed with the problem it answers, in the words of someone who has it, then what it does and how far along it is.",
+          "Each project is listed with the problem it answers, in the words of someone who has it, then what it does and how far along it is. A project with a site of its own is linked to that site's llms.txt.",
           "",
           ...projectItems(projects),
           "",
-          ...notReady(projects),
         ]
       : []),
     ...(docs.length > 0 ? ["## Pages", "", ...docs.map((doc) => docItem(site, doc)), ""] : []),
