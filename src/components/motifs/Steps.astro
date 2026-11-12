@@ -1,0 +1,213 @@
+---
+// The day spent babysitting agents, as five steps with a small drawing each.
+// The last one, finding the agent blocked, is the only one in ember, and its
+// vein throbs.
+import { ICONS, STEPS } from "../../lib/icons.ts";
+
+interface Props {
+  /**
+   * `chain`: the steps hang off one another by arrows, each a little further off course.
+   * `row`: side by side, left to right.
+   * `rail`: down a line, with larger drawings.
+   * `turns`: the row, with a bar over each step that lights in turn.
+   */
+  variant: "chain" | "row" | "rail" | "turns";
+}
+
+const { variant } = Astro.props;
+---
+
+<ol class:list={["steps", variant]}>
+  {
+    STEPS.map((step, index) => (
+      <li class:list={[{ last: index === STEPS.length - 1 }]} style={`--step:${index}`}>
+        <svg class="icon" viewBox="0 0 24 24" aria-hidden="true" set:html={ICONS[step.icon]} />
+        <span>{step.text}</span>
+      </li>
+    ))
+  }
+</ol>
+
+<style>
+  .steps {
+    --indent: 1.6rem;
+    margin-block: 1.5rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .icon {
+    flex-shrink: 0;
+    width: 1.6em;
+    height: 1.6em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.8;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .icon :global(.dot) {
+    fill: currentColor;
+    stroke: none;
+  }
+  /* The step that ends the day: the only ember here, and the only thing that moves. */
+  .last .icon {
+    color: var(--ember);
+    stroke-width: 2.4;
+    animation: throb 1.1s ease-in-out infinite;
+  }
+  @keyframes throb {
+    0%,
+    100% {
+      transform: scale(1);
+    }
+    30% {
+      transform: scale(1.22);
+    }
+    55% {
+      transform: scale(0.96);
+    }
+  }
+
+  /* Chain: each step hangs off the one before by an arrow. */
+  .chain {
+    font-size: clamp(1rem, 3.2vw, 1.3rem);
+  }
+  .chain li {
+    padding-left: calc(var(--step) * var(--indent));
+  }
+  .chain li + li {
+    margin-top: 0.9rem;
+    padding-left: calc((var(--step) - 1) * var(--indent) + 2.1rem);
+  }
+  .chain li + li::before {
+    content: "";
+    position: absolute;
+    left: calc((var(--step) - 1) * var(--indent) + 0.6rem);
+    top: -0.7rem;
+    width: 0.9rem;
+    height: 1.55rem;
+    border-left: 2px solid var(--muted);
+    border-bottom: 2px solid var(--muted);
+  }
+  .chain li + li::after {
+    content: "";
+    position: absolute;
+    left: calc((var(--step) - 1) * var(--indent) + 1.4rem);
+    top: 0.52rem;
+    border-block: 0.3rem solid transparent;
+    border-left: 0.45rem solid var(--muted);
+  }
+
+  /* Row: side by side, the drawing above its words, an arrow between. */
+  .row,
+  .turns {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 1.25rem;
+    font-size: 0.95rem;
+  }
+  .row li,
+  .turns li {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 0.6rem;
+  }
+  .row .icon,
+  .turns .icon {
+    width: 2.6rem;
+    height: 2.6rem;
+  }
+  .row li + li::before,
+  .turns li + li::before {
+    content: "";
+    position: absolute;
+    top: 1.3rem;
+    left: -1.05rem;
+    width: 0.55rem;
+    border-top: 2px solid var(--muted);
+  }
+  .row li + li::after,
+  .turns li + li::after {
+    content: "";
+    position: absolute;
+    top: calc(1.3rem - 0.24rem);
+    left: -0.6rem;
+    border-block: 0.3rem solid transparent;
+    border-left: 0.4rem solid var(--muted);
+  }
+  @media (max-width: 40rem) {
+    .row,
+    .turns {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      row-gap: 1.5rem;
+    }
+    .row li + li::before,
+    .row li + li::after,
+    .turns li + li::before,
+    .turns li + li::after {
+      display: none;
+    }
+  }
+
+  /* Turns: a bar over each step, and each bar lights in its turn. The words stay at full strength throughout. */
+  .turns li {
+    padding-top: 0.9rem;
+    border-top: 3px solid var(--line);
+    animation: turn 7s linear infinite;
+    animation-delay: calc(var(--step) * 1.1s);
+  }
+  .turns li + li::before,
+  .turns li + li::after {
+    display: none;
+  }
+  @keyframes turn {
+    0%,
+    100% {
+      border-top-color: var(--line);
+    }
+    4%,
+    26% {
+      border-top-color: var(--ink);
+    }
+    34% {
+      border-top-color: var(--line);
+    }
+  }
+
+  /* Rail: down a line, the drawings large enough to read the day from them alone. */
+  .rail {
+    font-size: 1.15rem;
+  }
+  .rail li {
+    gap: 1.1rem;
+    padding-block: 0.55rem;
+  }
+  .rail .icon {
+    z-index: 1;
+    box-sizing: content-box;
+    width: 2rem;
+    height: 2rem;
+    padding: 0.45rem;
+    border: 2px solid var(--line);
+    border-radius: 50%;
+    background: var(--surface);
+  }
+  .rail .last .icon {
+    border-color: var(--ember);
+  }
+  .rail li + li::before {
+    content: "";
+    position: absolute;
+    left: calc(1.45rem + 1px);
+    top: -0.55rem;
+    height: 1.1rem;
+    border-left: 2px solid var(--line);
+  }
+</style>
