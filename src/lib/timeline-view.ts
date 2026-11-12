@@ -18,6 +18,12 @@ export interface View {
   threads: boolean;
   /** How many hours pass each second. */
   speed: number;
+  /** `muted` draws the day in the text color and saves each project's color for the story happening now. */
+  tone?: "color" | "muted";
+  /** Thinner lanes, for when the strip should take less of the page. */
+  compact?: boolean;
+  /** Whether it starts moving by itself. When false it waits for its Play button. */
+  autoplay?: boolean;
 }
 
 /** Width of the column of lane names, and of the gap right of "now". */
@@ -26,10 +32,10 @@ export const MARGIN = 14;
 const RULER = 20;
 /** The backlog size that reaches the top of skift's lane. */
 const BACKLOG_TOP = 40;
-const ROW = 9;
 /** About how wide a letter of the person's words is, for cutting them to fit. */
 const LETTER = 6.4;
-const STACK = 3;
+/** Lanes where runs overlap stack them in rows. */
+const rows = (view: View) => (view.compact ? { tall: 6, count: 2 } : { tall: 9, count: 3 });
 
 interface Lane {
   id: LaneId;
@@ -38,14 +44,16 @@ interface Lane {
 }
 
 export function lanes(view: View): { lanes: Lane[]; height: number } {
+  const row = rows(view);
+  const thin = view.compact ? 12 : 17;
   const heights: [LaneId, number][] = [
-    ["you", 26],
-    ["thicket", 17],
-    ["skift", view.backlog ? 48 : 17],
-    ["mill", STACK * ROW + 5],
-    ["croft", STACK * ROW + 5],
-    ["almanac", 17],
-    ["knowledge", 17],
+    ["you", view.compact ? 20 : 26],
+    ["thicket", thin],
+    ["skift", view.backlog ? (view.compact ? 30 : 48) : thin],
+    ["mill", row.count * row.tall + (view.compact ? 3 : 5)],
+    ["croft", row.count * row.tall + (view.compact ? 3 : 5)],
+    ["almanac", thin],
+    ["knowledge", thin],
   ];
   let top = RULER;
   const placed = heights.map(([id, height]) => {
@@ -61,17 +69,19 @@ export function lanes(view: View): { lanes: Lane[]; height: number } {
  * so a clip never changes rows as the picture is redrawn.
  */
 export class Packer {
+  /** The most rows any view stacks. A view with fewer folds the extra ones back onto its own. */
+  static readonly ROWS = 3;
   #rows = new Map<string, number>();
   #taken = new Map<LaneId, [number, number][][]>();
 
   row(event: TimelineEvent): number {
     const known = this.#rows.get(event.id);
     if (known !== undefined) return known;
-    const rows = this.#taken.get(event.lane) ?? Array.from({ length: STACK }, () => []);
-    this.#taken.set(event.lane, rows);
-    const free = rows.findIndex((spans) => spans.every(([start, end]) => event.end + 0.04 <= start || event.start >= end + 0.04));
+    const taken = this.#taken.get(event.lane) ?? Array.from({ length: Packer.ROWS }, () => []);
+    this.#taken.set(event.lane, taken);
+    const free = taken.findIndex((spans) => spans.every(([start, end]) => event.end + 0.04 <= start || event.start >= end + 0.04));
     const row = free === -1 ? 0 : free;
-    (rows[row] as [number, number][]).push([event.start, event.end]);
+    (taken[row] as [number, number][]).push([event.start, event.end]);
     this.#rows.set(event.id, row);
     return row;
   }
@@ -95,6 +105,8 @@ export function frame(view: View, stories: readonly Story[], from: number, to: n
   const lane = (id: LaneId) => placed.find((candidate) => candidate.id === id) as Lane;
   const x = (time: number) => time * view.pxPerHour;
   const wide = view.pxPerHour >= 40;
+  const row = rows(view);
+  const pad = view.compact ? 2 : 4;
   const parts: string[] = [];
   const visible = stories.flatMap((story) => story.events).filter((event) => event.end >= from && event.start <= to);
   const events = new Map(visible.map((event) => [event.id, event]));
@@ -154,7 +166,7 @@ export function frame(view: View, stories: readonly Story[], from: number, to: n
     const at = lane(event.lane);
     const attributes = `data-id="${event.id}" data-story="${event.story}"`;
     if (event.lane === "you") {
-      parts.push(`<circle class="moment" ${attributes} cx="${n(x(event.start))}" cy="${at.top + at.height / 2}" r="5.5"/>`);
+      parts.push(`<circle class="moment" ${attributes} cx="${n(x(event.start))}" cy="${at.top + at.height / 2}" r="${view.compact ? 4.5 : 5.5}"/>`);
       const letters = Math.floor((room.get(event.id) ?? 0) / LETTER);
       if (wide && event.label && letters >= 6) {
         const said = event.label.length > letters ? `${event.label.slice(0, letters - 1).trimEnd()}…` : event.label;
@@ -166,8 +178,8 @@ export function frame(view: View, stories: readonly Story[], from: number, to: n
     const stacked = event.lane === "mill" || event.lane === "croft";
     // Over the backlog graph, a waiting question is a thin bar along the top of the lane.
     const thin = event.lane === "skift" && view.backlog;
-    const top = stacked ? at.top + 3 + packer.row(event) * ROW : at.top + 4;
-    const tall = stacked ? ROW - 2 : thin ? 6 : at.height - 8;
+    const top = stacked ? at.top + (view.compact ? 2 : 3) + (packer.row(event) % row.count) * row.tall : at.top + pad;
+    const tall = stacked ? row.tall - 2 : thin ? 6 : at.height - pad * 2;
     const width = Math.max((event.end - event.start) * view.pxPerHour, wide ? 4 : 1.5);
     const kind = event.asks ? "wait" : hollow.has(event.lane) ? "hollow" : "";
     parts.push(

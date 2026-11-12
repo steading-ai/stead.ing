@@ -35,7 +35,8 @@ function run(figure: HTMLElement): void {
   let stories: Story[] = [];
   let events = new Map<string, TimelineEvent>();
   let titles = new Map<number, Story>();
-  let paused = matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let paused = view.autoplay === false || matchMedia("(prefers-reduced-motion: reduce)").matches;
+  let live: number | undefined;
   let pointing = false;
   let pinned = false;
 
@@ -65,6 +66,9 @@ function run(figure: HTMLElement): void {
     events = drawn.events;
     titles = drawn.stories;
     drawnTo = to;
+    // A redraw replaces every element, so the story happening now has to be marked again.
+    live = undefined;
+    report();
   }
 
   function place(): void {
@@ -73,7 +77,13 @@ function run(figure: HTMLElement): void {
 
   function report(): void {
     const event = latest(stories, now);
-    if (event) line!.textContent = `${clock(event.start)} ${event.lane}: ${event.text}`;
+    if (!event) return;
+    line!.textContent = `${clock(event.start)} ${event.lane}: ${event.text}`;
+    if (event.story === live) return;
+    // Mark the story happening now, so a quiet strip can spend its color there.
+    for (const element of scroll!.querySelectorAll(".live")) element.classList.remove("live");
+    for (const element of scroll!.querySelectorAll(`[data-story="${event.story}"]`)) element.classList.add("live");
+    live = event.story;
   }
 
   function tick(from: number, to: number): void {
