@@ -13,28 +13,32 @@ const landing = await getLanding();
 const sentences = landing.headline.split(/(?<=\.)\s+/);
 const variations = [
   {
-    id: "tracks",
-    name: "1. Tracks",
-    idea: "The arrangement. A lane for you and one for each project. Work appears at the line marked now and slides into the past.",
-    view: { pxPerHour: 110, backlog: false, threads: false, speed: 1 / 6 },
+    id: "muted",
+    name: "1. Muted",
+    idea: "The whole day in the text color. A project's color appears only on the story happening now, and on whatever you point at, so the Copy button is the brightest thing on the page.",
+    layout: "beside",
+    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 7, tone: "muted" },
   },
   {
-    id: "burndown",
-    name: "2. Burn-down",
-    idea: "The same day, with skift's lane drawn as the backlog: it steps up when work is filed and steps down as mill merges it.",
-    view: { pxPerHour: 110, backlog: true, threads: false, speed: 1 / 6 },
+    id: "thin",
+    name: "2. Thin",
+    idea: "The same strip at about two thirds the height and half the speed, kept in color.",
+    layout: "beside",
+    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 14, compact: true },
   },
   {
-    id: "threads",
-    name: "3. Threads",
-    idea: "Lines join what caused what: an advisory, the task filed for it, the workspace, the fix, the note written afterwards. Point at any event to light up its whole story.",
-    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 7 },
+    id: "first",
+    name: "3. The prompt first",
+    idea: "The prompt box runs the full width under the headline, at a larger size, and the day sits beneath it, thin and muted, as what comes after.",
+    layout: "first",
+    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 10, tone: "muted", compact: true },
   },
   {
-    id: "week",
-    name: "4. One week",
-    idea: "Seven days across. The work becomes texture, the nights are plain to see, and your whole week is a handful of ember dots.",
-    view: { pxPerHour: 7, backlog: true, threads: false, speed: 3 },
+    id: "still",
+    name: "4. Still",
+    idea: "In color, but nothing moves until you press Play. Pointing at an event still explains it.",
+    layout: "beside",
+    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 7, autoplay: false },
   },
 ] as const;
 ---
@@ -43,8 +47,8 @@ const variations = [
   <div class="wrap intro">
     <h1 class="title">Hero variations</h1>
     <p class="measure mt-2 text-muted">
-      Four takes on one idea: a compact strip showing a day on a steading as it is meant to run. Point at any event for
-      what it is. Everything shown is invented to illustrate the design; none of it is a record of real work.
+      Four quieter takes on the hub's hero, so the day strip supports "Paste this into your agent" instead of competing
+      with it. The hub itself has the full-color strip for now.
     </p>
   </div>
   {
@@ -54,7 +58,7 @@ const variations = [
           <p class="caption">
             <strong id={`v-${variation.id}`}>{variation.name}</strong> {variation.idea}
           </p>
-          <div class="hero wide">
+          <div class={`hero ${variation.layout}`}>
             <div class="text">
               <h2 class="display">
                 {sentences.map((sentence) => (
@@ -115,11 +119,18 @@ const variations = [
     .display span {
       display: inline;
     }
-    /* Wide: the first step beside the summary, the record across the page beneath. */
-    .wide .words {
+    /* Beside: the first step next to the summary, the day across the page beneath. */
+    .beside .words {
       grid-template-columns: repeat(2, minmax(0, 1fr));
       gap: 3.5rem;
       align-items: start;
     }
+  }
+  /* The prompt first: it takes the full width, at a size that says it is the point. */
+  .first .words :global(.prompt) {
+    padding: 1.25rem 1.4rem;
+  }
+  .first .words :global(.prompt pre) {
+    font-size: 1.05rem;
   }
 </style>

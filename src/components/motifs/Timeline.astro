@@ -31,9 +31,16 @@ const nowX = WIDTH - MARGIN;
 const last = latest(stories, NOW);
 const project = (id: string) => PROJECTS.find((candidate) => candidate.id === id);
 const format = (count: number) => count.toLocaleString("en-US");
+// The marks beside the lane names, sized to the lanes.
+const glyph = view.compact ? 10 : 14;
 ---
 
-<figure class="timeline" data-timeline data-view={JSON.stringify(view)} data-hollow={[...hollow].join(" ")}>
+<figure
+  class:list={["timeline", { muted: view.tone === "muted", compact: view.compact }]}
+  data-timeline
+  data-view={JSON.stringify(view)}
+  data-hollow={[...hollow].join(" ")}
+>
   <div class="bar">
     <p class="counts">
       <span><b data-count="merged" data-value={merged}>{format(merged)}</b> pull requests merged</span>
@@ -61,9 +68,9 @@ const format = (count: number) => count.toLocaleString("en-US");
             <g class={`p-${lane.id}`}>
               <line class="rule" x1="0" x2={WIDTH} y1={lane.top} y2={lane.top} data-rule />
               {lane.id === "you" ? (
-                <circle class="moment" cx="7" cy={lane.top + lane.height / 2} r="5" />
+                <circle class="moment" cx={glyph / 2} cy={lane.top + lane.height / 2} r={glyph / 2 - 2} />
               ) : (
-                <svg class="project-mark" x="0" y={lane.top + lane.height / 2 - 7} width="14" height="14" viewBox={LIGHT_BOX} set:html={LIGHTS[project(lane.id)?.glyph ?? "console"]} />
+                <svg class="project-mark" x="0" y={lane.top + lane.height / 2 - glyph / 2} width={glyph} height={glyph} viewBox={LIGHT_BOX} set:html={LIGHTS[project(lane.id)?.glyph ?? "console"]} />
               )}
               <text class="name" x="21" y={lane.top + lane.height / 2 + 4}>
                 {lane.id}
@@ -203,6 +210,48 @@ const format = (count: number) => count.toLocaleString("en-US");
   .timeline svg.focused .thread.in-story {
     stroke: var(--ink);
     opacity: 1;
+  }
+  /* Muted: the day is drawn in the text color, and each project's color is saved for the story happening now and the one pointed at. */
+  .timeline.muted .clip {
+    fill: var(--ink);
+    opacity: 0.24;
+  }
+  .timeline.muted .clip.hollow {
+    fill: var(--ground);
+    stroke: var(--ink);
+    opacity: 0.38;
+  }
+  .timeline.muted .thread {
+    opacity: 0.22;
+  }
+  .timeline.muted .clip.live,
+  .timeline.muted svg.focused .clip.in-story {
+    fill: var(--accent);
+    opacity: 1;
+  }
+  .timeline.muted .clip.hollow.live,
+  .timeline.muted svg.focused .clip.hollow.in-story {
+    fill: var(--ground);
+    stroke: var(--accent);
+  }
+  .timeline.muted .thread.live {
+    stroke: var(--ink);
+    opacity: 0.75;
+  }
+  .timeline.muted .clip.wait {
+    fill: var(--ground);
+    stroke: var(--ember);
+    opacity: 1;
+  }
+  .timeline.muted .counts b,
+  .timeline.compact .counts b {
+    font-size: 1rem;
+  }
+  .timeline.compact .name {
+    font-size: 11px;
+  }
+  .timeline.compact .said {
+    font-size: 11.5px;
   }
   .timeline .tip {
     position: absolute;
