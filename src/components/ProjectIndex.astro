@@ -24,7 +24,7 @@ const groups = ORDER.map((status) => ({ status, projects: PROJECTS.filter((proje
       </header>
       <ul>
         {projects.map((project) => (
-          <li class={`p-${project.id}`}>
+          <li id={project.id} class={`p-${project.id}`}>
             <p class="pain">
               “{project.pain}”{project.measured && <span class="measured"> {project.measured}</span>}
             </p>
@@ -70,6 +70,13 @@ const groups = ORDER.map((status) => ({ status, projects: PROJECTS.filter((proje
     display: grid;
     gap: 0.75rem 2.5rem;
     padding-block: 1.1rem;
+    scroll-margin-top: 1rem;
+  }
+  /* Arriving from the Projects menu: say which row was meant. */
+  li:target .name {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 3px;
   }
   li + li {
     border-top: 1px solid var(--line);

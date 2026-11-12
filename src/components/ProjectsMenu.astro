@@ -1,0 +1,181 @@
+---
+// The family, in one menu: every project with its mark and a line saying what
+// it is, grouped by what it is for. A name alone tells a newcomer nothing, so
+// no project is listed by name alone. A project with its own site links there;
+// the rest link to their row on the hub, which says how far along they are.
+import { GROUPS, type Group, PROJECTS, type Project, STATUS_LABEL, STEADING } from "../projects.ts";
+import { SITE } from "../site.ts";
+import ProjectMark from "./ProjectMark.astro";
+
+const hub = SITE.isHub ? "/" : (STEADING.site as string);
+const href = (project: Project) => project.site ?? `${hub}#${project.id}`;
+const groups = (Object.keys(GROUPS) as Group[]).map((group) => ({
+  id: group,
+  label: GROUPS[group],
+  projects: PROJECTS.filter((project) => project.group === group),
+}));
+---
+
+<details class="menu" data-menu>
+  <summary>Projects</summary>
+  <div class="panel">
+    <div class="groups">
+      {
+        groups.map((group) => (
+          <section aria-labelledby={`menu-${group.id}`}>
+            <h2 id={`menu-${group.id}`}>{group.label}</h2>
+            <ul>
+              {group.projects.map((project) => (
+                <li class={`p-${project.id}`}>
+                  <a href={href(project)} aria-current={SITE.project.id === project.id ? "page" : undefined}>
+                    <ProjectMark glyph={project.glyph} size={36} />
+                    <span>
+                      <span class="name">
+                        {project.name}
+                        {project.status !== "running" && <span class="status">{STATUS_LABEL[project.status]}</span>}
+                      </span>
+                      <span class="what">{project.what}</span>
+                    </span>
+                  </a>
+                </li>
+              ))}
+            </ul>
+          </section>
+        ))
+      }
+    </div>
+    <p class="all">
+      <a href={`${hub}#projects`}>Every project, by the problem it fixes</a>
+    </p>
+  </div>
+</details>
+
+<style>
+  summary {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    cursor: pointer;
+    list-style: none;
+  }
+  summary::-webkit-details-marker {
+    display: none;
+  }
+  /* A caret that points at the open menu. */
+  summary::after {
+    content: "";
+    width: 0.45rem;
+    height: 0.45rem;
+    margin-top: -0.2rem;
+    border-right: 2px solid currentColor;
+    border-bottom: 2px solid currentColor;
+    transform: rotate(45deg);
+  }
+  .menu[open] summary::after {
+    margin-top: 0.2rem;
+    transform: rotate(225deg);
+  }
+  .panel {
+    position: absolute;
+    top: 100%;
+    left: 1.25rem;
+    right: 1.25rem;
+    z-index: 20;
+    max-width: 58rem;
+    padding: 1.5rem;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: var(--surface);
+    box-shadow: 0 1.25rem 3rem rgb(0 0 0 / 0.28);
+  }
+  .groups {
+    display: grid;
+    gap: 1.5rem 2.5rem;
+  }
+  h2 {
+    margin-bottom: 0.5rem;
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-weight: 600;
+  }
+  li + li {
+    margin-top: 0.25rem;
+  }
+  a {
+    text-decoration: none;
+  }
+  li a {
+    display: flex;
+    gap: 0.85rem;
+    padding: 0.55rem 0.6rem;
+    margin-inline: -0.6rem;
+    border-radius: 0.5rem;
+  }
+  li a:hover,
+  li a:focus-visible {
+    background: var(--ground);
+  }
+  .name {
+    display: flex;
+    align-items: baseline;
+    gap: 0.6rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  li a[aria-current="page"] .name {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.25em;
+  }
+  .status {
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+    font-weight: 400;
+  }
+  .what {
+    display: block;
+    color: var(--muted);
+    font-size: 0.9rem;
+    line-height: 1.4;
+  }
+  .all {
+    margin-top: 1.25rem;
+    padding-top: 1rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.95rem;
+  }
+  .all a {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+  }
+  /* On a wide screen the menu hangs under its button, at the right. */
+  @media (min-width: 48rem) {
+    .panel {
+      left: auto;
+      right: 2rem;
+      width: min(58rem, 100% - 4rem);
+    }
+    .groups {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+</style>
+
+<script>
+  // The menu opens and closes without this. It adds what a menu is expected
+  // to do: Escape closes it and returns focus, and so does a click elsewhere.
+  for (const menu of document.querySelectorAll<HTMLDetailsElement>("[data-menu]")) {
+    const summary = menu.querySelector("summary");
+    document.addEventListener("keydown", (event) => {
+      if (event.key !== "Escape" || !menu.open) return;
+      menu.open = false;
+      summary?.focus();
+    });
+    document.addEventListener("click", (event) => {
+      if (menu.open && event.target instanceof Node && !menu.contains(event.target)) menu.open = false;
+    });
+  }
+</script>

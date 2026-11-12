@@ -10,7 +10,7 @@ A project's repository holds only its own words: a folder with a `site.yaml` and
 - **A page for every Markdown file** in the folder, with navigation built from the folder layout.
 - **A Markdown twin of every page.** Swap a page's trailing slash for `.md` (`/guide/first/` is also `/guide/first.md`; the front page is `/index.md`).
 - **`/llms.txt` and `/llms-full.txt`**, so an agent can read the whole site without parsing HTML.
-- **The strip of Steading projects** along the top, and the project's own color and mark.
+- **A Projects menu** that lists every Steading project with a line saying what it is, and the project's own color and mark.
 
 The sites are static files that work without JavaScript and load nothing from another origin.
 

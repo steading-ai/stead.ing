@@ -29,6 +29,15 @@ for (const colorScheme of ["light", "dark"] as const) {
           expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target.join(" ")) }))).toEqual([]);
         });
 
+        test(`${name} has no violations with the Projects menu open`, async ({ page }) => {
+          await page.goto(url);
+          await page.getByText("Projects", { exact: true }).click();
+          const { violations } = await new AxeBuilder({ page }).withTags(WCAG_22_AA).analyze();
+          expect(violations.map(({ id, nodes }) => ({ id, targets: nodes.map((node) => node.target.join(" ")) }))).toEqual([]);
+          const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);
+          expect(overflow).toBeLessThanOrEqual(0);
+        });
+
         test(`${name} doesn't scroll sideways`, async ({ page }) => {
           await page.goto(url);
           const overflow = await page.evaluate(() => document.documentElement.scrollWidth - document.documentElement.clientWidth);

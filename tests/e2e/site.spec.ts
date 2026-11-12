@@ -34,19 +34,72 @@ test.describe("keyboard", () => {
   });
 });
 
-test.describe("the family", () => {
-  test("every site names its own project as the current one", async ({ page }) => {
-    await page.goto(`${skift}/`);
-    const strip = page.getByRole("navigation", { name: "Steading projects" });
-    await expect(strip.getByRole("link", { name: "skift" })).toHaveAttribute("aria-current", "page");
-    await expect(strip.getByRole("link", { name: "steading" })).toHaveAttribute("href", "https://stead.ing/");
+test.describe("the Projects menu", () => {
+  test("says what every project is, not only its name", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    await page.getByText("Projects", { exact: true }).click();
+    const menu = page.locator("[data-menu]");
+    await expect(menu.getByRole("link")).toHaveCount(11);
+    await expect(menu.getByRole("link", { name: /skift.*A task graph agents and people share/ })).toHaveAttribute(
+      "href",
+      "https://skift.stead.ing/",
+    );
   });
 
-  test("a project without a site is named but not linked", async ({ page }) => {
+  test("sends a project without a site to its row on the hub, and says how far along it is", async ({ page }) => {
+    await page.goto(`${skift}/`);
+    await page.getByText("Projects", { exact: true }).click();
+    const croft = page.locator("[data-menu]").getByRole("link", { name: /croft/ });
+    await expect(croft).toHaveAttribute("href", "https://stead.ing/#croft");
+    await expect(croft).toContainText("In design");
+  });
+
+  test("marks the project whose site this is", async ({ page }) => {
+    await page.goto(`${skift}/`);
+    await page.getByText("Projects", { exact: true }).click();
+    await expect(page.locator("[data-menu]").getByRole("link", { name: /skift/ })).toHaveAttribute("aria-current", "page");
+  });
+
+  test("opens from the keyboard, and Escape closes it and gives focus back", async ({ page }) => {
     await page.goto(`${hub}/`);
-    const strip = page.getByRole("navigation", { name: "Steading projects" });
-    await expect(strip.getByText("croft")).toBeVisible();
-    await expect(strip.getByRole("link", { name: "croft" })).toHaveCount(0);
+    const summary = page.locator("[data-menu] summary");
+    await summary.focus();
+    await page.keyboard.press("Enter");
+    await expect(page.locator("[data-menu] .panel")).toBeVisible();
+    await page.keyboard.press("Tab");
+    await expect(page.locator("[data-menu]").getByRole("link").first()).toBeFocused();
+    await page.keyboard.press("Escape");
+    await expect(page.locator("[data-menu] .panel")).toBeHidden();
+    await expect(summary).toBeFocused();
+  });
+
+  test("closes on a click elsewhere", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    await page.getByText("Projects", { exact: true }).click();
+    // The open menu covers the top of the page, so click below it.
+    await page.getByRole("contentinfo").click();
+    await expect(page.locator("[data-menu] .panel")).toBeHidden();
+  });
+
+  test("still opens without JavaScript", async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    await page.goto(`${hub}/`);
+    await page.getByText("Projects", { exact: true }).click();
+    await expect(page.locator("[data-menu]").getByRole("link", { name: /mill/ })).toBeVisible();
+    await context.close();
+  });
+
+  test("the hub's row for a project is where its menu link lands", async ({ page }) => {
+    await page.goto(`${hub}/#croft`);
+    await expect(page.locator("#croft")).toBeInViewport();
+  });
+});
+
+test.describe("a project's site", () => {
+  test("leads back to Steading from its header", async ({ page }) => {
+    await page.goto(`${skift}/`);
+    await expect(page.getByRole("banner").getByRole("link", { name: "steading" })).toHaveAttribute("href", "https://stead.ing/");
   });
 });
 
@@ -93,9 +146,14 @@ for (const colorScheme of ["light", "dark"] as const) {
       await page.goto(url);
       await page.screenshot({ path: `test-results/screenshots/${name}-${colorScheme}.png`, fullPage: true });
     }
+    await page.goto(`${skift}/`);
+    await page.getByText("Projects", { exact: true }).click();
+    await page.screenshot({ path: `test-results/screenshots/menu-${colorScheme}.png` });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${hub}/`);
     await page.screenshot({ path: `test-results/screenshots/hub-phone-${colorScheme}.png`, fullPage: true });
+    await page.getByText("Projects", { exact: true }).click();
+    await page.screenshot({ path: `test-results/screenshots/menu-phone-${colorScheme}.png`, fullPage: true });
     await context.close();
   });
 }
