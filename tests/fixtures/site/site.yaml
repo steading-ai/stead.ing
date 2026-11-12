@@ -1,0 +1,23 @@
+# A made-up skift site that exercises every field and every kind of link.
+project: skift
+headline: A fixture headline.
+summary: A fixture summary with "quotes" and <angle brackets>.
+prompt: Read https://skift.stead.ing/llms.txt and help me.
+agent: Fixture advice for agents.
+install:
+  command: sudo dnf install skift
+  note: Needs `PostgreSQL`. See [the guide](/guide/).
+facts: [Open source, ISC]
+starts:
+  - title: First start
+    body: Do the **first** thing.
+features:
+  - title: A feature.
+    body: It does something.
+not:
+  - title: Not a thing.
+    body: It isn't that.
+instead: Try [something else](https://example.com/).
+pairs:
+  - project: mill
+    body: pairs with it.
