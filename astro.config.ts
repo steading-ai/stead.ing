@@ -1,7 +1,7 @@
 import { satteri } from "@astrojs/markdown-satteri";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
-import { rewriteDocLinks } from "./src/lib/markdown.ts";
+import { rewriteDocLinks, scrollWideTables } from "./src/lib/markdown.ts";
 import { SITE } from "./src/site.ts";
 
 export default defineConfig({
@@ -20,6 +20,7 @@ export default defineConfig({
           folders: SITE.folders,
           source: SITE.source,
         }),
+        scrollWideTables(),
       ],
     }),
     // Two themes in one render; global.css switches between them with the color scheme.

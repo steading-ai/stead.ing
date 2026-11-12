@@ -216,6 +216,14 @@ h3,
 .prose :where(pre) {
   border: 1px solid var(--line);
 }
+/* A long path or command in a sentence breaks where it has to, instead of widening the page. */
+.prose :where(:not(pre) > code) {
+  overflow-wrap: anywhere;
+}
+/* A table wider than the page scrolls inside its own frame (src/lib/markdown.ts). */
+.prose .table-scroll {
+  overflow-x: auto;
+}
 /* The typography plugin wraps inline code in backticks; the monospace says it already. */
 .prose :where(code)::before,
 .prose :where(code)::after {

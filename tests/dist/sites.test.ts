@@ -124,6 +124,10 @@ describe("the fixture site", () => {
     expect(read("docs/guide/first.md")).toContain("(../reference.md)");
   });
 
+  it.runIf(existsSync(root))("gives a table a frame to scroll in, which the keyboard can reach", () => {
+    expect(read("docs/reference/index.html")).toMatch(/<div class="table-scroll" tabindex="0" role="group" aria-label="Table"><table/);
+  });
+
   it.runIf(existsSync(root))("escapes what site.yaml says", () => {
     expect(read("index.html")).toContain("&lt;angle brackets&gt;");
   });

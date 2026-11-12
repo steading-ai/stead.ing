@@ -63,6 +63,28 @@ export function rewriteDocLinks(targets: LinkTargets) {
   });
 }
 
+/**
+ * Sätteri plugin giving every table a frame it can scroll sideways in, so a
+ * wide table never widens the page. The frame takes keyboard focus, since
+ * scrolling it is otherwise out of reach without a pointer.
+ */
+export function scrollWideTables() {
+  return defineHastPlugin({
+    name: "scroll-wide-tables",
+    element: {
+      filter: ["table"],
+      visit(node, ctx) {
+        ctx.wrapNode(node, {
+          type: "element",
+          tagName: "div",
+          properties: { className: ["table-scroll"], tabIndex: 0, role: "group", ariaLabel: "Table" },
+          children: [],
+        });
+      },
+    },
+  });
+}
+
 const LEADING_H1 = /^\s*#\s+(.+?)\s*#*\s*(?:\r?\n|$)/;
 
 /** A page's first-line `# Title`, if it opens with one. */
