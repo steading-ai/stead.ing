@@ -1,0 +1,141 @@
+---
+// Motif 3. One day, midnight to midnight. The top rail is the person: a few
+// ember marks for the moments they acted. Under it the work runs on through
+// the night, one bar per run, in the color of the project that did it.
+import { day, MOMENTS } from "../../lib/sample.ts";
+import { projectById } from "../../projects.ts";
+
+const bars = day();
+const LANES = ["mill", "almanac", "thicket"] as const;
+const HOUR = 46;
+const LEFT = 78;
+const TOP = 74;
+const ROW = 30;
+const width = LEFT + 24 * HOUR + 12;
+const height = TOP + LANES.length * ROW + 34;
+const x = (hours: number) => LEFT + hours * HOUR;
+const laneY = (lane: (typeof LANES)[number]) => TOP + LANES.indexOf(lane) * ROW;
+const merged = bars.filter((bar) => bar.merged).length;
+const clock = (hours: number) => `${String(Math.floor(hours)).padStart(2, "0")}:${String(Math.round((hours % 1) * 60)).padStart(2, "0")}`;
+---
+
+<figure class="day">
+  <!-- The strip is wider than a phone, so it scrolls, and a scrolling region has to be reachable by keyboard. -->
+  <div class="scroll" tabindex="0" role="region" aria-label="One day of work, hour by hour">
+    <svg
+      viewBox={`0 0 ${width} ${height}`}
+      role="img"
+      aria-label={`A day from midnight to midnight. ${bars.length} runs are drawn as bars across the hours, most of them at night. The person acted ${MOMENTS.length} times.`}
+    >
+      <rect class="night" x={x(0)} y={TOP - 8} width={7 * HOUR} height={LANES.length * ROW + 8}></rect>
+      <rect class="night" x={x(23)} y={TOP - 8} width={HOUR} height={LANES.length * ROW + 8}></rect>
+      <text class="quiet" x={x(3.5)} y={TOP + LANES.length * ROW + 16} text-anchor="middle">asleep</text>
+
+      <text class="lane you" x="0" y="50">you</text>
+      <line class="rail" x1={x(0)} y1="46" x2={x(24)} y2="46"></line>
+      {
+        MOMENTS.map((moment) => (
+          <g>
+            <circle class="light" cx={x(moment.at)} cy="46" r="6" />
+            <text class="said" x={x(moment.at)} y="28" text-anchor="middle">
+              {clock(moment.at)} {moment.label}
+            </text>
+          </g>
+        ))
+      }
+
+      {
+        LANES.map((lane) => (
+          <g class={`p-${lane}`}>
+            <text class="lane" x="0" y={laneY(lane) + 15}>
+              {projectById(lane).name}
+            </text>
+            {bars
+              .filter((bar) => bar.lane === lane)
+              .map((bar) => (
+                <g>
+                  <rect class:list={["bar", { open: !bar.merged }]} x={x(bar.start)} y={laneY(lane) + 4} width={Math.max((bar.end - bar.start) * HOUR, 3)} height="14" />
+                  {bar.waitedFrom !== undefined && (
+                    <rect class="wait" x={x(bar.waitedFrom)} y={laneY(lane) + 4} width={(bar.end - 0.35 - bar.waitedFrom) * HOUR} height="14" />
+                  )}
+                </g>
+              ))}
+          </g>
+        ))
+      }
+
+      {
+        [0, 6, 12, 18, 24].map((hour) => (
+          <text class="quiet" x={x(hour)} y={height - 2} text-anchor={hour === 0 ? "start" : hour === 24 ? "end" : "middle"}>
+            {String(hour).padStart(2, "0")}:00
+          </text>
+        ))
+      }
+    </svg>
+  </div>
+  <figcaption>
+    {bars.length} runs, {merged} merged, <span class="needs">you: {MOMENTS.length} moments</span>
+  </figcaption>
+</figure>
+
+<style>
+  .scroll {
+    overflow-x: auto;
+  }
+  svg {
+    display: block;
+    width: 100%;
+    min-width: 52rem;
+    height: auto;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    fill: var(--ink);
+  }
+  .night {
+    fill: var(--surface);
+  }
+  .quiet {
+    fill: var(--muted);
+    font-size: 12px;
+  }
+  .lane {
+    font-weight: 600;
+  }
+  .rail {
+    stroke: var(--line);
+    stroke-width: 2;
+  }
+  .light {
+    fill: var(--ember);
+  }
+  .said {
+    font-family: var(--font-sans);
+    font-size: 13px;
+  }
+  .bar {
+    fill: var(--accent);
+  }
+  /* A run that did not merge: an outline, not a block. */
+  .bar.open {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+  }
+  /* The stretch a run spent waiting for its answer. */
+  .wait {
+    fill: var(--ground);
+    stroke: var(--ember);
+    stroke-width: 1.5;
+  }
+  figcaption {
+    margin-top: 0.75rem;
+    font-family: var(--font-mono);
+  }
+  .needs {
+    font-weight: 600;
+    text-decoration: underline;
+    text-decoration-color: var(--ember);
+    text-decoration-thickness: 3px;
+    text-underline-offset: 0.25em;
+  }
+</style>

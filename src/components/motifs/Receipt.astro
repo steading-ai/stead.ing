@@ -1,0 +1,183 @@
+---
+// Motif 1. One finished piece of work as its receipt: each line is a step, the
+// project that took it, what a program checked, and what it cost. A person's
+// lines are the only ember on it, so the eye finds how little they were needed.
+import { type Actor, dollars, type Line, RUN } from "../../lib/sample.ts";
+import { projectById } from "../../projects.ts";
+import ProjectMark from "../ProjectMark.astro";
+
+const total = RUN.lines.reduce((sum, line) => sum + (line.cents ?? 0), 0);
+const yours = RUN.lines.filter((line) => line.actor === "you").length;
+const glyph = (actor: Exclude<Actor, "you">) => projectById(actor).glyph;
+const sign = (line: Line) => (line.mark === "held" ? "✓" : line.mark === "back" ? "↩" : "");
+---
+
+<figure class="receipt">
+  <div class="slip">
+    <p class="head">
+      <span class="ref">{RUN.ref}</span>
+      {RUN.title}
+    </p>
+    <ol>
+      {
+        RUN.lines.map((line) => (
+          <li class:list={[line.actor === "you" ? "you" : `p-${line.actor}`, line.mark]}>
+            <time>{line.time}</time>
+            <span class="who">
+              {line.actor === "you" ? <span class="light" /> : <ProjectMark glyph={glyph(line.actor)} size={14} bare />}
+              {line.actor}
+            </span>
+            <span class="step">{line.step}</span>
+            <span class="what">
+              {line.said && <q>{line.said}</q>}
+              {line.fact && <span class="fact">{line.fact}</span>}
+            </span>
+            <span class="sign" aria-hidden="true">
+              {sign(line)}
+            </span>
+            <span class="cost">{line.cents ? dollars(line.cents) : ""}</span>
+          </li>
+        ))
+      }
+    </ol>
+    <p class="total">
+      <span>merged, running</span>
+      <span>{dollars(total)}</span>
+    </p>
+    <p class="you-total">
+      <span class="light"></span>
+      you: {yours} of {RUN.lines.length} lines
+    </p>
+  </div>
+</figure>
+
+<style>
+  .receipt {
+    width: 100%;
+    max-width: 34rem;
+    margin-inline: auto;
+    /* The shadow follows the slip's torn edge. */
+    filter: drop-shadow(0 0.75rem 1.5rem rgb(0 0 0 / 0.22));
+  }
+  .slip {
+    padding: 1.25rem 1.1rem 2rem;
+    background: var(--surface);
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+    line-height: 1.45;
+    /* A torn bottom edge: the one silhouette a receipt has. */
+    mask: conic-gradient(from -45deg at bottom, #0000, #000 1deg 89deg, #0000 90deg) 50% / 0.9rem 100%;
+  }
+  .head {
+    padding-bottom: 0.75rem;
+    border-bottom: 1px dashed var(--muted);
+    font-size: 0.9rem;
+    font-weight: 600;
+  }
+  .ref {
+    margin-right: 0.5rem;
+    color: var(--muted);
+    font-weight: 400;
+  }
+  ol {
+    padding-block: 0.6rem;
+  }
+  li {
+    display: grid;
+    grid-template-columns: 2.7rem 4.6rem 6.3rem minmax(0, 1fr) 1rem 2.9rem;
+    column-gap: 0.45rem;
+    align-items: baseline;
+    padding-block: 0.16rem;
+  }
+  time,
+  .step {
+    color: var(--muted);
+  }
+  .who {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+  }
+  .light {
+    display: inline-block;
+    width: 0.6rem;
+    height: 0.6rem;
+    margin-inline: 0.13rem;
+    border-radius: 50%;
+    background: var(--ember);
+  }
+  /* A line that is not a step lets its words run across the step's column. */
+  .step:empty {
+    display: none;
+  }
+  .step:empty + .what {
+    grid-column: 3 / span 2;
+  }
+  q {
+    display: block;
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    font-style: italic;
+  }
+  .cost {
+    text-align: right;
+  }
+  /* The person's lines: the only ember on the slip. */
+  .you .who,
+  .you q {
+    font-weight: 600;
+  }
+  .you .fact {
+    color: var(--muted);
+  }
+  /* The agent said done and a program disagreed. */
+  .back .fact,
+  .back .sign {
+    font-weight: 600;
+  }
+  .back q {
+    color: var(--muted);
+    text-decoration: line-through;
+    text-decoration-thickness: 1px;
+  }
+  /* Waiting on the person: ringed in ember until they answer. */
+  .asks .fact {
+    padding: 0 0.3rem;
+    border: 1.5px solid var(--ember);
+    border-radius: 0.2rem;
+  }
+  /* On a narrow slip a line is two rows: when, who, and the cost, then what happened. */
+  @media (max-width: 40rem) {
+    li {
+      grid-template-columns: 2.7rem minmax(0, 1fr) 1rem 2.9rem;
+      padding-block: 0.3rem;
+    }
+    .sign {
+      grid-column: 3;
+      grid-row: 1;
+    }
+    .cost {
+      grid-column: 4;
+      grid-row: 1;
+    }
+    .step,
+    .what,
+    .step:empty + .what {
+      grid-column: 2 / -1;
+    }
+  }
+  .total {
+    display: flex;
+    justify-content: space-between;
+    padding-top: 0.75rem;
+    border-top: 1px dashed var(--muted);
+    font-size: 0.95rem;
+    font-weight: 600;
+  }
+  .you-total {
+    display: flex;
+    align-items: center;
+    gap: 0.35rem;
+    margin-top: 0.3rem;
+  }
+</style>
