@@ -6,6 +6,7 @@
 import type { Landing } from "../lib/schema.ts";
 import { SITE } from "../site.ts";
 import FlowMap from "./motifs/FlowMap.astro";
+import Steps from "./motifs/Steps.astro";
 import Timeline from "./motifs/Timeline.astro";
 import ProjectIndex from "./ProjectIndex.astro";
 import PromptBox from "./PromptBox.astro";
@@ -29,23 +30,18 @@ const sentences = landing.headline.split(/(?<=\.)\s+/);
 </section>
 
 <section class="band band-surface" aria-labelledby="why">
-  <div class="wrap why">
-    <div>
-      <h2 id="why" class="display-2">You've got more ideas than hours.</h2>
-      <p class="mt-6 measure">
-        You pay for a model subscription (or <em>four</em>) and either max it out or barely use it. Not for lack of ideas, but
-        because babysitting agents eats up most of your time.
-      </p>
-      <!-- Each step leads to the next, a little further off course. -->
-      <ol class="drift">
-        <li>Talk out a problem.</li>
-        <li>Set a goal.</li>
-        <li>Switch windows.</li>
-        <li>Lose the thread.</li>
-        <li>Find out your agent is blocked.</li>
-      </ol>
-      <p class="monday"><em>Every morning feels like Monday brain.</em></p>
+  <div class="wrap">
+    <h2 id="why" class="display-2">You've got more ideas than hours.</h2>
+    <p class="mt-6 measure">
+      You pay for a model subscription (or <em>four</em>) and either max it out or barely use it. Not for lack of ideas, but
+      because babysitting agents eats up most of your time.
+    </p>
+    <div class="day">
+      <Steps variant="row" />
     </div>
+  </div>
+  <div class="wrap why">
+    <p class="monday"><em>Every morning feels like Monday brain.</em></p>
     <div class="pullout measure">
       <p>
         So you try to build a software factory. Everyone does eventually. Then every tool becomes one more thing to patch,
@@ -184,6 +180,7 @@ const sentences = landing.headline.split(/(?<=\.)\s+/);
   .why {
     display: grid;
     gap: 2.5rem;
+    margin-top: 2.5rem;
   }
   @media (min-width: 60rem) {
     .why {
@@ -198,60 +195,15 @@ const sentences = landing.headline.split(/(?<=\.)\s+/);
     font-size: 1.15rem;
   }
 
-  /* Each step hangs off the one before by an arrow, and sits a little further off course. */
-  .drift {
-    --indent: 1.6rem;
-    margin-block: 1.5rem;
-    font-family: var(--font-mono);
-    font-size: clamp(1rem, 3.2vw, 1.35rem);
-    font-weight: 600;
-    line-height: 1.3;
-  }
-  .drift li {
-    position: relative;
-    padding-left: calc(var(--step) * var(--indent));
-  }
-  .drift li + li {
-    margin-top: 0.9rem;
-    padding-left: calc((var(--step) - 1) * var(--indent) + 2.1rem);
-  }
-  .drift li:nth-child(1) {
-    --step: 0;
-  }
-  .drift li:nth-child(2) {
-    --step: 1;
-  }
-  .drift li:nth-child(3) {
-    --step: 2;
-  }
-  .drift li:nth-child(4) {
-    --step: 3;
-  }
-  .drift li:nth-child(5) {
-    --step: 4;
-  }
-  /* The arrow's stem and shaft: down from under the step before, then across. */
-  .drift li + li::before {
-    content: "";
-    position: absolute;
-    left: calc((var(--step) - 1) * var(--indent) + 0.45rem);
-    top: -0.7rem;
-    width: 1rem;
-    height: 1.35rem;
-    border-left: 2px solid var(--muted);
-    border-bottom: 2px solid var(--muted);
-  }
-  /* And its head. */
-  .drift li + li::after {
-    content: "";
-    position: absolute;
-    left: calc((var(--step) - 1) * var(--indent) + 1.35rem);
-    top: 0.33rem;
-    border-block: 0.3rem solid transparent;
-    border-left: 0.45rem solid var(--muted);
+  /* The day in five steps, across the page. */
+  .day {
+    max-width: 56rem;
   }
   .monday {
-    font-size: 1.25rem;
+    font-family: var(--font-mono);
+    font-size: clamp(1.25rem, 3vw, 1.75rem);
+    line-height: 1.25;
+    text-wrap: balance;
   }
 
   /* The turn in the story, set apart from what led to it. */
