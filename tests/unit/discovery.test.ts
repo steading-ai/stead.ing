@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { indexMarkdown, llmsFullTxt, llmsTxt, robotsTxt, type SiteInfo, sitemapXml } from "../../src/lib/discovery.ts";
 import { toDoc } from "../../src/lib/docs.ts";
+import { pathOf } from "../../src/lib/pages.ts";
 import { PROJECTS } from "../../src/projects.ts";
 
 const LICENSE = { name: "ISC", url: "https://opensource.org/license/isc-license-txt" };
@@ -19,10 +20,10 @@ const hub: SiteInfo = {
 
 const skift: SiteInfo = { ...hub, origin: "https://skift.stead.ing", title: "skift", isHub: false, fit: undefined };
 
-const docs = [
-  toDoc({ file: "start.md", body: "# Start\n\nBegin here.", data: { description: "The first five minutes." } }),
-  toDoc({ file: "guide/first.md", body: "# First", data: {} }),
-];
+const page = (route: string, body: string, data: { description?: string } = {}) =>
+  toDoc({ file: `docs/${route}.md`, route, path: pathOf("project", route), group: route.includes("/") ? "guide" : "", index: false, body, data });
+
+const docs = [page("start", "# Start\n\nBegin here.", { description: "The first five minutes." }), page("guide/first", "# First")];
 
 describe("llms.txt", () => {
   it("follows the llmstxt.org shape: a title, a quoted summary, then linked sections", () => {
@@ -30,8 +31,8 @@ describe("llms.txt", () => {
     expect(lines[0]).toBe("# skift");
     expect(lines[2]).toBe("> Projects for running agents.");
     expect(lines).toContain("## Pages");
-    expect(lines).toContain("- [Start](https://skift.stead.ing/start.md): The first five minutes.");
-    expect(lines).toContain("- [First](https://skift.stead.ing/guide/first.md)");
+    expect(lines).toContain("- [Start](https://skift.stead.ing/docs/start.md): The first five minutes.");
+    expect(lines).toContain("- [First](https://skift.stead.ing/docs/guide/first.md)");
   });
 
   it("on the hub, links only the projects that have a site", () => {
@@ -61,8 +62,8 @@ describe("llms.txt", () => {
 describe("llms-full.txt", () => {
   it("carries every page, each with its own address", () => {
     const text = llmsFullTxt(skift, docs);
-    expect(text).toContain("canonical: https://skift.stead.ing/start/");
-    expect(text).toContain("canonical: https://skift.stead.ing/guide/first/");
+    expect(text).toContain("canonical: https://skift.stead.ing/docs/start/");
+    expect(text).toContain("canonical: https://skift.stead.ing/docs/guide/first/");
     expect(text).toContain("Begin here.");
   });
 });
@@ -84,7 +85,7 @@ describe("robots.txt and the sitemap", () => {
   it("lists the HTML pages, not their twins", () => {
     const xml = sitemapXml(skift, docs);
     expect(xml).toContain("<loc>https://skift.stead.ing/</loc>");
-    expect(xml).toContain("<loc>https://skift.stead.ing/guide/first/</loc>");
+    expect(xml).toContain("<loc>https://skift.stead.ing/docs/guide/first/</loc>");
     expect(xml).not.toContain(".md");
   });
 });

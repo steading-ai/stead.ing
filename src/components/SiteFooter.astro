@@ -1,7 +1,7 @@
 ---
 // The map at the bottom of every page: every project, this site's pages, the
 // parts of Steading that aren't a project, and the ways in for an agent.
-import { getDocs } from "../lib/content.ts";
+import { getPages } from "../lib/content.ts";
 import { PROJECTS, type Project, STEADING } from "../projects.ts";
 import { HUB_PAGES, SITE } from "../site.ts";
 import ProjectMark from "./ProjectMark.astro";
@@ -16,7 +16,9 @@ const { project } = SITE;
 const hub = SITE.isHub ? "/" : (STEADING.site as string);
 const onHub = (path: string) => (SITE.isHub ? path : new URL(path, hub).href);
 const projectHref = (other: Project) => other.site ?? `${hub}#${other.id}`;
-const pages = (await getDocs()).filter((doc) => !doc.file.includes("/") || doc.file.endsWith("/index.md")).slice(0, 7);
+// The top-level pages, then each folder by its own page.
+const { nav } = await getPages();
+const pages = nav.flatMap((group) => (group.index ? [group.index] : group.docs)).slice(0, 8);
 ---
 
 <footer class="site-footer">
@@ -57,7 +59,7 @@ const pages = (await getDocs()).filter((doc) => !doc.file.includes("/") || doc.f
             </li>
             {pages.map((doc) => (
               <li>
-                <a href={doc.path}>{doc.title}</a>
+                <a href={doc.path}>{doc.label}</a>
               </li>
             ))}
             {project.repo && (

@@ -12,10 +12,19 @@ export default defineConfig({
   // A page is a folder with an index.html, so every static host serves the same addresses.
   trailingSlash: "always",
   markdown: {
-    processor: satteri({ hastPlugins: [rewriteDocLinks({ root: SITE.contentDir })] }),
+    processor: satteri({
+      hastPlugins: [
+        rewriteDocLinks({
+          root: SITE.contentDir,
+          pages: new Map(SITE.pages.map((page) => [page.file, page.path])),
+          folders: SITE.folders,
+          source: SITE.source,
+        }),
+      ],
+    }),
     // Two themes in one render; global.css switches between them with the color scheme.
-    // The high-contrast light theme keeps every token at WCAG AA on Daylight's surface.
-    shikiConfig: { themes: { light: "github-light-high-contrast", dark: "github-dark" }, defaultColor: false },
+    // The high-contrast themes keep every token, comments included, at WCAG AA on Loam's and Daylight's surfaces.
+    shikiConfig: { themes: { light: "github-light-high-contrast", dark: "github-dark-high-contrast" }, defaultColor: false },
   },
   vite: { plugins: [tailwindcss()] },
 });

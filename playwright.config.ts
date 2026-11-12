@@ -3,7 +3,6 @@ import { defineConfig, devices } from "@playwright/test";
 /** The sites `pnpm build:all` produces, each served on its own port. */
 export const SITES = {
   steading: { dir: "dist/steading", port: 4410 },
-  skift: { dir: "dist/skift", port: 4411 },
   fixture: { dir: "dist/fixture", port: 4412 },
 } as const;
 

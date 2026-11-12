@@ -7,10 +7,11 @@ const at = (site: keyof typeof SITES, path: string) => `http://127.0.0.1:${SITES
 const PAGES = {
   "the hub": at("steading", "/"),
   "a hub page": at("steading", "/how-we-work/"),
-  "a project's front page": at("skift", "/"),
-  "a project's front page with every field": at("fixture", "/"),
-  "a page with code and a table": at("fixture", "/reference/"),
-  "a page in a folder": at("fixture", "/guide/first/"),
+  "a project's front page": at("fixture", "/"),
+  "a project's README": at("fixture", "/docs/"),
+  "a page with code and a table": at("fixture", "/docs/reference/"),
+  "a page in a folder": at("fixture", "/docs/guide/first/"),
+  "a folder's generated page": at("fixture", "/docs/adrs/"),
   "not found": at("steading", "/404.html"),
 };
 

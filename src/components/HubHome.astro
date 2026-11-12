@@ -4,30 +4,26 @@
 // real, and how to build it with us. The hero's words come from
 // content/site.yaml.
 import type { Landing } from "../lib/schema.ts";
-import { SITE } from "../site.ts";
+import Hero from "./Hero.astro";
+import JoinIn from "./JoinIn.astro";
 import FlowMap from "./motifs/FlowMap.astro";
 import Steps from "./motifs/Steps.astro";
 import Timeline from "./motifs/Timeline.astro";
 import ProjectIndex from "./ProjectIndex.astro";
-import PromptBox from "./PromptBox.astro";
 
 interface Props {
-  landing: Landing;
+  landing: Landing & { prompt: string };
 }
 
 const { landing } = Astro.props;
-const sentences = landing.headline.split(/(?<=\.)\s+/);
 ---
 
-<section class="hero wrap">
-  <h1 class="display">{sentences.map((sentence) => <span>{sentence} </span>)}</h1>
-  <p class="lead measure">{landing.summary}</p>
-  <PromptBox prompt={landing.prompt} />
+<Hero headline={landing.headline} summary={landing.summary} prompt={landing.prompt}>
   <p class="facts">
     Paste the prompt into your agent, or <a href="#projects">start with the project for your problem</a>.
   </p>
   <Timeline id="hero" view={{ pxPerHour: 130, backlog: false, threads: true, speed: 1 / 10, tone: "muted", compact: true }} />
-</section>
+</Hero>
 
 <section class="band band-surface" aria-labelledby="why">
   <div class="wrap">
@@ -106,55 +102,9 @@ const sentences = landing.headline.split(/(?<=\.)\s+/);
   </div>
 </section>
 
-<section class="band band-surface" aria-labelledby="join">
-  <div class="wrap">
-    <h2 id="join" class="display">Don't build it all on your own!</h2>
-    <p class="lead measure mt-6">
-      Everyone is building their own version of this and hitting the same walls. Build it with a community instead. Come
-      hang out on <a href={SITE.chat}>Discord</a>, pick up an open task, ask questions, or show us what you've made!
-    </p>
-    <p class="mt-6 flex flex-wrap gap-x-8 gap-y-2">
-      <a href={SITE.chat}>Join the Discord</a>
-      <a href="/how-we-work/">How we work, and how a project joins</a>
-      <a href="https://github.com/steading-ai">Steading on GitHub</a>
-    </p>
-  </div>
-</section>
+<JoinIn />
 
 <style>
-  .hero {
-    display: grid;
-    gap: 1.5rem;
-    padding-block: clamp(1.25rem, 4vw, 2.5rem) clamp(2.5rem, 6vw, 4rem);
-  }
-  /* A grid item is as wide as its widest content unless told otherwise. The day strip is another component's element, so the rule has to reach past this one's own. */
-  .hero > :global(*) {
-    min-width: 0;
-  }
-  .display span {
-    display: block;
-  }
-  /* The first step is the point of the page: it takes the full width, at a size that says so. */
-  .hero :global(.prompt) {
-    padding: 1.1rem 1.25rem;
-  }
-  .hero :global(.prompt pre) {
-    font-size: 1.05rem;
-  }
-  .facts {
-    color: var(--muted);
-    font-size: 0.95rem;
-  }
-  .hero :global(.timeline) {
-    margin-top: 1rem;
-  }
-  @media (min-width: 72rem) {
-    /* The headline on one line across the page. */
-    .display span {
-      display: inline;
-    }
-  }
-
   .subtitle {
     margin-top: 0.5rem;
     color: var(--muted);

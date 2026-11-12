@@ -1,29 +1,32 @@
 # stead.ing
 
-The websites for [Steading](https://stead.ing/): the hub at `stead.ing`, and one site per project at `<project>.stead.ing`. One codebase builds all of them, so every site shares a look, a structure, and a set of dependencies that is updated in one place.
+The websites for [Steading](https://stead.ing/): the hub at `stead.ing`, and one site per project at `<project>.stead.ing`. One codebase builds all of them, so every site shares a header, a footer, a look, and a set of dependencies that is updated in one place.
 
-A project's repository holds only its own words: a folder with a `site.yaml` and Markdown pages. The [site action](#publishing-a-projects-site) in this repository turns that folder into a site and publishes it to GitHub Pages.
+Each project's site is published from the project's own repository, by its own workflow, and everything it says comes from there: a `site.yaml` for the front page, and the project's `README.md` and `docs/` folder for its docs. This repository supplies only what the sites have in common, through the [site action](#publishing-a-projects-site).
 
 ## What every site has
 
-- **A front page** written by `site.yaml`: what the project does, a prompt to paste into your agent, where to start, what it is not, and what it works better with.
-- **A page for every Markdown file** in the folder, with navigation built from the folder layout.
-- **A Markdown twin of every page.** Swap a page's trailing slash for `.md` (`/guide/first/` is also `/guide/first.md`; the front page is `/index.md`).
+- **A front page** written by `site.yaml`: the headline, a prompt to paste into your agent, and whichever sections the project fills in.
+- **Docs at `/docs/`**, built from the project's `README.md` and every Markdown file under `docs/`, with navigation that follows the folder.
+- **A Markdown twin of every page.** Swap a page's trailing slash for `.md` (`/docs/vision/` is also `/docs/vision.md`; the front page is `/index.md`).
 - **`/llms.txt` and `/llms-full.txt`**, so an agent can read the whole site without parsing HTML.
-- **A Projects menu** that lists every Steading project with a line saying what it is, and the project's own color and mark.
+- **The same header and footer**: a Projects menu that lists every Steading project with a line saying what it is, and the project's own color and mark.
+- **The same closing invitation** to build it with other people.
 
 The sites are static files that work without JavaScript and load nothing from another origin.
 
-## A site's content folder
+## What a project's repository provides
 
 ```text
-site/
-  site.yaml        which project this is, and the front page's words
-  get-started.md   a page at /get-started/
-  guide/
-    index.md       a page at /guide/, and the name of the "guide" group
-    first.md       a page at /guide/first/
+site.yaml        which project this is, and the front page's words
+README.md        the first page of the docs, at /docs/
+docs/
+  vision.md      a page at /docs/vision/
+  adrs/
+    001-first.md a page at /docs/adrs/001-first/, filed under "Decisions"
 ```
+
+Nothing is written twice. The README people read on GitHub is the docs' overview, and a link in it to `docs/vision.md` leads to that page on the site.
 
 ### `site.yaml`
 
@@ -32,17 +35,32 @@ site/
 | `project` | yes | The project's id in [`src/projects.ts`](src/projects.ts). `steading` is the hub. |
 | `headline` | yes | The front page's heading. |
 | `summary` | yes | One paragraph under it. Also the description in `llms.txt`. |
-| `prompt` | yes | The prompt a visitor pastes into their agent. It should only point at the site's `llms.txt`. |
 | `fit` | no | Who the project suits and who it does not, as statements of fact. Goes in `llms.txt`. |
+| `prompt` | no | Replaces the prompt every site offers, which asks whether the project is a good fit for the reader's work ([`src/lib/prompt.ts`](src/lib/prompt.ts)). It should only point at the site's `llms.txt`. |
 | `install` | no | `command`, and an optional `note` under it. |
 | `facts` | no | Short labels under the prompt: "Open source", "Built in Go". |
+| `demo` | no | A small plan to draw in the hero: a `title`, and `nodes`, each with a `ref`, `title`, `kind`, `priority`, `state`, `who`, `note`, and the refs it `waits` on. |
+| `video` | no | A demonstration: a `caption`, and a `url` once there is one. Until then the page holds its place. |
+| `offers` | no | What the project offers: a `title`, and `items` of `title` and `body`. |
+| `thinking` | no | How the project thinks about its problem: a `title`, and `items` of `title`, `body`, and an `href` into the docs. |
+| `quickstart` | no | The first few minutes: a `title`, and `steps` of `title`, `body`, and optional `code`. |
 | `starts` | no | "Pick your starting point": a list of `title` and `body`. |
-| `features` | no | "What it does": a list of `title` and `body`. |
-| `not` | no | "What it is not": a list of `title` and `body`. |
-| `instead` | no | A line after the "is not" list, pointing at a better fit. |
-| `pairs` | no | "Works better with": a list of `project` (an id) and `body`. |
+| `not` | no | "What it is not": a list of `title`, `body` (why not), and `use` (the id of the project to use for that). |
+| `instead` | no | A line after the "is not" table, saying what the project is for. |
+| `pairs` | no | "Works better with": any number of `project` (an id) and `body`. |
+| `docs` | no | How the docs are arranged: `order` (top-level pages, by name, in reading order), `exclude` (files, or folders ending in a slash, to leave out), and `groups` (names for folders). |
 
-`body`, `note`, and `instead` may use `` `code` ``, `**bold**`, and `[links](https://example.com)`. [`examples/skift/site.yaml`](examples/skift/site.yaml) is a complete one.
+`body`, `note`, and `instead` may use `` `code` ``, `**bold**`, `*emphasis*`, and `[links](https://example.com)`. [`tests/fixtures/site/site.yaml`](tests/fixtures/site/site.yaml) uses every field.
+
+### Docs
+
+- **The README is the overview.** It is the page at `/docs/`, and the navigation calls it "Overview".
+- **A page's title** is its `title` in frontmatter, or else its first `# Heading`. Frontmatter is optional.
+- **Top-level pages** come in the order `docs.order` gives, then by title. **A folder's pages** stay in file order, since records are usually numbered or dated on purpose.
+- **A folder is a group** in the navigation, named by `docs.groups`, or by its own `index.md`, or after itself. A folder without an `index.md` gets a page that lists what is in it.
+- **Links are written the way they work on GitHub.** A link to a Markdown file that is a page leads to that page. A link to a folder of pages leads to the folder's page. A link to anything else in the repository (source, a workflow, a config file) leads to that file on GitHub. The Markdown twins keep links as written.
+
+The hub is the one site arranged differently: its pages live in [`content/`](content/) and sit at the top of the site (`content/how-we-work.md` is `/how-we-work/`).
 
 ### What the sites say to agents
 
@@ -54,34 +72,25 @@ So `summary` and `fit` are checked when a site is built, and a build fails on wo
 
 A page's own Markdown is documentation for people, and a how-to may tell its reader to run a command. That is carried into `llms-full.txt` as written.
 
-### Pages
-
-- Frontmatter is optional. A page takes its title from `title`, or else from its first `# Heading`.
-- `description` appears beside the page's link in listings and in `llms.txt`.
-- `order` places a page in the navigation; lower comes first. Pages without one follow, by title.
-- Link between pages the way you would on GitHub, to the file: `[first steps](guide/first.md)`. The site points those links at pages, and the Markdown twins keep them as written.
-- A top-level `index.md` is refused, because `site.yaml` writes the front page.
-
 ## Working on the sites
 
 ```bash
 mise install            # node, pnpm, and the linters
 pnpm install
 pnpm dev                # the hub, from content/
-pnpm dev:skift          # a project's site, from examples/skift/
 ```
 
-`STEADING_CONTENT` points a build at any content folder, including one in another checkout:
+`STEADING_CONTENT` points a build at any project's repository:
 
 ```bash
-STEADING_CONTENT=../skift/site pnpm dev
+STEADING_CONTENT=../skift pnpm dev
 ```
 
 To look at finished builds the way a static host serves them:
 
 ```bash
-pnpm build:all          # dist/steading, dist/skift, dist/fixture
-pnpm serve              # http://127.0.0.1:4410, :4411, :4412
+pnpm build:all          # dist/steading, and dist/fixture (a made-up project that uses every field)
+pnpm serve              # http://127.0.0.1:4410 and :4412
 ```
 
 ### Checks
@@ -91,7 +100,7 @@ pnpm serve              # http://127.0.0.1:4410, :4411, :4412
 | Command | What it proves |
 |---------|----------------|
 | `pnpm test` | The brand's colors meet WCAG AA against every surface they sit on; links, navigation, and `llms.txt` come out as specified. |
-| `pnpm build:all` | The hub, the skift example, and a fixture site that uses every field all build. |
+| `pnpm build:all` | The hub, and a fixture project that uses every field and every kind of link, both build. |
 | `pnpm test:dist` | Every internal link resolves, every page has its Markdown twin, nothing loads from another origin, and fonts stay under 120 KB. |
 | `pnpm test:e2e` | No WCAG 2.2 AA violations in light or dark, on a desktop or a phone; the keyboard reaches everything; the prompt copies. Needs `pnpm exec playwright install chromium`. |
 
@@ -101,7 +110,7 @@ Add it to `PROJECTS` in [`src/projects.ts`](src/projects.ts): its name, the prob
 
 ## Publishing a project's site
 
-In the project's repository, add the content folder and this workflow as `.github/workflows/site.yml`:
+In the project's repository, add a `site.yaml` beside the README, and this workflow as `.github/workflows/site.yml`:
 
 ```yaml
 name: Site
@@ -109,9 +118,9 @@ name: Site
 on:
   push:
     branches: [main]
-    paths: ["site/**", ".github/workflows/site.yml"]
+    paths: ["site.yaml", "README.md", "docs/**", ".github/workflows/site.yml"]
   pull_request:
-    paths: ["site/**", ".github/workflows/site.yml"]
+    paths: ["site.yaml", "README.md", "docs/**", ".github/workflows/site.yml"]
   workflow_dispatch:
 
 permissions: {}
@@ -154,7 +163,7 @@ jobs:
         uses: steading-ai/stead.ing@main
 ```
 
-The action takes two inputs: `content`, the folder to build (default `site`), and `deploy`, which builds without publishing when `"false"`.
+The action takes two inputs: `content`, the folder that holds `site.yaml`, the README and `docs/` (default: the repository itself), and `deploy`, which builds without publishing when `"false"`.
 
 The project's repository never installs Node or carries a lockfile. Astro, Tailwind, and everything else are pinned here and kept current by Renovate here. Renovate in the project's repository pins `steading-ai/stead.ing@main` to a commit and proposes each new one; the pull request builds the site as its check, so an update that breaks a project's site stops there.
 

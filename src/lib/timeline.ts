@@ -9,7 +9,7 @@
  *
  * Nothing here is a record of real work. It is a picture of the design.
  */
-import { mulberry32 } from "./field.ts";
+import { mulberry32 } from "./random.ts";
 
 export type LaneId = "you" | "thicket" | "skift" | "mill" | "croft" | "almanac" | "knowledge";
 

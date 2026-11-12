@@ -1,57 +1,156 @@
 ---
-// A project's front page, written entirely by its site.yaml. Every project's
-// site has the same skeleton: what it does and the first step, where to start,
-// what it does, what it is not, and what it works better with.
-import type { NavGroup } from "../lib/docs.ts";
+// A project's front page, written entirely by its site.yaml and built from
+// the same pieces as the hub. In order: the hero and its prompt, with the
+// project shown at work; a demonstration; what the project offers; how it
+// thinks; the first few minutes with it; where to start; what it is not; what
+// it works better with; and the invitation to build it together.
 import { inline } from "../lib/markdown.ts";
 import type { Landing } from "../lib/schema.ts";
-import { projectById, STATUS_LABEL } from "../projects.ts";
+import { STATUS_LABEL } from "../projects.ts";
 import { SITE } from "../site.ts";
-import Field from "./Field.astro";
-import ProjectMark from "./ProjectMark.astro";
-import PromptBox from "./PromptBox.astro";
+import NodeGraph from "./demos/NodeGraph.astro";
+import Hero from "./Hero.astro";
+import IsNot from "./IsNot.astro";
+import JoinIn from "./JoinIn.astro";
+import WorksBetterWith from "./WorksBetterWith.astro";
 
 interface Props {
-  landing: Landing;
-  nav: NavGroup[];
+  landing: Landing & { prompt: string };
+  /** Whether the project has docs to send people to. */
+  docs: boolean;
 }
 
-const { landing, nav } = Astro.props;
+const { landing, docs } = Astro.props;
 const { project } = SITE;
-const pairs = landing.pairs.map((pair) => ({ ...pair, project: projectById(pair.project) }));
-const firstDoc = nav[0]?.docs[0];
+
+// The sections a project has filled in alternate between the ground and the
+// surface, so each has to know where it falls among the ones that are there.
+const present = [
+  ["video", landing.video !== undefined],
+  ["offers", landing.offers !== undefined],
+  ["thinking", landing.thinking !== undefined],
+  ["quickstart", landing.quickstart !== undefined],
+  ["starts", landing.starts.length > 0],
+  ["not", landing.not.length > 0],
+  ["pairs", landing.pairs.length > 0],
+  ["join", true],
+] as const;
+const shown = present.filter(([, here]) => here).map(([name]) => name);
+const surface = (name: (typeof present)[number][0]) => shown.indexOf(name) % 2 === 0;
+const band = (name: (typeof present)[number][0]) => ["band", { "band-surface": surface(name) }];
 ---
 
-<section class="hero wrap">
-  <div class="words">
-    <h1 class="display-2">{landing.headline}</h1>
-    <p class="lead measure">{landing.summary}</p>
-    <PromptBox prompt={landing.prompt} />
-    {
-      landing.install && (
-        <div>
-          <pre class="install" tabindex="0" aria-label="Install command"><code>{landing.install.command}</code></pre>
-          {landing.install.note && <p class="mt-2 text-sm text-muted" set:html={inline(landing.install.note)} />}
-        </div>
-      )
-    }
-    <ul class="facts">
-      <li>{STATUS_LABEL[project.status]}</li>
-      {landing.facts.map((fact) => <li>{fact}</li>)}
-    </ul>
-    {firstDoc && <p><a href={firstDoc.path}>Start with: {firstDoc.title}</a></p>}
-  </div>
-  <div class="picture">
-    <Field project={project} />
-  </div>
-</section>
+<Hero headline={landing.headline} summary={landing.summary} prompt={landing.prompt}>
+  {
+    landing.install && (
+      <div>
+        <pre class="install" tabindex="0" aria-label="Install command"><code>{landing.install.command}</code></pre>
+        {landing.install.note && <p class="mt-2 text-sm text-muted" set:html={inline(landing.install.note)} />}
+      </div>
+    )
+  }
+  <p class="facts">
+    {[STATUS_LABEL[project.status], ...landing.facts].join(". ")}.
+    {landing.video && <a href="#demo">Watch the demo</a>}
+    {docs && <a href={SITE.mount}>Read the docs</a>}
+  </p>
+  {landing.demo && <NodeGraph demo={landing.demo} />}
+</Hero>
+
+{
+  landing.video && (
+    <section class:list={band("video")} aria-labelledby="demo">
+      <div class="wrap">
+        <h2 id="demo" class="display-2">Watch the demo</h2>
+        <p class="lead measure mt-4">{landing.video.caption}</p>
+        {landing.video.url ? (
+          <p class="mt-6">
+            <a class="button-primary" href={landing.video.url}>
+              Play the video
+            </a>
+          </p>
+        ) : (
+          <div class="screen" role="img" aria-label="The demo video is not recorded yet.">
+            <p>The video is on its way.</p>
+          </div>
+        )}
+      </div>
+    </section>
+  )
+}
+
+{
+  landing.offers && (
+    <section class:list={band("offers")} aria-labelledby="offers">
+      <div class="wrap">
+        <h2 id="offers" class="display-2">{landing.offers.title}</h2>
+        <dl class="pairs">
+          {landing.offers.items.map((entry) => (
+            <div>
+              <dt>{entry.title}</dt>
+              <dd set:html={inline(entry.body)} />
+            </div>
+          ))}
+        </dl>
+      </div>
+    </section>
+  )
+}
+
+{
+  landing.thinking && (
+    <section class:list={band("thinking")} aria-labelledby="thinking">
+      <div class="wrap">
+        <h2 id="thinking" class="display-2">{landing.thinking.title}</h2>
+        <ul class="columns">
+          {landing.thinking.items.map((entry) => (
+            <li>
+              <h3 class="title">{entry.title}</h3>
+              <p class="mt-3" set:html={inline(entry.body)} />
+              {entry.href && (
+                <p class="mt-3">
+                  <a href={entry.href}>
+                    Read more<span class="sr-only"> about {entry.title.toLowerCase()}</span>
+                  </a>
+                </p>
+              )}
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+{
+  landing.quickstart && (
+    <section class:list={band("quickstart")} aria-labelledby="quickstart">
+      <div class="wrap">
+        <h2 id="quickstart" class="display-2">{landing.quickstart.title}</h2>
+        <ol class="steps">
+          {landing.quickstart.steps.map((step) => (
+            <li>
+              <h3 class="title">{step.title}</h3>
+              <div>
+                <p set:html={inline(step.body)} />
+                {step.code && (
+                  <pre tabindex="0" aria-label={`Commands for: ${step.title}`}><code>{step.code}</code></pre>
+                )}
+              </div>
+            </li>
+          ))}
+        </ol>
+      </div>
+    </section>
+  )
+}
 
 {
   landing.starts.length > 0 && (
-    <section class="band band-surface" aria-labelledby="starts">
+    <section class:list={band("starts")} aria-labelledby="starts">
       <div class="wrap">
         <h2 id="starts" class="display-2">Pick your starting point</h2>
-        <ul class="starts mt-10">
+        <ul class="columns">
           {landing.starts.map((start) => (
             <li>
               <h3 class="title">{start.title}</h3>
@@ -64,115 +163,15 @@ const firstDoc = nav[0]?.docs[0];
   )
 }
 
-{
-  landing.features.length > 0 && (
-    <section class="band" aria-labelledby="features">
-      <div class="wrap">
-        <h2 id="features" class="display-2">What it does</h2>
-        <dl class="pairs-list mt-10">
-          {landing.features.map((feature) => (
-            <div>
-              <dt>{feature.title}</dt>
-              <dd set:html={inline(feature.body)} />
-            </div>
-          ))}
-        </dl>
-      </div>
-    </section>
-  )
-}
+<IsNot name={project.name} rows={landing.not} instead={landing.instead} surface={surface("not")} />
 
-{
-  landing.not.length > 0 && (
-    <section class="band band-surface" aria-labelledby="not">
-      <div class="wrap">
-        <h2 id="not" class="display-2">What {project.name} is not</h2>
-        <dl class="pairs-list mt-10">
-          {landing.not.map((entry) => (
-            <div>
-              <dt>{entry.title}</dt>
-              <dd set:html={inline(entry.body)} />
-            </div>
-          ))}
-        </dl>
-        {landing.instead && <p class="lead measure mt-8" set:html={inline(landing.instead)} />}
-      </div>
-    </section>
-  )
-}
+<WorksBetterWith pairs={landing.pairs} surface={surface("pairs")} />
 
-{
-  pairs.length > 0 && (
-    <section class="band" aria-labelledby="pairs">
-      <div class="wrap">
-        <h2 id="pairs" class="display-2">Works better with</h2>
-        <ul class="together mt-10">
-          {pairs.map((pair) => (
-            <li class={`p-${pair.project.id}`}>
-              <ProjectMark glyph={pair.project.glyph} size={40} bare />
-              <p>
-                <strong class="font-mono">
-                  {pair.project.site ? <a href={pair.project.site}>{pair.project.name}</a> : pair.project.name}
-                </strong>{" "}
-                <span set:html={inline(pair.body)} />
-              </p>
-            </li>
-          ))}
-        </ul>
-      </div>
-    </section>
-  )
-}
-
-{
-  nav.length > 0 && (
-    <section class="band band-surface" aria-labelledby="docs">
-      <div class="wrap">
-        <h2 id="docs" class="display-2">Docs</h2>
-        <div class="docs mt-10">
-          {nav.map((group) => (
-            <div>
-              {group.label && <h3 class="font-semibold">{group.label}</h3>}
-              <ul class="mt-2 space-y-2">
-                {group.docs.map((doc) => (
-                  <li>
-                    <a href={doc.path}>{doc.title}</a>
-                    {doc.data.description && <span class="text-muted">: {doc.data.description}</span>}
-                  </li>
-                ))}
-              </ul>
-            </div>
-          ))}
-        </div>
-      </div>
-    </section>
-  )
-}
+<JoinIn start={landing.quickstart ? "#quickstart" : "#main"} surface={surface("join")} />
 
 <style>
-  .hero {
-    display: grid;
-    gap: 2.5rem;
-    padding-block: clamp(1.25rem, 4vw, 3rem) clamp(2.5rem, 6vw, 4.5rem);
-  }
-  .words {
-    display: grid;
-    gap: 1.25rem;
-    align-content: center;
-  }
-  .picture {
-    width: 100%;
-    max-width: 24rem;
-    margin-inline: auto;
-  }
-  @media (min-width: 72rem) {
-    .hero {
-      grid-template-columns: minmax(0, 1fr) 24rem;
-      gap: 3.5rem;
-      align-items: center;
-    }
-  }
-  .install {
+  .install,
+  .steps pre {
     padding: 0.9rem 1rem;
     border: 1px solid var(--line);
     border-radius: 0.5rem;
@@ -180,71 +179,87 @@ const firstDoc = nav[0]?.docs[0];
     font-family: var(--font-mono);
     font-size: 0.9rem;
   }
-  .facts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 1.5rem;
+  .band-surface .steps pre {
+    background: var(--ground);
+  }
+  .facts a {
+    margin-left: 0.75rem;
+  }
+  /* Where the video will go: the shape of a screen, so the page doesn't change when it arrives. */
+  .screen {
+    display: grid;
+    place-items: center;
+    max-width: 40rem;
+    aspect-ratio: 16 / 9;
+    margin-top: 2rem;
+    border: 1px dashed var(--muted);
+    border-radius: 0.75rem;
     color: var(--muted);
     font-family: var(--font-mono);
-    font-size: 0.85rem;
   }
-
-  .starts {
+  .pairs {
     display: grid;
-    gap: 2rem 3rem;
-  }
-  .starts li {
-    padding-top: 1.25rem;
-    border-top: 3px solid var(--accent);
-  }
-  @media (min-width: 56rem) {
-    .starts {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  .pairs-list {
-    display: grid;
+    margin-top: 2.5rem;
     border-top: 1px solid var(--line);
   }
-  .pairs-list > div {
+  .pairs > div {
     display: grid;
     gap: 0.25rem 3rem;
     padding-block: 1.1rem;
     border-bottom: 1px solid var(--line);
   }
-  .pairs-list dt {
+  .pairs dt {
     font-family: var(--font-mono);
     font-size: 1.15rem;
     font-weight: 600;
   }
   @media (min-width: 60rem) {
-    .pairs-list > div {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    .pairs > div {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
     }
   }
-
-  .together {
-    display: grid;
-    gap: 1.5rem 3rem;
-  }
-  .together li {
-    display: flex;
-    gap: 1rem;
-  }
-  @media (min-width: 56rem) {
-    .together {
-      grid-template-columns: repeat(3, minmax(0, 1fr));
-    }
-  }
-
-  .docs {
+  .columns {
     display: grid;
     gap: 2rem 3rem;
+    margin-top: 2.5rem;
+  }
+  .columns li {
+    padding-top: 1.25rem;
+    border-top: 3px solid var(--accent);
   }
   @media (min-width: 56rem) {
-    .docs {
+    .columns {
       grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  /* Steps in order: each numbered, the number as large as the step's name. */
+  .steps {
+    display: grid;
+    margin-top: 2.5rem;
+    counter-reset: step;
+    border-top: 1px solid var(--line);
+  }
+  .steps li {
+    display: grid;
+    gap: 0.5rem 3rem;
+    padding-block: 1.4rem;
+    border-bottom: 1px solid var(--line);
+    counter-increment: step;
+  }
+  /* A grid item is as wide as its longest line unless told otherwise, and commands are long. */
+  .steps li > * {
+    min-width: 0;
+  }
+  .steps h3::before {
+    content: counter(step) ". ";
+    color: var(--muted);
+  }
+  .steps pre {
+    margin-top: 0.75rem;
+  }
+  @media (min-width: 60rem) {
+    .steps li {
+      grid-template-columns: minmax(0, 4fr) minmax(0, 8fr);
     }
   }
 </style>

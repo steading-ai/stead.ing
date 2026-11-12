@@ -1,10 +1,10 @@
 name: Steading site
-description: Build a Steading project's site from a folder of Markdown and a site.yaml, and publish it to GitHub Pages.
+description: Build a Steading project's site from its site.yaml, README and docs folder, and publish it to GitHub Pages.
 
 inputs:
   content:
-    description: Folder in the calling repository that holds site.yaml and the pages.
-    default: site
+    description: Folder in the calling repository that holds site.yaml, README.md and docs/. The repository itself, unless the project lives in a subfolder.
+    default: .
   deploy:
     description: Publish to GitHub Pages. Set to "false" to build only, as a pull request check.
     default: "true"
@@ -35,7 +35,7 @@ runs:
       env:
         STEADING_CONTENT: ${{ github.workspace }}/${{ inputs.content }}
         STEADING_OUT: ${{ runner.temp }}/steading-site
-        STEADING_EDIT_BASE: ${{ github.server_url }}/${{ github.repository }}/edit/${{ github.event.repository.default_branch }}/${{ inputs.content }}
+        STEADING_EDIT_BASE: ${{ github.server_url }}/${{ github.repository }}/edit/${{ github.event.repository.default_branch }}${{ inputs.content != '.' && format('/{0}', inputs.content) || '' }}
       run: pnpm build
 
     - name: Upload the site

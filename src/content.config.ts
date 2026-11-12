@@ -12,9 +12,9 @@ export const collections = {
     loader: glob({ base: SITE.contentDir, pattern: "site.yaml" }),
     schema: landingSchema,
   }),
-  /** Every Markdown file in the content folder is a page. */
+  /** The Markdown files that are this site's pages (src/lib/pages.ts says which). */
   docs: defineCollection({
-    loader: SITE.hasPages ? glob({ base: SITE.contentDir, pattern: "**/*.md" }) : noPages,
+    loader: SITE.pages.length > 0 ? glob({ base: SITE.contentDir, pattern: SITE.pages.map((page) => page.file) }) : noPages,
     schema: docSchema,
   }),
 };

@@ -1,15 +1,13 @@
 ---
 import HubHome from "../components/HubHome.astro";
 import ProjectHome from "../components/ProjectHome.astro";
-import { getDocs, getLanding } from "../lib/content.ts";
-import { navigation } from "../lib/docs.ts";
+import { getLanding } from "../lib/content.ts";
 import Base from "../layouts/Base.astro";
 import { SITE } from "../site.ts";
 
 const landing = await getLanding();
-const nav = navigation(await getDocs());
 ---
 
 <Base title={SITE.title} description={landing.summary} path="/" markdownPath="/index.md" bleed>
-  {SITE.isHub ? <HubHome landing={landing} /> : <ProjectHome landing={landing} nav={nav} />}
+  {SITE.isHub ? <HubHome landing={landing} /> : <ProjectHome landing={landing} docs={SITE.pages.length > 0} />}
 </Base>

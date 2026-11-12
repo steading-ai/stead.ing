@@ -2,8 +2,9 @@ import { expect, test } from "@playwright/test";
 import { SITES } from "../../playwright.config.ts";
 
 const hub = `http://127.0.0.1:${SITES.steading.port}`;
-const skift = `http://127.0.0.1:${SITES.skift.port}`;
+// The fixture is a project's site (it says it is skift's), built from a README and a docs folder.
 const fixture = `http://127.0.0.1:${SITES.fixture.port}`;
+const skift = fixture;
 
 test.describe("the first step", () => {
   test("the prompt can be copied with one button", async ({ page, context }) => {
@@ -291,9 +292,46 @@ test.describe("color", () => {
   });
 });
 
+test.describe("a project's docs", () => {
+  test("open on the project's README, called the overview", async ({ page }) => {
+    await page.goto(`${fixture}/`);
+    await page.getByRole("banner").getByRole("link", { name: "Docs" }).click();
+    await expect(page).toHaveURL(/\/docs\/$/);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Fixture project");
+    const nav = page.getByRole("navigation", { name: "Pages" });
+    await expect(nav.getByRole("link", { name: "Overview" })).toHaveAttribute("aria-current", "page");
+    await expect(page.getByRole("banner").getByRole("link", { name: "Docs" })).toHaveAttribute("aria-current", "page");
+  });
+
+  test("turn the README's links into pages, folders and source", async ({ page }) => {
+    await page.goto(`${fixture}/docs/`);
+    const article = page.getByRole("article");
+    await expect(article.getByRole("link", { name: "the reference" })).toHaveAttribute("href", "/docs/reference/");
+    await expect(article.getByRole("link", { name: "the guide" })).toHaveAttribute("href", "/docs/guide/");
+    await expect(article.getByRole("link", { name: "a step" })).toHaveAttribute("href", "/docs/guide/first/#then");
+    await expect(article.getByRole("link", { name: "decisions" })).toHaveAttribute("href", "/docs/adrs/");
+    await expect(article.getByRole("link", { name: "license" })).toHaveAttribute("href", "https://github.com/steading-ai/skift/blob/main/LICENSE");
+    await expect(article.getByRole("link", { name: "packaging" })).toHaveAttribute("href", "https://github.com/steading-ai/skift/tree/main/packaging");
+  });
+
+  test("give a folder with no page of its own one that lists it", async ({ page }) => {
+    await page.goto(`${fixture}/docs/adrs/`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Decisions");
+    const listed = page.getByRole("article").getByRole("link");
+    await expect(listed).toHaveText(["001: A first decision", "002: A second decision"]);
+    await listed.first().click();
+    await expect(page).toHaveURL(/\/docs\/adrs\/001-first-decision\/$/);
+  });
+
+  test("leave out what the project excludes", async ({ request }) => {
+    expect((await request.get(`${fixture}/docs/drafts/unfinished/`)).status()).toBe(404);
+    expect((await request.get(`${fixture}/docs/adrs/000-template/`)).status()).toBe(404);
+  });
+});
+
 test.describe("pages", () => {
   test("the navigation marks the page you're on", async ({ page }) => {
-    await page.goto(`${fixture}/guide/first/`);
+    await page.goto(`${fixture}/docs/guide/first/`);
     const nav = page.getByRole("navigation", { name: "Pages" });
     await expect(nav.getByRole("link", { name: "First steps" })).toHaveAttribute("aria-current", "page");
     await nav.getByRole("link", { name: "Reference" }).click();
@@ -301,9 +339,9 @@ test.describe("pages", () => {
   });
 
   test("the Markdown twin is served as Markdown", async ({ request }) => {
-    const response = await request.get(`${fixture}/guide/first.md`);
+    const response = await request.get(`${fixture}/docs/guide/first.md`);
     expect(response.headers()["content-type"]).toContain("text/markdown");
-    expect(await response.text()).toContain("canonical: https://skift.stead.ing/guide/first/");
+    expect(await response.text()).toContain("canonical: https://skift.stead.ing/docs/guide/first/");
   });
 });
 
@@ -311,7 +349,7 @@ for (const colorScheme of ["light", "dark"] as const) {
   test(`screenshots, ${colorScheme}`, async ({ browser }) => {
     const context = await browser.newContext({ colorScheme, viewport: { width: 1280, height: 900 } });
     const page = await context.newPage();
-    for (const [name, url] of Object.entries({ hub: `${hub}/`, skift: `${skift}/`, page: `${fixture}/reference/` })) {
+    for (const [name, url] of Object.entries({ hub: `${hub}/`, project: `${fixture}/`, page: `${fixture}/docs/reference/` })) {
       await page.goto(url);
       await page.screenshot({ path: `test-results/screenshots/${name}-${colorScheme}.png`, fullPage: true });
     }

@@ -2,22 +2,82 @@
 project: skift
 headline: A fixture headline.
 summary: A fixture summary with "quotes" and <angle brackets>.
-prompt: Read https://skift.stead.ing/llms.txt and help me.
 fit: Fixture facts about who the project suits.
 install:
   command: sudo dnf install skift
-  note: Needs `PostgreSQL`. See [the guide](/guide/).
+  note: Needs `PostgreSQL`. See [the guide](/docs/guide/).
 facts: [Open source, ISC]
+demo:
+  title: A fixture plan
+  nodes:
+    - ref: "#1"
+      title: The first thing
+      kind: task
+      priority: p1
+      state: done
+      who: an agent
+      note: It is finished.
+    - ref: "#2"
+      title: The second thing
+      kind: bug
+      priority: p0
+      state: ready
+      who: any agent
+      note: Nothing it waits on is open.
+      waits: ["#1"]
+    - ref: "#3"
+      title: A question
+      kind: task
+      priority: p2
+      state: needs-you
+      who: a person
+      note: Only a person can do it.
+    - ref: "#4"
+      title: The last thing
+      kind: chore
+      priority: p3
+      state: blocked
+      who: any agent
+      note: It waits on two others.
+      waits: ["#2", "#3"]
+video:
+  caption: A fixture demonstration.
+offers:
+  title: What the fixture holds
+  items:
+    - title: A thing.
+      body: It holds something.
+thinking:
+  title: How the fixture thinks
+  items:
+    - title: An idea
+      body: It thinks *something*.
+      href: /docs/reference/
+quickstart:
+  title: Run your first fixture
+  steps:
+    - title: Set it up
+      body: Do the **first** thing.
+      code: skift ready
+    - title: Use it
+      body: Do the next thing.
 starts:
   - title: First start
-    body: Do the **first** thing.
-features:
-  - title: A feature.
-    body: It does something.
+    body: Start here.
 not:
-  - title: Not a thing.
+  - title: Not a runner.
+    body: It runs nothing.
+    use: mill
+  - title: Not a thing with nothing to use.
     body: It isn't that.
-instead: Try [something else](https://example.com/).
+instead: Built for [something](https://example.com/) *first*.
 pairs:
   - project: mill
     body: pairs with it.
+  - project: thicket
+    body: talks to it.
+docs:
+  order: [reference]
+  exclude:
+    - docs/adrs/000-template.md
+    - docs/drafts/

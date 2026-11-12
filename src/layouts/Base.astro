@@ -5,11 +5,8 @@ import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-600.css";
 import "../styles/global.css";
 import ProjectColors from "../components/ProjectColors.astro";
-import ProjectMark from "../components/ProjectMark.astro";
-import ProjectsMenu from "../components/ProjectsMenu.astro";
 import SiteFooter from "../components/SiteFooter.astro";
-import { getDocs } from "../lib/content.ts";
-import { STEADING } from "../projects.ts";
+import SiteHeader from "../components/SiteHeader.astro";
 import { absolute, SITE } from "../site.ts";
 
 interface Props {
@@ -28,12 +25,6 @@ const { title, description, path, markdownPath, bleed = false, noindex = false }
 const { project } = SITE;
 const fullTitle = title === SITE.title ? `${title}: ${project.job}` : `${title} · ${SITE.title}`;
 
-// Beside the Projects menu: the first few pages, and the source.
-const pages = (await getDocs()).filter((doc) => !doc.file.includes("/")).slice(0, 3);
-const links = [
-  ...pages.map((doc) => ({ href: doc.path, label: doc.title })),
-  ...(project.repo ? [{ href: SITE.isHub ? "https://github.com/steading-ai" : project.repo, label: "GitHub" }] : []),
-];
 ---
 
 <!doctype html>
@@ -58,39 +49,7 @@ const links = [
   </head>
   <body class="bg-ground text-ink">
     <a class="skip-link" href="#main">Skip to content</a>
-    <header class="wrap site-header">
-      <p class="crumbs">
-        {
-          !SITE.isHub && (
-            <>
-              <a href={STEADING.site} class="home p-steading">
-                <ProjectMark glyph={STEADING.glyph} size={20} />
-                steading
-              </a>
-              <span aria-hidden="true">/</span>
-            </>
-          )
-        }
-        <a href="/" class="wordmark">
-          <ProjectMark glyph={project.glyph} size={36} />
-          {project.name}
-        </a>
-      </p>
-      <nav aria-label="Site">
-        <ul>
-          <li><ProjectsMenu /></li>
-          {
-            links.map((link) => (
-              <li>
-                <a href={link.href} aria-current={link.href === path ? "page" : undefined}>
-                  {link.label}
-                </a>
-              </li>
-            ))
-          }
-        </ul>
-      </nav>
-    </header>
+    <SiteHeader path={path} />
     <main id="main" class:list={[{ "wrap page": !bleed }]}>
       <slot />
     </main>
@@ -99,67 +58,6 @@ const links = [
 </html>
 
 <style>
-  .site-header {
-    position: relative;
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    justify-content: space-between;
-    gap: 0.5rem 2rem;
-    padding-block: 1rem;
-  }
-  .crumbs {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.35rem 0.75rem;
-    color: var(--muted);
-  }
-  .home {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.45rem;
-    color: var(--ink);
-    font-family: var(--font-mono);
-    font-size: 0.95rem;
-    text-decoration: none;
-  }
-  .home:hover {
-    text-decoration: underline;
-    text-decoration-color: var(--accent);
-  }
-  .wordmark {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    color: var(--ink);
-    font-size: 1.5rem;
-    letter-spacing: -0.02em;
-    text-decoration: none;
-  }
-  nav ul {
-    display: flex;
-    flex-wrap: wrap;
-    align-items: center;
-    gap: 0.25rem 1.5rem;
-    font-size: 0.95rem;
-  }
-  nav li > a {
-    text-decoration-color: transparent;
-  }
-  nav li > a:hover,
-  nav li > a[aria-current="page"] {
-    text-decoration-color: var(--accent);
-  }
-  @media (max-width: 47.99rem) {
-    .wordmark {
-      font-size: 1.25rem;
-    }
-    nav ul {
-      font-size: 0.875rem;
-      gap: 0.25rem 1.1rem;
-    }
-  }
   .page {
     padding-block: 2.5rem 4rem;
   }

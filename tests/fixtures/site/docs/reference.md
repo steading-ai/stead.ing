@@ -1,10 +1,9 @@
 ---
 title: Reference
 description: A page with frontmatter and no heading of its own.
-order: 2
 ---
 
-Go back to [the first steps](guide/first.md#then), or out to [the web](https://example.com/).
+Go back to [the overview](../README.md) or [the first steps](guide/first.md#then), or out to [the web](https://example.com/).
 
 ```console
 $ skift ready

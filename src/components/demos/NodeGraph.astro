@@ -1,0 +1,340 @@
+---
+// A small plan, drawn: each piece of work a box, a line to everything it
+// waits on, and a card that spells out one node at a time (what kind it is,
+// who it is for, what it waits on, how it stands and why). The card moves from
+// node to node by itself until someone picks one. Without JavaScript the
+// first card shows, and a node's link jumps to its card.
+import { layout } from "../../lib/graph.ts";
+import { inline } from "../../lib/markdown.ts";
+import type { Landing } from "../../lib/schema.ts";
+
+interface Props {
+  demo: NonNullable<Landing["demo"]>;
+}
+
+const { demo } = Astro.props;
+const placed = layout(demo.nodes);
+const LABEL: Record<(typeof demo.nodes)[number]["state"], string> = {
+  done: "Done",
+  ready: "Ready",
+  claimed: "Claimed",
+  blocked: "Blocked",
+  "needs-you": "Needs a person",
+  held: "Held",
+};
+
+const BOX = { w: 76, h: 36, gapX: 60, gapY: 18 };
+const layers = Math.max(...placed.map((item) => item.layer)) + 1;
+const tallest = Math.max(...Array.from({ length: layers }, (_, layer) => placed.filter((item) => item.layer === layer).length));
+const width = layers * BOX.w + (layers - 1) * BOX.gapX + 4;
+const height = tallest * BOX.h + (tallest - 1) * BOX.gapY + 4;
+// Each column is centered on the tallest, so the plan reads as one shape.
+const at = (item: (typeof placed)[number]) => {
+  const count = placed.filter((other) => other.layer === item.layer).length;
+  const top = (height - (count * BOX.h + (count - 1) * BOX.gapY)) / 2;
+  return { x: 2 + item.layer * (BOX.w + BOX.gapX), y: top + item.row * (BOX.h + BOX.gapY) };
+};
+const where = new Map(placed.map((item) => [item.node.ref, at(item)]));
+const state = new Map(demo.nodes.map((node) => [node.ref, node.state]));
+const slug = (ref: string) => `node-${ref.replace(/[^a-z0-9]+/gi, "")}`;
+const edges = placed.flatMap((item) =>
+  item.node.waits.map((ref) => {
+    const from = where.get(ref) as { x: number; y: number };
+    const to = where.get(item.node.ref) as { x: number; y: number };
+    return { d: `M${from.x + BOX.w} ${from.y + BOX.h / 2}L${to.x} ${to.y + BOX.h / 2}`, open: state.get(ref) !== "done" };
+  }),
+);
+---
+
+<figure class="plan" data-plan aria-labelledby="plan-title">
+  <figcaption id="plan-title" class="sr-only">{demo.title}</figcaption>
+  <div class="graph">
+    <svg viewBox={`0 0 ${width} ${height}`} role="group" aria-label={demo.title}>
+      <g aria-hidden="true">{edges.map((edge) => <path class:list={["edge", { open: edge.open }]} d={edge.d} />)}</g>
+      {
+        placed.map((item) => (
+          <a href={`#${slug(item.node.ref)}`} class={`node ${item.node.state}`} data-node={slug(item.node.ref)} aria-label={`${item.node.ref} ${item.node.title}: ${LABEL[item.node.state]}`}>
+            <rect class="ring" x={at(item).x - 2} y={at(item).y - 2} width={BOX.w + 4} height={BOX.h + 4} rx="8" />
+            <rect class="box" x={at(item).x} y={at(item).y} width={BOX.w} height={BOX.h} rx="6" />
+            <text x={at(item).x + BOX.w / 2} y={at(item).y + BOX.h / 2 + 5} text-anchor="middle">
+              {item.node.ref}
+            </text>
+          </a>
+        ))
+      }
+    </svg>
+    <ul class="key" aria-hidden="true">
+      {(Object.keys(LABEL) as (keyof typeof LABEL)[]).filter((key) => demo.nodes.some((node) => node.state === key)).map((key) => (
+        <li class={key}>
+          <span class="swatch" />
+          {LABEL[key]}
+        </li>
+      ))}
+    </ul>
+  </div>
+  <div class="cards">
+    {
+      placed.map((item) => (
+        <article id={slug(item.node.ref)} class={`card ${item.node.state}`} data-card>
+          <header>
+            <p class="meta">
+              <span class="ref">{item.node.ref}</span>
+              <span>{item.node.kind}</span>
+              <span>{item.node.priority}</span>
+            </p>
+            <p class="state">{LABEL[item.node.state]}</p>
+          </header>
+          <h3>{item.node.title}</h3>
+          <dl>
+            <div>
+              <dt>For</dt>
+              <dd>{item.node.who}</dd>
+            </div>
+            <div>
+              <dt>Waits on</dt>
+              <dd>{item.node.waits.length > 0 ? item.node.waits.map((ref) => `${ref} (${LABEL[state.get(ref) ?? "done"].toLowerCase()})`).join(", ") : "nothing"}</dd>
+            </div>
+            <div>
+              <dt>Unblocks</dt>
+              <dd>{item.unblocks.length > 0 ? item.unblocks.join(", ") : "nothing"}</dd>
+            </div>
+          </dl>
+          <p class="note" set:html={inline(item.node.note)} />
+        </article>
+      ))
+    }
+  </div>
+</figure>
+
+<script>
+  // The card moves to the next node every few seconds, unless the visitor has
+  // asked for less motion, and stops for good once they pick a node themselves.
+  for (const plan of document.querySelectorAll<HTMLElement>("[data-plan]")) {
+    const nodes = [...plan.querySelectorAll<SVGAElement>("[data-node]")];
+    const cards = [...plan.querySelectorAll<HTMLElement>("[data-card]")];
+    let current = 0;
+    const show = (index: number) => {
+      current = index;
+      cards.forEach((card, at) => card.classList.toggle("shown", at === index));
+      nodes.forEach((node, at) => node.classList.toggle("picked", at === index));
+    };
+    plan.classList.add("live");
+    show(0);
+    let turning = matchMedia("(prefers-reduced-motion: reduce)").matches ? undefined : setInterval(() => show((current + 1) % cards.length), 4200);
+    const pick = (index: number) => {
+      clearInterval(turning);
+      turning = undefined;
+      show(index);
+    };
+    nodes.forEach((node, index) => {
+      node.addEventListener("click", (event) => {
+        event.preventDefault();
+        pick(index);
+      });
+      node.addEventListener("focus", () => pick(index));
+    });
+  }
+</script>
+
+<style>
+  .plan {
+    display: grid;
+    gap: 1.5rem 2.5rem;
+    align-items: center;
+    margin-top: 1rem;
+    padding: 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: var(--surface);
+  }
+  @media (min-width: 56rem) {
+    .plan {
+      grid-template-columns: minmax(0, 6fr) minmax(0, 5fr);
+    }
+  }
+  svg {
+    display: block;
+    width: 100%;
+    max-height: 15rem;
+    height: auto;
+    font-family: var(--font-mono);
+    font-size: 13px;
+    font-weight: 600;
+  }
+  .edge {
+    fill: none;
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  /* A line from work that isn't finished: what it leads to is still waiting. */
+  .edge.open {
+    stroke: var(--muted);
+    stroke-dasharray: 4 4;
+  }
+  .node {
+    text-decoration: none;
+  }
+  .box {
+    fill: var(--ground);
+    stroke: var(--muted);
+    stroke-width: 1.5;
+  }
+  .node text {
+    fill: var(--ink);
+  }
+  .ring {
+    fill: none;
+    stroke: transparent;
+    stroke-width: 2;
+  }
+  .node.picked .ring,
+  .node:hover .ring {
+    stroke: var(--ink);
+  }
+  /* How each node stands. Shape and stroke differ as well as color. */
+  .done .box {
+    fill: var(--ink);
+    stroke: var(--ink);
+  }
+  .done text {
+    fill: var(--ground);
+  }
+  .ready .box {
+    fill: var(--accent);
+    stroke: var(--accent);
+  }
+  .ready text {
+    fill: var(--on-ember);
+  }
+  .claimed .box {
+    stroke: var(--accent);
+    stroke-width: 2.5;
+  }
+  .blocked .box {
+    stroke-dasharray: 5 4;
+  }
+  .needs-you .box {
+    stroke: var(--ember);
+    stroke-width: 2.5;
+  }
+  .held .box {
+    stroke-dasharray: 1.5 4;
+    stroke-linecap: round;
+  }
+  .key {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 1.1rem;
+    margin-top: 0.9rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  .key li {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .swatch {
+    width: 0.8rem;
+    height: 0.8rem;
+    box-sizing: border-box;
+    border: 1.5px solid var(--muted);
+    border-radius: 2px;
+  }
+  .key .done .swatch {
+    border-color: var(--ink);
+    background: var(--ink);
+  }
+  .key .ready .swatch {
+    border-color: var(--accent);
+    background: var(--accent);
+  }
+  .key .claimed .swatch {
+    border: 2.5px solid var(--accent);
+  }
+  .key .blocked .swatch {
+    border-style: dashed;
+  }
+  .key .needs-you .swatch {
+    border: 2.5px solid var(--ember);
+  }
+  .key .held .swatch {
+    border-style: dotted;
+  }
+
+  /* One card at a time. Without the script, the first shows, or whichever a node's link points at. */
+  .cards {
+    display: grid;
+  }
+  .card {
+    display: none;
+    grid-area: 1 / 1;
+  }
+  .plan:not(.live) .card:target,
+  .plan:not(.live) .cards:not(:has(:target)) .card:first-child,
+  .plan.live .card.shown {
+    display: block;
+  }
+  .card header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  .meta {
+    display: flex;
+    gap: 0.75rem;
+    color: var(--muted);
+  }
+  .ref {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .state {
+    padding: 0.05rem 0.5rem;
+    border: 1.5px solid var(--muted);
+    border-radius: 0.3rem;
+    font-weight: 600;
+  }
+  .card.ready .state,
+  .card.claimed .state {
+    border-color: var(--accent);
+  }
+  .card.needs-you .state {
+    border-color: var(--ember);
+  }
+  .card.done .state {
+    border-color: var(--ink);
+    background: var(--ink);
+    color: var(--ground);
+  }
+  .card h3 {
+    margin-top: 0.6rem;
+    font-size: 1.25rem;
+    line-height: 1.25;
+  }
+  dl {
+    display: grid;
+    gap: 0.3rem;
+    margin-top: 0.9rem;
+    font-size: 0.95rem;
+  }
+  dl div {
+    display: grid;
+    grid-template-columns: 5.5rem minmax(0, 1fr);
+  }
+  dt {
+    color: var(--muted);
+  }
+  .note {
+    margin-top: 0.9rem;
+    padding-top: 0.9rem;
+    border-top: 1px solid var(--line);
+    font-size: 0.95rem;
+    /* Cards differ in length; holding room for the longest keeps the page from jumping as they turn. */
+    min-height: 5.5rem;
+  }
+</style>

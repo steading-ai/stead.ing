@@ -1,0 +1,122 @@
+---
+// What a project is not, as a table to decide by: the thing it is not, why
+// not, and which project to use for that instead.
+import { inline } from "../lib/markdown.ts";
+import { projectById } from "../projects.ts";
+import { SITE } from "../site.ts";
+import ProjectMark from "./ProjectMark.astro";
+
+interface Props {
+  name: string;
+  rows: readonly { title: string; body: string; use?: string | undefined }[];
+  /** A line after the table, saying what the project is for. */
+  instead?: string | undefined;
+  /** Whether the section sits on the surface color, to alternate with its neighbors. */
+  surface?: boolean;
+}
+
+const { name, instead, surface = false } = Astro.props;
+const rows = Astro.props.rows.map((row) => ({ ...row, use: row.use ? projectById(row.use) : undefined }));
+const href = (id: string, site: string | undefined) => site ?? `${SITE.isHub ? "/" : SITE.hub}#${id}`;
+---
+
+{
+  rows.length > 0 && (
+    <section class:list={["band", { "band-surface": surface }]} aria-labelledby="not">
+      <div class="wrap">
+        <h2 id="not" class="display-2">What {name} is not</h2>
+        <table>
+          <thead>
+            <tr>
+              <th scope="col">{name} is not</th>
+              <th scope="col">Why not</th>
+              <th scope="col">Use instead</th>
+            </tr>
+          </thead>
+          <tbody>
+            {rows.map((row) => (
+              <tr>
+                <th scope="row">{row.title}</th>
+                <td set:html={inline(row.body)} />
+                <td class={row.use ? `use p-${row.use.id}` : "use"}>
+                  {row.use && (
+                    <a href={href(row.use.id, row.use.site)}>
+                      <ProjectMark glyph={row.use.glyph} size={22} bare />
+                      {row.use.name}
+                    </a>
+                  )}
+                </td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+        {instead && <p class="lead measure instead" set:html={inline(instead)} />}
+      </div>
+    </section>
+  )
+}
+
+<style>
+  table {
+    width: 100%;
+    margin-top: 2.5rem;
+    border-collapse: collapse;
+  }
+  thead th {
+    padding-bottom: 0.6rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-align: left;
+  }
+  tbody tr {
+    border-top: 1px solid var(--line);
+  }
+  tbody tr:last-child {
+    border-bottom: 1px solid var(--line);
+  }
+  td,
+  tbody th {
+    padding: 1rem 2rem 1rem 0;
+    text-align: left;
+    vertical-align: top;
+  }
+  tbody th {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: 600;
+  }
+  .use {
+    padding-right: 0;
+    white-space: nowrap;
+  }
+  .use a {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  .instead {
+    margin-top: 2rem;
+  }
+  /* On a phone each row stacks: what it is not, why, and what to use. */
+  @media (max-width: 47.99rem) {
+    thead {
+      position: absolute;
+      width: 1px;
+      height: 1px;
+      overflow: hidden;
+      clip-path: inset(50%);
+    }
+    tbody tr {
+      display: grid;
+      gap: 0.35rem;
+      padding-block: 1rem;
+    }
+    td,
+    tbody th {
+      padding: 0;
+    }
+  }
+</style>

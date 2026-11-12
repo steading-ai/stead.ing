@@ -1,0 +1,40 @@
+---
+// How every front page ends: an invitation to build with other people, and
+// the three ways on from here.
+import { SITE } from "../site.ts";
+
+interface Props {
+  /** Where "Get started" leads: the first step on this page. */
+  start?: string;
+  /** Whether the section sits on the surface color, to alternate with its neighbors. */
+  surface?: boolean;
+}
+
+const { start = "#main", surface = true } = Astro.props;
+const source = SITE.isHub ? "https://github.com/steading-ai" : (SITE.project.repo ?? "https://github.com/steading-ai");
+---
+
+<section class:list={["band", { "band-surface": surface }]} aria-labelledby="join">
+  <div class="wrap">
+    <h2 id="join" class="display">Don't build it all on your own!</h2>
+    <p class="lead measure mt-6">
+      Everyone is building their own version of this and hitting the same walls. Build it with a community instead. Come
+      hang out on <a href={SITE.chat}>Discord</a>, pick up an open task, ask questions, or show us what you've made!
+    </p>
+    <p class="ways">
+      <a class="button-primary" href={start}>Get started</a>
+      <a href={SITE.chat}>Join the Discord</a>
+      <a href={source}>{SITE.isHub ? "Steading on GitHub" : `${SITE.project.name} on GitHub`}</a>
+    </p>
+  </div>
+</section>
+
+<style>
+  .ways {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 2rem;
+    margin-top: 1.75rem;
+  }
+</style>

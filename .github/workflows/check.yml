@@ -55,8 +55,8 @@ jobs:
         with:
           persist-credentials: false
 
-      - name: Build the skift example
+      - name: Build the fixture project
         uses: ./
         with:
-          content: examples/skift
+          content: tests/fixtures/site
           deploy: "false"

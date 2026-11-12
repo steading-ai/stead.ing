@@ -1,0 +1,64 @@
+---
+// The other Steading projects this one pairs with, and what each adds. Give it
+// any number of projects, each with a few words on what it brings.
+import { inline } from "../lib/markdown.ts";
+import { projectById } from "../projects.ts";
+import { SITE } from "../site.ts";
+import ProjectMark from "./ProjectMark.astro";
+
+interface Props {
+  pairs: readonly { project: string; body: string }[];
+  /** Whether the section sits on the surface color, to alternate with its neighbors. */
+  surface?: boolean;
+}
+
+const { surface = false } = Astro.props;
+
+const pairs = Astro.props.pairs.map((pair) => ({ ...pair, project: projectById(pair.project) }));
+// A project with its own site links there; the rest link to their entry on the hub.
+const href = (id: string, site: string | undefined) => site ?? `${SITE.isHub ? "/" : SITE.hub}#${id}`;
+---
+
+{
+  pairs.length > 0 && (
+    <section class:list={["band", { "band-surface": surface }]} aria-labelledby="pairs">
+      <div class="wrap">
+        <h2 id="pairs" class="display-2">Works better with</h2>
+        <ul>
+          {pairs.map((pair) => (
+            <li class={`p-${pair.project.id}`}>
+              <ProjectMark glyph={pair.project.glyph} size={40} bare />
+              <p>
+                <a class="name" href={href(pair.project.id, pair.project.site)}>
+                  {pair.project.name}
+                </a>{" "}
+                <span set:html={inline(pair.body)} />
+              </p>
+            </li>
+          ))}
+        </ul>
+      </div>
+    </section>
+  )
+}
+
+<style>
+  ul {
+    display: grid;
+    gap: 1.5rem 3rem;
+    margin-top: 2.5rem;
+  }
+  li {
+    display: flex;
+    gap: 1rem;
+  }
+  .name {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  @media (min-width: 56rem) {
+    ul {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+</style>

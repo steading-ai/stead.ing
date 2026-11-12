@@ -6,7 +6,6 @@ import { instructionIn } from "../../src/lib/policy.ts";
 /** Each site `pnpm build:all` produces, and the address it will be served from. */
 const SITES = {
   steading: "https://stead.ing",
-  skift: "https://skift.stead.ing",
   fixture: "https://skift.stead.ing",
 };
 
@@ -113,14 +112,16 @@ describe("the fixture site", () => {
   const read = (file: string) => readFileSync(join(root, file), "utf8");
 
   it.runIf(existsSync(root))("points links between Markdown files at pages", () => {
-    const first = read("guide/first/index.html");
-    expect(first).toContain('href="/reference/"');
-    expect(first).toContain('href="/guide/"');
-    expect(read("reference/index.html")).toContain('href="/guide/first/#then"');
+    const first = read("docs/guide/first/index.html");
+    expect(first).toContain('href="/docs/reference/"');
+    expect(first).toContain('href="/docs/guide/"');
+    expect(first).toContain('href="/docs/"');
+    expect(first).toContain('href="https://github.com/steading-ai/skift/blob/main/src/main.go"');
+    expect(read("docs/reference/index.html")).toContain('href="/docs/guide/first/#then"');
   });
 
   it.runIf(existsSync(root))("leaves those links as written in the Markdown twin", () => {
-    expect(read("guide/first.md")).toContain("(../reference.md)");
+    expect(read("docs/guide/first.md")).toContain("(../reference.md)");
   });
 
   it.runIf(existsSync(root))("escapes what site.yaml says", () => {

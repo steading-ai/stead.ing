@@ -1,84 +1,108 @@
 /**
- * A site's pages, independent of Astro: where each lives, what it is called,
- * and how the navigation orders them. Pure functions, so tests need no build.
+ * A site's pages, independent of Astro: what each is called, how the
+ * navigation arranges them, and what their Markdown twins say. Pure
+ * functions, so tests need no build.
  */
 import { stringify as toYaml } from "yaml";
-import { leadingTitle, markdownPath, pagePath } from "./markdown.ts";
+import { leadingTitle, markdownPath } from "./markdown.ts";
+import { type DocsSettings, type Layout, NO_SETTINGS, type PageSource, pathOf } from "./pages.ts";
 
-export interface DocInput {
-  /** Path inside the content folder, with its extension: `guide/first.md`. */
-  file: string;
+export interface DocInput extends PageSource {
   data: { title?: string | undefined; description?: string | undefined; order?: number | undefined };
   body: string;
 }
 
 export interface Doc extends DocInput {
-  /** Page address: `/guide/first/`. */
-  path: string;
-  /** Address of the Markdown twin: `/guide/first.md`. */
+  /** Address of the Markdown twin: `/docs/guide/first.md`. */
   markdown: string;
   title: string;
+  /** What the navigation calls the page: its title, except for the first page, which is the overview. */
+  label: string;
   /** Whether the body opens with its own `# Title`, so the layout must not add one. */
   hasHeading: boolean;
+  /** Set for a folder's page that no file wrote: it lists the folder's pages. */
+  lists?: Doc[];
 }
 
 const humanize = (slug: string) => slug.replace(/[-_]+/g, " ").replace(/^./, (first) => first.toUpperCase());
 
+/** Folder names that mean something more than they say. */
+const KNOWN_GROUPS: Record<string, string> = { adr: "Decisions", adrs: "Decisions" };
+
 export function toDoc(input: DocInput): Doc {
-  const path = pagePath(input.file);
   const heading = leadingTitle(input.body);
-  const fallback = humanize(path.split("/").filter(Boolean).at(-1) ?? "Home");
+  const fallback = humanize(input.route.split("/").at(-1) || "Overview");
   return {
     ...input,
-    path,
-    markdown: markdownPath(path),
+    markdown: markdownPath(input.path),
     title: input.data.title ?? heading ?? fallback,
+    label: input.route === "" ? "Overview" : (input.data.title ?? heading ?? fallback),
     hasHeading: heading !== undefined,
   };
 }
 
-const byOrder = (a: Doc, b: Doc) =>
-  (a.data.order ?? Number.POSITIVE_INFINITY) - (b.data.order ?? Number.POSITIVE_INFINITY) || a.title.localeCompare(b.title);
-
 export interface NavGroup {
-  /** Undefined for pages at the top of the content folder. */
+  /** Undefined for pages at the top. */
   label: string | undefined;
+  /** The folder's own page, which its label links to. */
+  index: Doc | undefined;
   docs: Doc[];
 }
 
+const position = (order: readonly string[], doc: Doc) => {
+  const listed = order.indexOf(doc.route);
+  return listed === -1 ? (doc.data.order ?? Number.POSITIVE_INFINITY) + order.length : listed;
+};
+
 /**
- * Pages grouped by their top-level folder: the top-level pages first, then each
- * folder under its index page's title (or its own name).
+ * Pages arranged for reading. The first page leads, then the top-level pages
+ * in the order the site asks for (and by title after that), then each folder:
+ * under its own name, in file order, since folders of records are numbered or
+ * dated on purpose. A folder with no page of its own gets one that lists it.
  */
-export function navigation(docs: readonly Doc[]): NavGroup[] {
-  const groups = new Map<string, Doc[]>();
-  for (const doc of docs) {
-    const segments = doc.file.split("/");
-    const folder = segments.length > 1 ? (segments[0] as string) : "";
-    groups.set(folder, [...(groups.get(folder) ?? []), doc]);
-  }
-  return [...groups.entries()]
-    .sort(([a], [b]) => a.localeCompare(b))
-    .map(([folder, members]) => {
-      const index = members.find((doc) => doc.file === `${folder}/index.md`);
-      return {
-        label: folder === "" ? undefined : (index?.title ?? humanize(folder)),
-        docs: [...members].sort((a, b) => (a === index ? -1 : b === index ? 1 : byOrder(a, b))),
-      };
-    });
+export function navigation(docs: readonly Doc[], layout: Layout, settings: DocsSettings = NO_SETTINGS): NavGroup[] {
+  const top = docs
+    .filter((doc) => doc.group === "")
+    .sort((a, b) => Number(b.route === "") - Number(a.route === "") || position(settings.order, a) - position(settings.order, b) || a.title.localeCompare(b.title));
+  const names = [...new Set(docs.map((doc) => doc.group).filter((group) => group !== ""))].sort();
+  const groups = names.map((name) => {
+    const members = docs.filter((doc) => doc.group === name && !doc.index).sort((a, b) => a.route.localeCompare(b.route));
+    const own = docs.find((doc) => doc.group === name && doc.index);
+    const label = settings.groups[name] ?? KNOWN_GROUPS[name] ?? own?.title ?? humanize(name);
+    const index =
+      own ??
+      ({
+        file: "",
+        route: name,
+        path: pathOf(layout, name),
+        group: name,
+        index: true,
+        data: {},
+        body: "",
+        markdown: markdownPath(pathOf(layout, name)),
+        title: label,
+        label,
+        hasHeading: false,
+        lists: members,
+      } satisfies Doc);
+    return { label, index, docs: members };
+  });
+  return [...(top.length > 0 ? [{ label: undefined, index: undefined, docs: top }] : []), ...groups];
 }
 
-/** Every page in navigation order. */
-export const ordered = (docs: readonly Doc[]): Doc[] => navigation(docs).flatMap((group) => group.docs);
+/** Every page in reading order, each folder's own page ahead of the folder's pages. */
+export const ordered = (nav: readonly NavGroup[]): Doc[] => nav.flatMap((group) => [...(group.index ? [group.index] : []), ...group.docs]);
 
 /** A page's Markdown twin: frontmatter an agent can cite from, then the page. */
 export function docMarkdown(doc: Doc, site: { origin: string; title: string }): string {
+  const at = (path: string) => new URL(path, site.origin).href;
   const frontmatter = toYaml({
     title: doc.title,
-    canonical: new URL(doc.path, site.origin).href,
+    canonical: at(doc.path),
     ...(doc.data.description ? { summary: doc.data.description } : {}),
     site: site.title,
   });
-  const body = doc.hasHeading ? doc.body.trimStart() : `# ${doc.title}\n\n${doc.body.trimStart()}`;
+  const written = doc.lists ? doc.lists.map((page) => `- [${page.title}](${at(page.markdown)})`).join("\n") : doc.body.trimStart();
+  const body = doc.hasHeading ? written : `# ${doc.title}\n\n${written}`;
   return `---\n${frontmatter}---\n\n${body.trimEnd()}\n`;
 }
