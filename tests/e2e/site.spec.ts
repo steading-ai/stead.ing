@@ -55,8 +55,9 @@ test.describe("the Projects menu", () => {
     await page.locator("[data-menu] summary").click();
     const menu = page.locator("[data-menu]");
     await expect(menu.getByRole("link")).toHaveCount(11);
-    // Until a project has a site of its own, its entry leads to its row on the hub.
-    await expect(menu.getByRole("link", { name: /skift.*A task graph agents and people share/ })).toHaveAttribute("href", "/#skift");
+    // A project with a site of its own leads there; one without leads to its row on the hub.
+    await expect(menu.getByRole("link", { name: /skift.*A task graph agents and people share/ })).toHaveAttribute("href", "https://skift.stead.ing/");
+    await expect(menu.getByRole("link", { name: /mill.*A runner that delivers tasks as merged changes/ })).toHaveAttribute("href", "/#mill");
   });
 
   test("sends a project without a site to its row on the hub, and says how far along it is", async ({ page }) => {
@@ -244,7 +245,7 @@ test.describe("the hub's list of projects", () => {
   test("a row that leads somewhere is clickable anywhere on it", async ({ page }) => {
     await page.goto(`${hub}/`);
     const row = page.locator("#skift");
-    await expect(row.getByRole("link", { name: "skift" })).toHaveAttribute("href", "https://github.com/steading-ai/skift");
+    await expect(row.getByRole("link", { name: "skift" })).toHaveAttribute("href", "https://skift.stead.ing/");
     // The problem sits at the far side of the row from the name; a click there must still land on the link.
     const pain = row.locator(".pain");
     await pain.scrollIntoViewIfNeeded();
@@ -253,7 +254,7 @@ test.describe("the hub's list of projects", () => {
       const top = document.elementFromPoint(box.left + 10, box.top + 10);
       return { href: top?.closest("a")?.href, cursor: top ? getComputedStyle(top).cursor : "" };
     });
-    expect(under).toEqual({ href: "https://github.com/steading-ai/skift", cursor: "pointer" });
+    expect(under).toEqual({ href: "https://skift.stead.ing/", cursor: "pointer" });
   });
 
   test("a row with nowhere to lead is not a link", async ({ page }) => {
