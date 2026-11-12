@@ -5,8 +5,8 @@
 // content/site.yaml.
 import type { Landing } from "../lib/schema.ts";
 import { SITE } from "../site.ts";
+import FlowMap from "./motifs/FlowMap.astro";
 import Timeline from "./motifs/Timeline.astro";
-import ProductMap from "./ProductMap.astro";
 import ProjectIndex from "./ProjectIndex.astro";
 import PromptBox from "./PromptBox.astro";
 
@@ -92,7 +92,7 @@ const sentences = landing.headline.split(/(?<=\.)\s+/);
       the rest keeps working.
     </p>
     <div class="mt-10">
-      <ProductMap />
+      <FlowMap id="map" />
     </div>
   </div>
 </section>

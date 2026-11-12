@@ -203,6 +203,29 @@ test.describe("the day strip", () => {
   });
 });
 
+test.describe("the product map", () => {
+  test("takes a small part of the screen", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const box = await page.getByRole("img", { name: "How work moves through Steading" }).boundingBox();
+    expect(box?.height).toBeLessThan(300);
+  });
+
+  test("moves, and stops when asked", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const map = page.locator("figure.flow");
+    const token = map.locator(".token").nth(1);
+    const state = () => token.evaluate((element) => getComputedStyle(element).animationPlayState);
+    expect(await state()).toBe("running");
+    await map.getByLabel("Pause").check();
+    expect(await state()).toBe("paused");
+  });
+
+  test("describes the loop in words for anyone who cannot see it", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    await expect(page.locator("figure.flow figcaption")).toContainText("Mill works each task inside a croft");
+  });
+});
+
 test.describe("the hub's list of projects", () => {
   test("a row that leads somewhere is clickable anywhere on it", async ({ page }) => {
     await page.goto(`${hub}/`);
