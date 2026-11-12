@@ -48,6 +48,8 @@ export const SITE = {
    */
   editBase: process.env.STEADING_EDIT_BASE ?? (isHub ? "https://github.com/steading-ai/stead.ing/edit/main/content" : undefined),
   hub: "https://stead.ing/",
+  /** Where the people building Steading talk. */
+  chat: "https://discord.gg/7A7Pb7N92",
   license: { name: "ISC", url: "https://opensource.org/license/isc-license-txt" },
 } as const;
 

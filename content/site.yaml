@@ -3,7 +3,7 @@ headline: One person. A thousand agents.
 summary: >-
   You decide what to build. Agents plan it, build it, review it, and ship it, with proof at every
   step, on machines you own. Steading is the open-source stack for building software this way, and
-  you can start running it today.
+  you can start running it today!
 prompt: >-
   Read https://stead.ing/llms.txt and help me figure out if it's a good fit for my work.
 fit: >-

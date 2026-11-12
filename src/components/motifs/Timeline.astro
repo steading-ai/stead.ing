@@ -6,7 +6,7 @@
 import { LIGHT_BOX, LIGHTS } from "../../lib/mark.ts";
 import { clock, type LaneId, storiesBetween } from "../../lib/timeline.ts";
 import { frame, LABELS, lanes, latest, MARGIN, Packer, type View } from "../../lib/timeline-view.ts";
-import { PROJECTS, STATUS_LABEL } from "../../projects.ts";
+import { PROJECTS } from "../../projects.ts";
 
 interface Props {
   /** Names this timeline, so several can share a page. */
@@ -84,10 +84,6 @@ const glyph = view.compact ? 10 : 14;
     <div class="tip" data-tip hidden></div>
   </div>
   <p class="latest" data-latest>{last ? `${clock(last.start)} ${last.lane}: ${last.text}` : ""}</p>
-  <figcaption>
-    An illustration of the design, not a record. {unbuilt.map((candidate) => candidate.name).join(" and ")} are{" "}
-    {STATUS_LABEL.design.toLowerCase()}, so their work is drawn hollow.
-  </figcaption>
 </figure>
 
 <script>
@@ -293,11 +289,5 @@ const glyph = view.compact ? 10 : 14;
     color: var(--muted);
     text-overflow: ellipsis;
     white-space: nowrap;
-  }
-  .timeline figcaption {
-    margin-top: 0.35rem;
-    color: var(--muted);
-    font-family: var(--font-sans);
-    font-size: 0.8rem;
   }
 </style>

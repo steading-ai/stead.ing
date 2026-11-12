@@ -28,8 +28,7 @@ const pages = (await getDocs()).filter((doc) => !doc.file.includes("/") || doc.f
       </a>
       <p>{SITE.isHub ? project.job : `${project.what}.`}</p>
       <p>
-        <a href={SITE.license.url}>{SITE.license.name}</a> licensed. Contributors keep their copyright, so Steading stays open
-        for good.
+        Open source, built in the open. <a href={SITE.license.url}>{SITE.license.name}</a> licensed.
       </p>
     </div>
 
@@ -84,6 +83,7 @@ const pages = (await getDocs()).filter((doc) => !doc.file.includes("/") || doc.f
           ))
         }
         <li><a href="https://github.com/steading-ai">Steading on GitHub</a></li>
+        <li><a href={SITE.chat}>Discord</a></li>
       </ul>
     </nav>
 
