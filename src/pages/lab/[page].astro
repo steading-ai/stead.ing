@@ -1,0 +1,125 @@
+---
+// A workbench for comparing designs before one is chosen. Built only when
+// STEADING_LAB is set, so it never reaches a published site.
+import type { GetStaticPaths } from "astro";
+import Timeline from "../../components/motifs/Timeline.astro";
+import PromptBox from "../../components/PromptBox.astro";
+import { getLanding } from "../../lib/content.ts";
+import Base from "../../layouts/Base.astro";
+
+export const getStaticPaths = (() => (process.env.STEADING_LAB ? [{ params: { page: "heroes" } }] : [])) satisfies GetStaticPaths;
+
+const landing = await getLanding();
+const sentences = landing.headline.split(/(?<=\.)\s+/);
+const variations = [
+  {
+    id: "tracks",
+    name: "1. Tracks",
+    idea: "The arrangement. A lane for you and one for each project. Work appears at the line marked now and slides into the past.",
+    view: { pxPerHour: 110, backlog: false, threads: false, speed: 1 / 6 },
+  },
+  {
+    id: "burndown",
+    name: "2. Burn-down",
+    idea: "The same day, with skift's lane drawn as the backlog: it steps up when work is filed and steps down as mill merges it.",
+    view: { pxPerHour: 110, backlog: true, threads: false, speed: 1 / 6 },
+  },
+  {
+    id: "threads",
+    name: "3. Threads",
+    idea: "Lines join what caused what: an advisory, the task filed for it, the workspace, the fix, the note written afterwards. Point at any event to light up its whole story.",
+    view: { pxPerHour: 130, backlog: false, threads: true, speed: 1 / 7 },
+  },
+  {
+    id: "week",
+    name: "4. One week",
+    idea: "Seven days across. The work becomes texture, the nights are plain to see, and your whole week is a handful of ember dots.",
+    view: { pxPerHour: 7, backlog: true, threads: false, speed: 3 },
+  },
+] as const;
+---
+
+<Base title="Hero variations" noindex bleed>
+  <div class="wrap intro">
+    <h1 class="title">Hero variations</h1>
+    <p class="measure mt-2 text-muted">
+      Four takes on one idea: a compact strip showing a day on a steading as it is meant to run. Point at any event for
+      what it is. Everything shown is invented to illustrate the design; none of it is a record of real work.
+    </p>
+  </div>
+  {
+    variations.map((variation) => (
+      <section class="variation" aria-labelledby={`v-${variation.id}`}>
+        <div class="wrap">
+          <p class="caption">
+            <strong id={`v-${variation.id}`}>{variation.name}</strong> {variation.idea}
+          </p>
+          <div class="hero wide">
+            <div class="text">
+              <h2 class="display">
+                {sentences.map((sentence) => (
+                  <span>{sentence} </span>
+                ))}
+              </h2>
+              <div class="words">
+                <p class="lead measure">{landing.summary}</p>
+                <PromptBox prompt={landing.prompt} id={`prompt-${variation.id}`} />
+              </div>
+            </div>
+            <div class="picture">
+              <Timeline id={variation.id} view={variation.view} />
+            </div>
+          </div>
+        </div>
+      </section>
+    ))
+  }
+</Base>
+
+<style>
+  .intro {
+    padding-block: 1.5rem;
+  }
+  .variation {
+    padding-block: 2rem 4.5rem;
+    border-top: 1px solid var(--line);
+  }
+  .caption {
+    max-width: 70ch;
+    margin-bottom: 2.5rem;
+    padding: 0.6rem 0.9rem;
+    border-left: 4px solid var(--ember);
+    background: var(--surface);
+    font-size: 0.95rem;
+  }
+  .hero,
+  .text,
+  .words {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .hero {
+    gap: 2rem 3.5rem;
+  }
+  /* A grid item is as wide as its widest content unless told otherwise. */
+  .hero > *,
+  .text > *,
+  .words > * {
+    min-width: 0;
+  }
+  .display span {
+    display: block;
+  }
+  @media (min-width: 72rem) {
+    /* The headline on one line across the page. */
+    .display span {
+      display: inline;
+    }
+    /* Wide: the first step beside the summary, the record across the page beneath. */
+    .wide .words {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3.5rem;
+      align-items: start;
+    }
+  }
+</style>

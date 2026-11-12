@@ -1,0 +1,254 @@
+---
+// One day on a steading, as it is meant to run: a lane for the person and one
+// for each project, with work appearing at "now" and sliding into the past.
+// The picture below is one frame, drawn at build time; the script makes it
+// move, adds the detail shown on hover, and ticks the counts.
+import { LIGHT_BOX, LIGHTS } from "../../lib/mark.ts";
+import { clock, type LaneId, storiesBetween } from "../../lib/timeline.ts";
+import { frame, LABELS, lanes, latest, MARGIN, Packer, type View } from "../../lib/timeline-view.ts";
+import { PROJECTS, STATUS_LABEL } from "../../projects.ts";
+
+interface Props {
+  /** Names this timeline, so several can share a page. */
+  id: string;
+  view: View;
+  /** Counts shown before the picture starts moving. */
+  merged?: number;
+  deployed?: number;
+}
+
+const { id, view, merged = 48210, deployed = 6104 } = Astro.props;
+const WIDTH = 1152;
+const NOW = 72 + 14.5;
+const { lanes: placed, height } = lanes(view);
+const hours = (WIDTH - LABELS - MARGIN) / view.pxPerHour;
+const stories = storiesBetween(NOW - hours - 1, NOW + 1);
+// Projects that are designed but not built yet: their work is drawn hollow.
+const unbuilt = PROJECTS.filter((project) => project.status === "design" && placed.some((lane) => lane.id === project.id));
+const hollow = new Set(unbuilt.map((project) => project.id as LaneId));
+const drawn = frame(view, stories, NOW - hours - 1, NOW + 1, new Packer(), hollow);
+const nowX = WIDTH - MARGIN;
+const last = latest(stories, NOW);
+const project = (id: string) => PROJECTS.find((candidate) => candidate.id === id);
+const format = (count: number) => count.toLocaleString("en-US");
+---
+
+<figure class="timeline" data-timeline data-view={JSON.stringify(view)} data-hollow={[...hollow].join(" ")}>
+  <div class="bar">
+    <p class="counts">
+      <span><b data-count="merged" data-value={merged}>{format(merged)}</b> pull requests merged</span>
+      <span><b data-count="deployed" data-value={deployed}>{format(deployed)}</b> deployed</span>
+    </p>
+    <button type="button" data-pause hidden>Pause</button>
+  </div>
+  <div class="stage" data-stage>
+    <svg
+      viewBox={`0 0 ${WIDTH} ${height}`}
+      role="img"
+      aria-label="A timeline of one day. The top lane is you, with a few marks where you said what you wanted or answered a question. Below it, a lane each for thicket, skift, mill, croft, almanac and knowledge, filled with the work each did, running on through the night."
+    >
+      <defs>
+        <clipPath id={`timeline-clip-${id}`} data-clip>
+          <rect x={LABELS} y="0" width={nowX - LABELS} height={height}></rect>
+        </clipPath>
+      </defs>
+      <g clip-path={`url(#timeline-clip-${id})`}>
+        <g data-scroll transform={`translate(${(nowX - NOW * view.pxPerHour).toFixed(1)} 0)`} set:html={drawn.svg} />
+      </g>
+      <g class="names" data-names>
+        {
+          placed.map((lane) => (
+            <g class={`p-${lane.id}`}>
+              <line class="rule" x1="0" x2={WIDTH} y1={lane.top} y2={lane.top} data-rule />
+              {lane.id === "you" ? (
+                <circle class="moment" cx="7" cy={lane.top + lane.height / 2} r="5" />
+              ) : (
+                <svg class="project-mark" x="0" y={lane.top + lane.height / 2 - 7} width="14" height="14" viewBox={LIGHT_BOX} set:html={LIGHTS[project(lane.id)?.glyph ?? "console"]} />
+              )}
+              <text class="name" x="21" y={lane.top + lane.height / 2 + 4}>
+                {lane.id}
+              </text>
+            </g>
+          ))
+        }
+      </g>
+      <line class="now-line" x1={nowX} x2={nowX} y1="0" y2={height} data-now-line></line>
+    </svg>
+    <div class="tip" data-tip hidden></div>
+  </div>
+  <p class="latest" data-latest>{last ? `${clock(last.start)} ${last.lane}: ${last.text}` : ""}</p>
+  <figcaption>
+    An illustration of the design, not a record. {unbuilt.map((candidate) => candidate.name).join(" and ")} are{" "}
+    {STATUS_LABEL.design.toLowerCase()}, so their work is drawn hollow.
+  </figcaption>
+</figure>
+
+<script>
+  import { start } from "../../lib/timeline-client.ts";
+
+  start(document);
+</script>
+
+<style is:global>
+  .timeline {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+  }
+  .timeline .bar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 1.5rem;
+    margin-bottom: 0.5rem;
+  }
+  .timeline .counts {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.25rem 2rem;
+    color: var(--muted);
+  }
+  .timeline .counts b {
+    color: var(--ink);
+    font-size: 1.35rem;
+    font-weight: 600;
+    font-variant-numeric: tabular-nums;
+  }
+  .timeline [data-pause] {
+    padding: 0.15rem 0.6rem;
+    border: 1px solid var(--line);
+    border-radius: 0.3rem;
+    color: var(--muted);
+  }
+  .timeline [data-pause]:hover {
+    border-color: var(--muted);
+    color: var(--ink);
+  }
+  .timeline .stage {
+    position: relative;
+  }
+  .timeline svg {
+    display: block;
+    width: 100%;
+    height: auto;
+    overflow: hidden;
+  }
+  .timeline .night {
+    fill: var(--surface);
+  }
+  .timeline .tick,
+  .timeline .rule {
+    stroke: var(--line);
+    stroke-width: 1;
+  }
+  .timeline .hour {
+    fill: var(--muted);
+    font-size: 10.5px;
+  }
+  .timeline .name {
+    fill: var(--ink);
+    font-size: 12px;
+  }
+  /* The names sit on the ground color, so the picture slides under them. */
+  .timeline .names {
+    paint-order: stroke;
+  }
+  .timeline .clip {
+    fill: var(--accent);
+  }
+  .timeline .clip.hollow {
+    fill: var(--ground);
+    stroke: var(--accent);
+    stroke-width: 1.2;
+  }
+  /* A question waiting for the person: ringed in ember for as long as it waits. */
+  .timeline .clip.wait {
+    fill: var(--ground);
+    stroke: var(--ember);
+    stroke-width: 1.5;
+  }
+  .timeline .moment {
+    fill: var(--ember);
+  }
+  .timeline .said {
+    fill: var(--ink);
+    font-family: var(--font-sans);
+    font-size: 12.5px;
+  }
+  .timeline .thread {
+    stroke: var(--muted);
+    stroke-width: 1;
+    opacity: 0.45;
+  }
+  .timeline .backlog-area {
+    fill: var(--accent);
+    opacity: 0.28;
+  }
+  .timeline .backlog-line {
+    fill: none;
+    stroke: var(--accent);
+    stroke-width: 1.5;
+  }
+  .timeline .now-line {
+    stroke: var(--ink);
+    stroke-width: 1.5;
+  }
+  .timeline [data-id] {
+    cursor: pointer;
+  }
+  /* Pointing at one event shows its whole story and quiets the rest. */
+  .timeline svg.focused [data-story]:not(.in-story) {
+    opacity: 0.22;
+  }
+  .timeline svg.focused .thread.in-story {
+    stroke: var(--ink);
+    opacity: 1;
+  }
+  .timeline .tip {
+    position: absolute;
+    z-index: 5;
+    width: min(22rem, calc(100% - 1rem));
+    padding: 0.7rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    box-shadow: 0 0.75rem 2rem rgb(0 0 0 / 0.3);
+    font-family: var(--font-sans);
+    font-size: 0.85rem;
+    line-height: 1.4;
+    pointer-events: none;
+  }
+  .timeline .tip .who {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    font-family: var(--font-mono);
+    font-size: 0.78rem;
+  }
+  .timeline .tip .who b {
+    font-weight: 600;
+  }
+  .timeline .tip .who span {
+    color: var(--muted);
+  }
+  .timeline .tip p {
+    margin-top: 0.35rem;
+  }
+  .timeline .tip .cause {
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  .timeline .latest {
+    margin-top: 0.5rem;
+    overflow: hidden;
+    color: var(--muted);
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+  .timeline figcaption {
+    margin-top: 0.35rem;
+    color: var(--muted);
+    font-family: var(--font-sans);
+    font-size: 0.8rem;
+  }
+</style>
