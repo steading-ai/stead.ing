@@ -1,0 +1,42 @@
+---
+// The first step on every page: a prompt to paste into the agent the visitor
+// already uses. The text is selectable without JavaScript; the copy button
+// appears only once the script that makes it work has run.
+interface Props {
+  prompt: string;
+  id?: string;
+}
+
+const { prompt, id = "prompt" } = Astro.props;
+---
+
+<figure class="rounded-lg border border-line bg-surface p-4" data-prompt-box>
+  <figcaption id={`${id}-label`} class="font-mono text-sm font-semibold">Paste this into your agent</figcaption>
+  <!-- A scrolling region has to be reachable by keyboard. -->
+  <pre
+    class="mt-3 font-mono text-sm whitespace-pre-wrap"
+    tabindex="0"
+    aria-labelledby={`${id}-label`}><code data-prompt-text>{prompt}</code></pre>
+  <div class="mt-3 flex items-center gap-3">
+    <button type="button" class="button-primary" hidden data-prompt-copy>Copy</button>
+    <p class="text-sm text-muted" role="status" aria-live="polite" data-prompt-status></p>
+  </div>
+</figure>
+
+<script>
+  for (const box of document.querySelectorAll<HTMLElement>("[data-prompt-box]")) {
+    const button = box.querySelector<HTMLButtonElement>("[data-prompt-copy]");
+    const status = box.querySelector<HTMLElement>("[data-prompt-status]");
+    const text = box.querySelector<HTMLElement>("[data-prompt-text]")?.textContent ?? "";
+    if (!button || !status || !navigator.clipboard) continue;
+    button.hidden = false;
+    button.addEventListener("click", async () => {
+      try {
+        await navigator.clipboard.writeText(text);
+        status.textContent = "Copied. Paste it into your agent.";
+      } catch {
+        status.textContent = "Couldn't copy. Select the text and copy it by hand.";
+      }
+    });
+  }
+</script>

@@ -1,0 +1,11 @@
+---
+// One rule per project: `.p-skift` sets --accent to skift's color for whatever
+// is inside it, in the right shade for the color scheme. The page's root
+// element carries the class of the project whose site this is.
+import { ALL } from "../projects.ts";
+
+const rules = (shade: "light" | "dark") => ALL.map((project) => `.p-${project.id}{--accent:${project.color[shade]}}`).join("");
+const css = `${rules("light")}@media (prefers-color-scheme:dark){${rules("dark")}}`;
+---
+
+<style is:inline set:html={css}></style>

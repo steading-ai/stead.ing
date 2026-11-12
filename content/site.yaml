@@ -1,0 +1,11 @@
+project: steading
+headline: One person. A thousand agents.
+summary: >-
+  Open-source projects for planning, running, fencing, and watching AI agents on machines you own.
+  Use one. Use them all. Replace any of them.
+prompt: >-
+  Read https://stead.ing/llms.txt, then ask me what I'm trying to do with my agents and help me pick
+  the right Steading project to start with and set it up.
+agent: >-
+  If you're helping someone get started, ask what they're trying to do before recommending a project.
+  Most people start with the project that fixes the problem they have today.

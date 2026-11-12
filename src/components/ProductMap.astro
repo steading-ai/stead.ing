@@ -1,0 +1,182 @@
+---
+// The product map: how work flows between projects, each in its own color.
+// A project that runs daily gets a solid box; one that is early or in design
+// gets a dashed one. Statuses and colors come from src/projects.ts.
+import { projectById } from "../projects.ts";
+
+interface Node {
+  id: string;
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+  lines: string[];
+}
+
+const LINE = 22;
+
+const nodes: Node[] = [
+  { id: "thicket", x: 8, y: 168, w: 220, h: 96, lines: ["you talk an idea", "through"] },
+  { id: "almanac", x: 8, y: 280, w: 220, h: 96, lines: ["something happens:", "an update breaks"] },
+  { id: "skift", x: 356, y: 168, w: 220, h: 208, lines: ["holds the plan,", "and always knows", "what's ready"] },
+  { id: "mill", x: 704, y: 224, w: 220, h: 96, lines: ["does the work, with", "proof at every step"] },
+  { id: "croft", x: 704, y: 416, w: 220, h: 96, lines: ["a fenced box", "for the work"] },
+  { id: "gateway", x: 1052, y: 416, w: 240, h: 96, lines: ["holds the keys to", "models, GitHub, APIs"] },
+  { id: "fallow", x: 8, y: 608, w: 260, h: 96, lines: ["cleans up what", "agents leave behind"] },
+  { id: "stead", x: 300, y: 608, w: 260, h: 96, lines: ["runs it all", "on your Mac"] },
+  { id: "knowledge", x: 592, y: 608, w: 260, h: 96, lines: ["remembers what", "agents learn"] },
+];
+
+const drawn = nodes.map((node) => {
+  const project = projectById(node.id);
+  const count = node.lines.length + 1;
+  const top = node.y + (node.h - LINE * count) / 2;
+  return { ...node, project, dashed: project.status !== "running", baseline: top + 16, swatchY: top + 5 };
+});
+
+interface Arrow {
+  d: string;
+  dashed?: boolean;
+  label: string;
+  x: number;
+  y: number;
+  anchor?: "middle" | "start";
+}
+
+const arrows: Arrow[] = [
+  { d: "M228 216 H348", label: "files work", x: 292, y: 204 },
+  { d: "M228 328 H348", dashed: true, label: "planned", x: 292, y: 352 },
+  { d: "M576 272 H696", label: "ready work", x: 640, y: 260 },
+  { d: "M924 272 H1044", label: "delivers", x: 988, y: 260 },
+  { d: "M814 320 V408", label: "works inside", x: 828, y: 370, anchor: "start" },
+  { d: "M924 464 H1044", label: "requests out", x: 988, y: 452 },
+];
+
+const watches = ["M466 80 V168", "M814 80 V224", "M1172 80 V224"];
+---
+
+<figure>
+  <!-- On a narrow screen the map scrolls sideways, so it has to be reachable by keyboard. -->
+  <div class="overflow-x-auto" tabindex="0" role="region" aria-label="Product map">
+    <svg class="product-map" viewBox="0 0 1300 712" role="img" aria-labelledby="map-title" aria-describedby="map-caption">
+      <title id="map-title">How work moves through Steading</title>
+      <defs>
+        <marker id="map-arrow" orient="auto" markerUnits="userSpaceOnUse" markerWidth="8" markerHeight="8" refX="1" refY="4">
+          <path class="arrowhead" d="M0 0 L8 4 L0 8 Z"></path>
+        </marker>
+      </defs>
+
+      {watches.map((d) => <path class="watch" d={d} />)}
+      <text class="label" x="828" y="156">watches</text>
+
+      {
+        arrows.map((arrow) => (
+          <g>
+            <path class:list={["arrow", { dashed: arrow.dashed }]} d={arrow.d} marker-end="url(#map-arrow)" />
+            <text class="label" x={arrow.x} y={arrow.y} text-anchor={arrow.anchor ?? "middle"}>
+              {arrow.label}
+            </text>
+          </g>
+        ))
+      }
+
+      <g class="p-console">
+        <rect class="box" x="356" y="8" width="936" height="72" rx="10"></rect>
+        <rect class="swatch" x="376" y="38" width="12" height="12"></rect>
+        <text x="400" y="50"><tspan class="name">the console</tspan><tspan dx="14">watches everything, and asks you when a decision is yours</tspan></text>
+      </g>
+
+      {
+        drawn.map((node) => (
+          <g class={`p-${node.id}`}>
+            <rect class:list={["box", { dashed: node.dashed }]} x={node.x} y={node.y} width={node.w} height={node.h} rx="10" />
+            <rect class="swatch" x={node.x + 16} y={node.swatchY} width="12" height="12" />
+            <text x={node.x + 40} y={node.baseline}>
+              <tspan class="name">{node.project.name}</tspan>
+              {node.lines.map((line) => (
+                <tspan x={node.x + 40} dy={LINE}>
+                  {line}
+                </tspan>
+              ))}
+            </text>
+          </g>
+        ))
+      }
+
+      <rect class="box result" x="1052" y="224" width="240" height="96" rx="10"></rect>
+      <text x="1070" y="267"><tspan class="strong">A merged, running change</tspan><tspan x="1070" dy={LINE}>your idea, shipped</tspan></text>
+
+      <text class="label caps" x="8" y="592">ALONGSIDE, ON ANY MACHINE</text>
+      <text class="label" x="1292" y="652" text-anchor="end">solid: running daily</text>
+      <text class="label" x="1292" y="674" text-anchor="end">dashed: early or in design</text>
+    </svg>
+  </div>
+  <figcaption id="map-caption" class="mt-4 text-muted">
+    An idea from a conversation with thicket, or an event almanac notices, becomes a task in skift. Mill picks the task up when
+    it's ready, does the work inside a croft, and delivers a merged, running change. Every request that leaves the croft goes
+    through the gateway, which holds the keys. The console watches all of it and asks you when a decision is yours. Alongside,
+    on any machine: stead runs it all on a Mac, fallow cleans up what agents leave behind, and the knowledge project
+    remembers what they learn.
+  </figcaption>
+</figure>
+
+<style>
+  .product-map {
+    display: block;
+    width: 100%;
+    min-width: 56rem;
+    height: auto;
+    font-family: var(--font-sans);
+    font-size: 17px;
+    fill: var(--ink);
+  }
+  .box {
+    fill: var(--surface);
+    stroke: var(--line);
+    stroke-width: 1.5;
+  }
+  .box.dashed {
+    fill: var(--ground);
+    stroke: var(--muted);
+    stroke-dasharray: 6 5;
+  }
+  .box.result {
+    stroke: var(--ember);
+    stroke-width: 2;
+  }
+  .swatch {
+    fill: var(--accent);
+  }
+  .name {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  .strong {
+    font-weight: 600;
+  }
+  .label {
+    fill: var(--muted);
+    font-size: 15px;
+  }
+  .caps {
+    font-family: var(--font-mono);
+    font-size: 13px;
+    letter-spacing: 0.1em;
+  }
+  .arrow,
+  .watch {
+    fill: none;
+    stroke: var(--muted);
+    stroke-width: 2;
+    stroke-linecap: round;
+  }
+  .arrow.dashed {
+    stroke-dasharray: 6 6;
+  }
+  .watch {
+    stroke-dasharray: 3 7;
+  }
+  .arrowhead {
+    fill: var(--muted);
+  }
+</style>

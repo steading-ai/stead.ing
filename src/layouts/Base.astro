@@ -1,0 +1,67 @@
+---
+import "@fontsource/ibm-plex-sans/latin-400.css";
+import "@fontsource/ibm-plex-sans/latin-600.css";
+import "@fontsource/ibm-plex-mono/latin-400.css";
+import "@fontsource/ibm-plex-mono/latin-600.css";
+import "../styles/global.css";
+import AgentNote from "../components/AgentNote.astro";
+import ProjectColors from "../components/ProjectColors.astro";
+import ProjectMark from "../components/ProjectMark.astro";
+import SuiteStrip from "../components/SuiteStrip.astro";
+import { absolute, SITE } from "../site.ts";
+
+interface Props {
+  title: string;
+  description?: string | undefined;
+  /** The page's address, e.g. "/" or "/guide/first/". Omit for pages that aren't resources (404). */
+  path?: string;
+  /** The address of the page's Markdown twin. */
+  markdownPath?: string;
+  /** Wider than a reading column, for front pages. */
+  wide?: boolean;
+  noindex?: boolean;
+}
+
+const { title, description, path, markdownPath, wide = false, noindex = false } = Astro.props;
+const { project } = SITE;
+const width = wide ? "max-w-5xl" : "max-w-3xl";
+---
+
+<!doctype html>
+<html lang={SITE.language} class={`p-${project.id}`}>
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>{title === SITE.title ? `${title}: ${project.job}` : `${title} · ${SITE.title}`}</title>
+    {description && <meta name="description" content={description} />}
+    {noindex && <meta name="robots" content="noindex" />}
+    {path && <link rel="canonical" href={absolute(path)} />}
+    {markdownPath && <link rel="alternate" type="text/markdown" href={absolute(markdownPath)} title={`${title} (Markdown)`} />}
+    <link rel="help" type="text/plain" href={absolute("/llms.txt")} title="llms.txt" />
+    <link rel="license" href={SITE.license.url} title={SITE.license.name} />
+    <link rel="icon" href="/favicon.svg" type="image/svg+xml" />
+    <ProjectColors />
+  </head>
+  <body class="bg-ground text-ink">
+    <a class="skip-link" href="#main">Skip to content</a>
+    <SuiteStrip />
+    <header class={`mx-auto ${width} px-4 pt-6`}>
+      <a href="/" class="wordmark inline-flex items-center gap-3 text-xl font-semibold no-underline">
+        <ProjectMark glyph={project.glyph} size={32} />
+        {project.name}
+      </a>
+    </header>
+    <main id="main" class={`mx-auto ${width} px-4 py-8`}>
+      <slot />
+    </main>
+    <footer class={`mx-auto ${width} space-y-4 px-4 pb-10 text-sm text-muted`}>
+      {markdownPath && <AgentNote markdownPath={markdownPath} />}
+      <p>
+        <a href={SITE.license.url}>{SITE.license.name}</a> licensed. Contributors keep their copyright, so Steading stays open
+        for good.{" "}
+        {project.repo && <a href={project.repo}>Source on GitHub</a>}{" "}
+        {!SITE.isHub && <a href={SITE.hub}>Part of Steading</a>}
+      </p>
+    </footer>
+  </body>
+</html>

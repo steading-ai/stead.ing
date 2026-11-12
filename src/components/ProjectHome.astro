@@ -1,0 +1,133 @@
+---
+// A project's front page, written entirely by its site.yaml. Every project
+// site has the same skeleton: what it does, the first step, where to start,
+// what it is not, and what it works better with.
+import type { NavGroup } from "../lib/docs.ts";
+import { inline } from "../lib/markdown.ts";
+import type { Landing } from "../lib/schema.ts";
+import { projectById, STATUS_LABEL } from "../projects.ts";
+import { SITE } from "../site.ts";
+import ProjectMark from "./ProjectMark.astro";
+import PromptBox from "./PromptBox.astro";
+
+interface Props {
+  landing: Landing;
+  nav: NavGroup[];
+}
+
+const { landing, nav } = Astro.props;
+const { project } = SITE;
+const pairs = landing.pairs.map((pair) => ({ ...pair, project: projectById(pair.project) }));
+const firstDoc = nav[0]?.docs[0];
+const section = "mt-16 space-y-4";
+---
+
+<section class="max-w-prose space-y-6">
+  <h1 class="text-4xl font-semibold">{landing.headline}</h1>
+  <p class="text-xl">{landing.summary}</p>
+  <PromptBox prompt={landing.prompt} />
+  {
+    landing.install && (
+      <div>
+        <pre class="rounded-lg border border-line bg-surface p-4 font-mono text-sm" tabindex="0" aria-label="Install command"><code>{landing.install.command}</code></pre>
+        {landing.install.note && <p class="mt-2 text-sm text-muted" set:html={inline(landing.install.note)} />}
+      </div>
+    )
+  }
+  <ul class="flex flex-wrap gap-x-4 gap-y-1 font-mono text-sm text-muted">
+    <li>{STATUS_LABEL[project.status]}</li>
+    {landing.facts.map((fact) => <li>{fact}</li>)}
+  </ul>
+  {firstDoc && <p><a href={firstDoc.path}>Start with: {firstDoc.title}</a></p>}
+</section>
+
+{
+  landing.starts.length > 0 && (
+    <section class={section} aria-labelledby="starts">
+      <h2 id="starts" class="text-2xl font-semibold">Pick your starting point</h2>
+      <ol class="grid gap-4 md:grid-cols-3">
+        {landing.starts.map((start, index) => (
+          <li class="rounded-lg border border-line bg-surface p-4">
+            <h3 class="font-semibold">
+              <span class="text-muted">{String(index + 1).padStart(2, "0")} /</span> {start.title}
+            </h3>
+            <p class="mt-2" set:html={inline(start.body)} />
+          </li>
+        ))}
+      </ol>
+    </section>
+  )
+}
+
+{
+  landing.features.length > 0 && (
+    <section class={section} aria-labelledby="features">
+      <h2 id="features" class="text-2xl font-semibold">What it does</h2>
+      <ul class="max-w-prose space-y-3">
+        {landing.features.map((feature) => (
+          <li>
+            <strong>{feature.title}</strong> <span set:html={inline(feature.body)} />
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+{
+  landing.not.length > 0 && (
+    <section class={section} aria-labelledby="not">
+      <h2 id="not" class="text-2xl font-semibold">What {project.name} is not</h2>
+      <ul class="max-w-prose space-y-3">
+        {landing.not.map((entry) => (
+          <li>
+            <strong>{entry.title}</strong> <span set:html={inline(entry.body)} />
+          </li>
+        ))}
+      </ul>
+      {landing.instead && <p class="max-w-prose" set:html={inline(landing.instead)} />}
+    </section>
+  )
+}
+
+{
+  pairs.length > 0 && (
+    <section class={section} aria-labelledby="pairs">
+      <h2 id="pairs" class="text-2xl font-semibold">Works better with</h2>
+      <ul class="grid gap-4 md:grid-cols-3">
+        {pairs.map((pair) => (
+          <li class={`p-${pair.project.id} flex gap-3 rounded-lg border border-line bg-surface p-4`}>
+            <ProjectMark glyph={pair.project.glyph} size={32} />
+            <p>
+              <strong class="font-mono">
+                {pair.project.site ? <a href={pair.project.site}>{pair.project.name}</a> : pair.project.name}
+              </strong>{" "}
+              <span set:html={inline(pair.body)} />
+            </p>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )
+}
+
+{
+  nav.length > 0 && (
+    <section class={section} aria-labelledby="docs">
+      <h2 id="docs" class="text-2xl font-semibold">Docs</h2>
+      {nav.map((group) => (
+        <div>
+          {group.label && <h3 class="mt-4 font-semibold">{group.label}</h3>}
+          <ul class="mt-2 space-y-1">
+            {group.docs.map((doc) => (
+              <li>
+                <a href={doc.path}>{doc.title}</a>
+                {doc.data.description && <span class="text-muted">: {doc.data.description}</span>}
+              </li>
+            ))}
+          </ul>
+        </div>
+      ))}
+    </section>
+  )
+}

@@ -1,0 +1,17 @@
+---
+// Visible to everyone on purpose: most agents read a page as HTML turned into
+// Markdown and never see <link> elements, so the hint lives in the body.
+interface Props {
+  markdownPath: string;
+}
+
+const { markdownPath } = Astro.props;
+---
+
+<aside class="rounded border border-dashed border-line p-3 font-mono text-xs" aria-labelledby="agent-note-title">
+  <p id="agent-note-title" class="font-semibold">Reading this as an agent?</p>
+  <p class="mt-1">
+    This page is also <a href={markdownPath}>plain Markdown</a>. <a href="/llms.txt">/llms.txt</a> maps the whole site, and{" "}
+    <a href="/llms-full.txt">/llms-full.txt</a> is every page in one file.
+  </p>
+</aside>

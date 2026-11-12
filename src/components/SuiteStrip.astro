@@ -1,0 +1,39 @@
+---
+// The family, on every site: Steading and each of its projects. A project links
+// once it has a site of its own; until then it is listed by name with its status.
+import { PROJECTS, STATUS_LABEL, STEADING } from "../projects.ts";
+import { SITE } from "../site.ts";
+
+const current = SITE.project.id;
+---
+
+<nav aria-label="Steading projects" class="border-b border-line bg-surface font-mono text-sm">
+  <ul class="mx-auto flex max-w-5xl flex-wrap gap-x-4 gap-y-1 px-4 py-2">
+    <li>
+      <a href={STEADING.site} aria-current={current === STEADING.id ? "page" : undefined} class="font-semibold">steading</a>
+    </li>
+    {
+      PROJECTS.map((project) => (
+        <li>
+          {project.site ? (
+            <a href={project.site} aria-current={current === project.id ? "page" : undefined}>
+              {project.name}
+            </a>
+          ) : (
+            <span class="text-muted">
+              {project.name}
+              <span class="sr-only">, {STATUS_LABEL[project.status].toLowerCase()}, no site yet</span>
+            </span>
+          )}
+        </li>
+      ))
+    }
+  </ul>
+</nav>
+
+<style>
+  a[aria-current="page"] {
+    text-decoration-thickness: 3px;
+    text-decoration-color: var(--accent);
+  }
+</style>

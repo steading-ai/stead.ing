@@ -1,0 +1,122 @@
+---
+// stead.ing's front page. The hero's words come from content/site.yaml; the
+// rest of the story is written here.
+import type { Landing } from "../lib/schema.ts";
+import { PROJECTS } from "../projects.ts";
+import ProductMap from "./ProductMap.astro";
+import ProjectCard from "./ProjectCard.astro";
+import PromptBox from "./PromptBox.astro";
+
+interface Props {
+  landing: Landing;
+}
+
+const { landing } = Astro.props;
+const section = "mt-16 space-y-4";
+const reading = "max-w-prose space-y-4";
+---
+
+<section class="space-y-6">
+  <h1 class="text-4xl font-semibold sm:text-5xl">{landing.headline}</h1>
+  <p class="max-w-prose text-xl">{landing.summary}</p>
+  <div class="max-w-prose">
+    <PromptBox prompt={landing.prompt} />
+  </div>
+  <p><a href="#projects">Browse the projects</a></p>
+</section>
+
+<section class={section} aria-labelledby="pain">
+  <h2 id="pain" class="text-2xl font-semibold">You've got more ideas than hours.</h2>
+  <div class={reading}>
+    <p>
+      You pay for a model subscription and never come close to using it up. Not for lack of ideas: every idea turns into
+      something you have to babysit. Approve a tool call. Answer a question. Switch windows. Lose the thread. Every morning is
+      Monday brain.
+    </p>
+    <p>
+      So you build tools to fix it, and every tool becomes one more thing to patch, deploy, sandbox, and secure. Stop building
+      and nothing changes. Keep building and the upkeep buries you.
+    </p>
+    <p>
+      The shortcut everyone's taking (a spare Mac, an agent with free rein, every secret you own) works right up until one
+      prompt injection loses you the farm.
+    </p>
+    <p>
+      The hard part is the plan. Dream big, plan hard, and let your agents break it into tasks that know what depends on what.
+      After that, it's a loop. Steading is that loop, with the fences, the upkeep, and the proof already built in, so you stop
+      pushing buttons and start building what you actually wanted.
+    </p>
+  </div>
+</section>
+
+<section class={section} aria-labelledby="idea">
+  <h2 id="idea" class="text-2xl font-semibold">A platform you can take apart</h2>
+  <p class="max-w-prose">
+    Everyone else is building one big system for you to move into. Steading is a platform too, but it's made of projects, each
+    built to do one job well, each with an open interface. Start with the project that fixes today's problem, and add another
+    when you need it. If you have a better idea for a project, swap in your own; the rest keeps working.
+  </p>
+  <ProductMap />
+</section>
+
+<section class={section} aria-labelledby="projects">
+  <h2 id="projects" class="text-2xl font-semibold">What's inside</h2>
+  <ul class="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
+    {PROJECTS.map((project) => <ProjectCard project={project} />)}
+  </ul>
+</section>
+
+<section class={section} aria-labelledby="proof">
+  <h2 id="proof" class="text-2xl font-semibold">Proof</h2>
+  <div class={reading}>
+    <h3 class="text-lg font-semibold">One line, tens of cents.</h3>
+    <p>
+      <code>@types/node</code> 26 broke a build in{" "}
+      <a href="https://github.com/ivy/thicket/pull/159"><code>ivy/thicket#159</code></a>. Nobody was going to look at it.
+      Almanac had an agent fix one line in a sandbox with no network. Plain code checked the patch, Almanac pushed it, and CI
+      passed.
+    </p>
+    <pre class="rounded-lg border border-line bg-surface p-4 font-mono text-sm" tabindex="0" aria-label="The repair, as a diff"><code>-      body: new Blob([bytes]),
++      body: new Blob([new Uint8Array(bytes)]),</code></pre>
+    <h3 class="pt-4 text-lg font-semibold">Steading builds Steading.</h3>
+    <p>
+      Skift is built from <a href="https://github.com/steading-ai/skift/blob/main/backlog.toml">its own backlog</a>: every
+      task a work order an agent picks up with an empty context window.
+    </p>
+  </div>
+</section>
+
+<section class={section} aria-labelledby="beliefs">
+  <h2 id="beliefs" class="text-2xl font-semibold">What we believe</h2>
+  <ul class="max-w-prose space-y-3">
+    <li><strong>You decide what. Agents do the rest.</strong> Nobody should have to sit in a chat window for work to move.</li>
+    <li><strong>Proof, not promises.</strong> "Done" means a program checked it.</li>
+    <li>
+      <strong>Real fences, not polite requests.</strong> What an agent can touch is limited by the operating system, the
+      network, or a virtual machine, not by a sentence in a prompt.
+    </li>
+    <li><strong>Code over prompts.</strong> A model is called only where judgment is actually needed.</li>
+    <li><strong>Yours.</strong> Your hardware, your database, your rules.</li>
+  </ul>
+</section>
+
+<section class={section} aria-labelledby="open">
+  <h2 id="open" class="text-2xl font-semibold">Open for good</h2>
+  <div class={reading}>
+    <p>
+      Steading is open source, permanently. Contributors keep their copyright, so nobody, including us, can change the license
+      later. <a href="/open-for-good/">How we keep that promise</a>.
+    </p>
+  </div>
+</section>
+
+<section class={section} aria-labelledby="join">
+  <h2 id="join" class="text-2xl font-semibold">Don't build it all yourself.</h2>
+  <div class={reading}>
+    <p>
+      Steading is built by a crew of friends, and there's room for more. Pick up an open task, or bring a project of your own
+      and keep your name on it. <a href="/how-we-work/">How we work, and how a project joins</a>.
+    </p>
+    <p><a href="https://github.com/steading-ai">Steading on GitHub</a></p>
+  </div>
+</section>
