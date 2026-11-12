@@ -1,5 +1,5 @@
 ---
-// The family, in one menu: every project with its mark and a line saying what
+// The family, in one menu: every project with its light and a line saying what
 // it is, grouped by what it is for. A name alone tells a newcomer nothing, so
 // no project is listed by name alone. A project with its own site links there;
 // the rest link to their row on the hub, which says how far along they are.
@@ -28,7 +28,7 @@ const groups = (Object.keys(GROUPS) as Group[]).map((group) => ({
               {group.projects.map((project) => (
                 <li class={`p-${project.id}`}>
                   <a href={href(project)} aria-current={SITE.project.id === project.id ? "page" : undefined}>
-                    <ProjectMark glyph={project.glyph} size={36} />
+                    <ProjectMark glyph={project.glyph} size={32} bare />
                     <span>
                       <span class="name">
                         {project.name}

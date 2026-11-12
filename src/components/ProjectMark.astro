@@ -1,28 +1,32 @@
 ---
-// A project's courtyard mark. The ring is drawn in the text color and the
-// light in the nearest --accent (global.css), so the mark follows whatever it
-// sits in.
-import { markBody } from "../lib/mark.ts";
+// A project's mark. The courtyard, with the project's light in it, is a site's
+// logo. In a list of projects the courtyard would repeat on every line, so
+// there `bare` shows only the light, which is the part that differs.
+// The ring is drawn in the text color and the light in the nearest --accent
+// (global.css), so the mark follows whatever it sits in.
+import { LIGHT_BOX, LIGHTS, markBody } from "../lib/mark.ts";
 import type { Glyph } from "../projects.ts";
 
 interface Props {
   glyph: Glyph;
   size?: number;
+  /** Only the light, without the courtyard around it. */
+  bare?: boolean;
   /** Accessible name. Leave it out when the name is written beside the mark. */
   label?: string;
 }
 
-const { glyph, size = 40, label } = Astro.props;
+const { glyph, size = 40, bare = false, label } = Astro.props;
 ---
 
 <svg
   class="project-mark"
   width={size}
   height={size}
-  viewBox="0 0 120 120"
+  viewBox={bare ? LIGHT_BOX : "0 0 120 120"}
   role={label ? "img" : undefined}
   aria-label={label}
   aria-hidden={label ? undefined : "true"}
   focusable="false"
-  set:html={markBody(glyph)}
+  set:html={bare ? LIGHTS[glyph] : markBody(glyph)}
 />

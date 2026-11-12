@@ -38,6 +38,12 @@ export const LIGHTS: Record<Glyph, string> = {
     '<path class="mark-stroke" d="M60 54 V75" stroke-width="3.5"/>',
 };
 
+/**
+ * The part of the grid the lights are drawn in. A light shown without its
+ * courtyard is framed by this, so every project's light sits at the same size.
+ */
+export const LIGHT_BOX = "38 37 44 44";
+
 /** The inside of a mark's `<svg>` element. */
 export const markBody = (glyph: Glyph) => `<g class="mark-ring">${RING}</g>${LIGHTS[glyph]}`;
 

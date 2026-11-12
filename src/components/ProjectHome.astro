@@ -109,7 +109,7 @@ const firstDoc = nav[0]?.docs[0];
         <ul class="together mt-10">
           {pairs.map((pair) => (
             <li class={`p-${pair.project.id}`}>
-              <ProjectMark glyph={pair.project.glyph} size={44} />
+              <ProjectMark glyph={pair.project.glyph} size={40} bare />
               <p>
                 <strong class="font-mono">
                   {pair.project.site ? <a href={pair.project.site}>{pair.project.name}</a> : pair.project.name}

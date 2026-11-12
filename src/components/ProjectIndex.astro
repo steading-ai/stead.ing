@@ -29,7 +29,7 @@ const groups = ORDER.map((status) => ({ status, projects: PROJECTS.filter((proje
               “{project.pain}”{project.measured && <span class="measured"> {project.measured}</span>}
             </p>
             <div class="answer">
-              <ProjectMark glyph={project.glyph} size={44} />
+              <ProjectMark glyph={project.glyph} size={40} bare />
               <div>
                 <p class="name">
                   {project.site ? <a href={project.site}>{project.name}</a> : project.name}
