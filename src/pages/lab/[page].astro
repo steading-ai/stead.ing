@@ -1,0 +1,158 @@
+---
+// A workbench for comparing designs before one is chosen. Built only when
+// STEADING_LAB is set, so it never reaches a published site.
+import type { GetStaticPaths } from "astro";
+import Chains from "../../components/heroes/Chains.astro";
+import Outward from "../../components/heroes/Outward.astro";
+import Plan from "../../components/heroes/Plan.astro";
+import Stage from "../../components/heroes/Stage.astro";
+import Stream from "../../components/heroes/Stream.astro";
+import PromptBox from "../../components/PromptBox.astro";
+import { getLanding } from "../../lib/content.ts";
+import Base from "../../layouts/Base.astro";
+
+export const getStaticPaths = (() => (process.env.STEADING_LAB ? [{ params: { page: "heroes" } }] : [])) satisfies GetStaticPaths;
+
+const landing = await getLanding();
+const sentences = landing.headline.split(/(?<=\.)\s+/);
+const variations = [
+  {
+    id: "outward",
+    name: "1. Outward",
+    idea: "You decide what, and it travels. Light rolls out from the courtyard in waves, and merged changes collect at the rim.",
+    shape: "square",
+  },
+  {
+    id: "stream",
+    name: "2. Stream",
+    idea: "Left to right. You and the world's events come in, twenty lanes of agents hand the work along, and merged changes stack up on the right.",
+    shape: "wide",
+  },
+  {
+    id: "plan",
+    name: "3. Plan",
+    idea: "A plan resolving. A task becomes ready, an agent works it, and it unlocks the next, until the change ships. Then the next plan starts.",
+    shape: "wide",
+  },
+  {
+    id: "chains",
+    name: "4. Chains",
+    idea: "Events set off chains, each step in the color of the project that takes it. A few stop at an ember ring: a question for you.",
+    shape: "square",
+  },
+] as const;
+---
+
+<Base title="Hero variations" noindex bleed>
+  <div class="wrap intro">
+    <h1 class="title">Hero variations</h1>
+    <p class="measure mt-2 text-muted">
+      Four ways to draw the same idea, each in a full hero. Every picture has a thousand agents in it. Reload to see one start
+      again.
+    </p>
+  </div>
+  {
+    variations.map((variation) => (
+      <section class="variation" aria-labelledby={`v-${variation.id}`}>
+        <div class="wrap">
+          <p class="caption">
+            <strong id={`v-${variation.id}`}>{variation.name}</strong> {variation.idea}
+          </p>
+          <div class={`hero ${variation.shape}`}>
+            <div class="text">
+              <h2 class="display">
+                {sentences.map((sentence) => (
+                  <span>{sentence} </span>
+                ))}
+              </h2>
+              <div class="words">
+                <p class="lead measure">{landing.summary}</p>
+                <PromptBox prompt={landing.prompt} id={`prompt-${variation.id}`} />
+              </div>
+            </div>
+            <div class="picture">
+              <Stage id={variation.id}>
+                {variation.id === "outward" && <Outward />}
+                {variation.id === "stream" && <Stream />}
+                {variation.id === "plan" && <Plan />}
+                {variation.id === "chains" && <Chains />}
+              </Stage>
+              {variation.shape === "wide" && (
+                <ul class="legend">
+                  <li>You, and the world: ideas, updates, alerts</li>
+                  <li>A thousand agents, each on one task</li>
+                  <li>Merged, running changes</li>
+                </ul>
+              )}
+            </div>
+          </div>
+        </div>
+      </section>
+    ))
+  }
+</Base>
+
+<style>
+  .intro {
+    padding-block: 1.5rem;
+  }
+  .variation {
+    padding-block: 2rem 4.5rem;
+    border-top: 1px solid var(--line);
+  }
+  .caption {
+    max-width: 70ch;
+    margin-bottom: 2.5rem;
+    padding: 0.6rem 0.9rem;
+    border-left: 4px solid var(--ember);
+    background: var(--surface);
+    font-size: 0.95rem;
+  }
+  .hero,
+  .text,
+  .words {
+    display: grid;
+    gap: 1.5rem;
+  }
+  .hero {
+    gap: 2rem 3.5rem;
+  }
+  .display span {
+    display: block;
+  }
+  .legend {
+    display: flex;
+    justify-content: space-between;
+    gap: 1rem;
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-size: 0.85rem;
+  }
+  .legend li:nth-child(2) {
+    text-align: center;
+  }
+  .legend li:last-child {
+    text-align: right;
+  }
+  .square .picture {
+    width: 100%;
+    max-width: 26rem;
+    margin-inline: auto;
+  }
+  @media (min-width: 72rem) {
+    /* Square: the words on the left, the picture beside them. */
+    .square {
+      grid-template-columns: minmax(0, 1fr) 26rem;
+      align-items: center;
+    }
+    /* Wide: the headline on one line, the first step beside the summary, the picture across the page beneath. */
+    .wide .display span {
+      display: inline;
+    }
+    .wide .words {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 3.5rem;
+      align-items: start;
+    }
+  }
+</style>

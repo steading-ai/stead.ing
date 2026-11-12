@@ -1,0 +1,83 @@
+---
+// Variation 4. Events set off chains. Something is noticed or said, a task is
+// filed, the work is done, the change merges: each step lights in the color of
+// the project that takes it. Now and then a chain stops at a question, ringed
+// in ember, and goes on once it is answered.
+import { field, SIZE, square, YARD_BOX } from "../../lib/field.ts";
+import { CHAIN_SLOTS, chains } from "../../lib/heroes.ts";
+import { markBody } from "../../lib/mark.ts";
+
+const quiet = field([])
+  .map((cell) => square(cell.x, cell.y))
+  .join("");
+const drawn = chains();
+const center = YARD_BOX.x + YARD_BOX.size / 2;
+
+const LOOP = 11;
+const share = (seconds: number) => ((seconds / LOOP) * 100).toFixed(2);
+const keyframes = Array.from({ length: CHAIN_SLOTS + 1 }, (_, slot) => {
+  const on = 0.3 + slot * 0.45;
+  return `@keyframes chain-${slot}{0%,${share(on)}%{opacity:0}${share(on + 0.2)}%,84%{opacity:1}90%,100%{opacity:0}}`;
+}).join("");
+---
+
+<style is:inline set:html={keyframes}></style>
+
+<svg
+  viewBox={`0 0 ${SIZE} ${SIZE}`}
+  role="img"
+  aria-label="A courtyard with one ember light in a field of a thousand small squares. Short chains of squares light up one square at a time in the colors of Steading's projects, each ending in a solid square as a change merges. A few pause at an ember ring, a question for a person."
+>
+  <defs>
+    <radialGradient id="chains-glow">
+      <stop offset="0" class="glow-start"></stop>
+      <stop offset="1" class="glow-end"></stop>
+    </radialGradient>
+  </defs>
+  <path class="quiet" d={quiet}></path>
+  {
+    drawn.map((chain) => (
+      <g style={`--offset:-${chain.offset.toFixed(2)}s`}>
+        {chain.steps.map((step) => (
+          <path
+            class:list={["step", step.role === "ask" || step.role === "merged" ? step.role : `p-${step.role}`]}
+            style={`animation-name:chain-${step.slot}`}
+            d={square(step.x, step.y)}
+          />
+        ))}
+      </g>
+    ))
+  }
+  <circle cx={center} cy={center - 3} r={YARD_BOX.size * 0.46} fill="url(#chains-glow)"></circle>
+  <svg class="project-mark p-steading" x={YARD_BOX.x} y={YARD_BOX.y} width={YARD_BOX.size} height={YARD_BOX.size} viewBox="0 0 120 120" set:html={markBody("console")} />
+</svg>
+
+<style>
+  .quiet {
+    fill: currentColor;
+    opacity: 0.14;
+  }
+  .step {
+    fill: var(--accent);
+    animation-duration: 11s;
+    animation-timing-function: linear;
+    animation-iteration-count: infinite;
+    animation-delay: var(--offset);
+  }
+  .merged {
+    fill: var(--ink);
+  }
+  .ask {
+    fill: var(--ground);
+    stroke: var(--ember);
+    stroke-width: 2;
+  }
+  .glow-start {
+    stop-color: var(--ember);
+    stop-opacity: 0.4;
+  }
+  .glow-end {
+    stop-color: var(--ember);
+    stop-opacity: 0;
+  }
+</style>

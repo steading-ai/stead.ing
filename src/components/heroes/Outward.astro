@@ -1,0 +1,88 @@
+---
+// Variation 1. You decide what, and it travels outward: light rolls from the
+// courtyard through the field in waves, and merged changes collect at the rim.
+import { field, groups, SIZE, square, YARD_BOX } from "../../lib/field.ts";
+import { rimShipments } from "../../lib/heroes.ts";
+import { markBody } from "../../lib/mark.ts";
+import { PROJECTS, STEADING } from "../../projects.ts";
+
+const palette = PROJECTS.filter((project) => project.color.dark !== STEADING.color.dark).map((project) => project.id);
+const cells = field(palette, 0.3);
+const quiet = cells.map((cell) => square(cell.x, cell.y)).join("");
+const waves = groups(cells.filter((cell) => cell.color));
+const shipped = rimShipments();
+const center = YARD_BOX.x + YARD_BOX.size / 2;
+---
+
+<svg
+  viewBox={`0 0 ${SIZE} ${SIZE}`}
+  role="img"
+  aria-label="A courtyard with one ember light. Light rolls outward from it through a field of a thousand small squares, and squares at the edge turn solid as changes merge."
+>
+  <defs>
+    <radialGradient id="outward-glow">
+      <stop offset="0" class="glow-start"></stop>
+      <stop offset="1" class="glow-end"></stop>
+    </radialGradient>
+  </defs>
+  <path class="quiet" d={quiet}></path>
+  {waves.map((group) => <path class={`wave p-${group.color}`} style={`--ring:${group.ring}`} d={group.d} />)}
+  {shipped.map((cell) => <path class="shipped" style={`--at:${cell.at.toFixed(2)}s`} d={square(cell.x, cell.y)} />)}
+  <circle class="glow" cx={center} cy={center - 3} r={YARD_BOX.size * 0.46} fill="url(#outward-glow)"></circle>
+  <svg class="project-mark p-steading" x={YARD_BOX.x} y={YARD_BOX.y} width={YARD_BOX.size} height={YARD_BOX.size} viewBox="0 0 120 120" set:html={markBody("console")} />
+</svg>
+
+<style>
+  .quiet {
+    fill: currentColor;
+    opacity: 0.14;
+  }
+  .wave {
+    fill: var(--accent);
+    opacity: 0.32;
+    animation: wave 6.4s ease-in-out infinite;
+    animation-delay: calc(var(--ring) * 0.3s);
+  }
+  .shipped {
+    fill: var(--ink);
+    animation: ship 0.6s ease-out both;
+    animation-delay: var(--at);
+  }
+  .glow {
+    animation: breath 6.4s ease-in-out infinite;
+  }
+  .glow-start {
+    stop-color: var(--ember);
+    stop-opacity: 0.45;
+  }
+  .glow-end {
+    stop-color: var(--ember);
+    stop-opacity: 0;
+  }
+  @keyframes wave {
+    0%,
+    100% {
+      opacity: 0.3;
+    }
+    9% {
+      opacity: 1;
+    }
+    40% {
+      opacity: 0.42;
+    }
+  }
+  @keyframes ship {
+    from {
+      opacity: 0;
+    }
+  }
+  @keyframes breath {
+    0%,
+    100% {
+      opacity: 0.7;
+    }
+    6% {
+      opacity: 1;
+    }
+  }
+</style>

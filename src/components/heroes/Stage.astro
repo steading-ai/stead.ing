@@ -1,0 +1,38 @@
+---
+// Holds a hero's moving picture and the control that stops it. Anything that
+// moves for more than a few seconds beside text needs a way to be stopped, and
+// this one works without JavaScript.
+interface Props {
+  id: string;
+}
+
+const { id } = Astro.props;
+---
+
+<div class="stage">
+  <slot />
+  <label for={`pause-${id}`}><input type="checkbox" id={`pause-${id}`} /> Pause the animation</label>
+</div>
+
+<style>
+  .stage :global(svg) {
+    display: block;
+    width: 100%;
+    height: auto;
+    color: var(--ink);
+  }
+  .stage:has(input:checked) :global(svg *) {
+    animation-play-state: paused !important;
+  }
+  label {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 0.8rem;
+  }
+  input {
+    accent-color: var(--accent);
+  }
+</style>

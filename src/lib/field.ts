@@ -23,7 +23,7 @@ export interface Cell {
 }
 
 /** Small seeded generator, so the same field is drawn on every build. */
-function mulberry32(seed: number) {
+export function mulberry32(seed: number) {
   let state = seed;
   return () => {
     state = (state + 0x6d2b79f5) | 0;
@@ -51,6 +51,12 @@ export function field(palette: readonly string[], lit = 0.34, seed = 1000): Cell
     }
   }
   return cells;
+}
+
+/** The path of one cell's square at a grid position. */
+export function square(x: number, y: number): string {
+  const inset = (PITCH - CELL) / 2;
+  return `M${x * PITCH + inset} ${y * PITCH + inset}h${CELL}v${CELL}h-${CELL}z`;
 }
 
 export interface CellGroup {
