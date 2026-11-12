@@ -37,32 +37,10 @@ const sentences = landing.headline.split(/(?<=\.)\s+/);
       because babysitting agents eats up most of your time.
     </p>
     <div class="day">
-      <Steps variant="row" />
+      <Steps variant="turns" />
     </div>
-  </div>
-  <div class="wrap why">
     <p class="monday"><em>Every morning feels like Monday brain.</em></p>
-    <div class="pullout measure">
-      <p>
-        So you try to build a software factory. Everyone does eventually. Then every tool becomes one more thing to patch,
-        deploy, sandbox, and secure, and you spend more time building the factory than you would have building your original
-        idea.
-      </p>
-      <p>
-        Steading's goal is to reclaim your time and let you direct a <em>fleet</em> rather than babysit a <em>swarm</em>. You
-        hash out the plan with an agent, and it builds, prioritizes, and decomposes a backlog for maximum parallelism, with as
-        many resources as you feel like throwing at it.
-      </p>
-      <p>
-        You're free to play a video game or watch a show. The agents will let you know if they need anything. You come back
-        to merged, running changes.
-      </p>
-      <p>
-        Steading is the loop, with the fences, the upkeep, and the proof already built in. It's how Steading builds itself
-        today, and it's yours to run tonight!
-      </p>
-      <PromptBox prompt={landing.prompt} id="prompt-why" />
-    </div>
+    <p class="same-wall"><a href="/history/">We hit the same wall.</a></p>
   </div>
 </section>
 
@@ -177,17 +155,6 @@ const sentences = landing.headline.split(/(?<=\.)\s+/);
     }
   }
 
-  .why {
-    display: grid;
-    gap: 2.5rem;
-    margin-top: 2.5rem;
-  }
-  @media (min-width: 60rem) {
-    .why {
-      grid-template-columns: repeat(2, minmax(0, 1fr));
-      gap: 4rem;
-    }
-  }
   .subtitle {
     margin-top: 0.5rem;
     color: var(--muted);
@@ -200,23 +167,16 @@ const sentences = landing.headline.split(/(?<=\.)\s+/);
     max-width: 56rem;
   }
   .monday {
+    margin-top: 2.5rem;
     font-family: var(--font-mono);
     font-size: clamp(1.25rem, 3vw, 1.75rem);
     line-height: 1.25;
     text-wrap: balance;
   }
-
-  /* The turn in the story, set apart from what led to it. */
-  .pullout {
-    display: grid;
-    gap: 1rem;
-    align-content: start;
-    padding-left: 1.5rem;
-    border-left: 4px solid var(--ember);
-    font-size: 1.1rem;
-  }
-  .pullout :global(figure) {
-    margin-top: 0.5rem;
+  /* The way on from here: how Steading came out of the same day. */
+  .same-wall {
+    margin-top: 0.75rem;
+    font-size: 1.15rem;
   }
 
   .beliefs {

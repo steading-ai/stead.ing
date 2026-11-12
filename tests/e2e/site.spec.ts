@@ -9,9 +9,8 @@ test.describe("the first step", () => {
   test("the prompt can be copied with one button", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto(`${hub}/`);
-    // The hub offers the prompt twice: at the top, and again where the story turns.
-    await page.getByRole("button", { name: "Copy" }).first().click();
-    await expect(page.getByRole("status").first()).toHaveText("Copied. Paste it into your agent.");
+    await page.getByRole("button", { name: "Copy" }).click();
+    await expect(page.getByRole("status")).toHaveText("Copied. Paste it into your agent.");
     expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("https://stead.ing/llms.txt");
   });
 
@@ -19,20 +18,18 @@ test.describe("the first step", () => {
     const context = await browser.newContext({ javaScriptEnabled: false });
     const page = await context.newPage();
     await page.goto(`${hub}/`);
-    await expect(page.getByText("Read https://stead.ing/llms.txt").first()).toBeVisible();
+    await expect(page.getByText("Read https://stead.ing/llms.txt")).toBeVisible();
     await expect(page.getByRole("button", { name: "Copy" })).toHaveCount(0);
     await context.close();
   });
 });
 
 test.describe("the hub's story", () => {
-  test("offers the prompt again where the story turns, and it copies too", async ({ page, context }) => {
-    await context.grantPermissions(["clipboard-read", "clipboard-write"]);
+  test("leads from the day's last step to how Steading came about", async ({ page }) => {
     await page.goto(`${hub}/`);
-    const copies = page.getByRole("button", { name: "Copy" });
-    await expect(copies).toHaveCount(2);
-    await copies.nth(1).click();
-    expect(await page.evaluate(() => navigator.clipboard.readText())).toContain("https://stead.ing/llms.txt");
+    await page.getByRole("link", { name: "We hit the same wall." }).click();
+    await expect(page).toHaveURL(/\/history\/$/);
+    await expect(page.getByRole("heading", { level: 1 })).toBeVisible();
   });
 
   test("invites people to the community chat", async ({ page }) => {
