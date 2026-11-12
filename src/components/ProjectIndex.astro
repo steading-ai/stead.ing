@@ -3,7 +3,7 @@
 // who has it, and ends at the project that answers it. Rows are grouped by how
 // far along each project is, so "can I use it today?" is answered by where a
 // row sits.
-import { PROJECTS, type Status, STATUS_LABEL } from "../projects.ts";
+import { PROJECTS, type Project, type Status, STATUS_LABEL } from "../projects.ts";
 import ProjectMark from "./ProjectMark.astro";
 
 const ORDER: Status[] = ["running", "early", "design"];
@@ -12,6 +12,8 @@ const NOTE: Record<Status, string> = {
   early: "Working, with rough edges.",
   design: "Not built yet. Shown so you know where this is going.",
 };
+/** Where a row leads: the project's site, or its source while it has none. Some projects have neither yet. */
+const destination = (project: Project) => project.site ?? project.repo;
 const groups = ORDER.map((status) => ({ status, projects: PROJECTS.filter((project) => project.status === status) }));
 ---
 
@@ -24,7 +26,7 @@ const groups = ORDER.map((status) => ({ status, projects: PROJECTS.filter((proje
       </header>
       <ul>
         {projects.map((project) => (
-          <li id={project.id} class={`p-${project.id}`}>
+          <li id={project.id} class:list={[`p-${project.id}`, { linked: destination(project) }]}>
             <p class="pain">
               “{project.pain}”{project.measured && <span class="measured"> {project.measured}</span>}
             </p>
@@ -32,17 +34,11 @@ const groups = ORDER.map((status) => ({ status, projects: PROJECTS.filter((proje
               <ProjectMark glyph={project.glyph} size={40} bare />
               <div>
                 <p class="name">
-                  {project.site ? <a href={project.site}>{project.name}</a> : project.name}
+                  {destination(project) ? <a href={destination(project)}>{project.name}</a> : project.name}
                   <span class="job">{project.job}</span>
                 </p>
                 <p class="blurb">{project.blurb}</p>
-                {!project.site && project.repo && (
-                  <p class="source">
-                    <a href={project.repo}>
-                      Source<span class="sr-only"> for {project.name}</span>
-                    </a>
-                  </p>
-                )}
+                {destination(project) && <p class="where">{project.site ? new URL(project.site).host : "Source on GitHub"}</p>}
               </div>
             </div>
           </li>
@@ -108,9 +104,27 @@ const groups = ORDER.map((status) => ({ status, projects: PROJECTS.filter((proje
     font-size: 0.9rem;
     font-weight: 400;
   }
-  .source {
+  .where {
     margin-top: 0.25rem;
-    font-size: 0.9rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+  }
+  /* A row that leads somewhere is one link: the project's name, stretched over the whole row. */
+  .linked {
+    position: relative;
+  }
+  .linked .name a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+  .linked:hover {
+    background: var(--ground);
+    box-shadow: -1rem 0 0 var(--ground), 1rem 0 0 var(--ground);
+  }
+  .linked:hover .where {
+    color: var(--ink);
   }
   @media (min-width: 48rem) {
     li {

@@ -90,6 +90,14 @@ a:hover {
   text-decoration-thickness: 3px;
 }
 
+/* Anything that answers a click says so under the mouse. Tailwind's reset leaves buttons with an arrow. */
+a[href],
+button,
+summary,
+label[for] {
+  cursor: pointer;
+}
+
 h1,
 h2,
 h3,

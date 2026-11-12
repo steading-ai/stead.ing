@@ -53,6 +53,16 @@ export const SITE = {
 
 export const absolute = (path: string) => new URL(path, SITE.origin).href;
 
+/**
+ * Pages on the hub that every site's footer links to. A project's site cannot
+ * see the hub's content, so they are named here, and a test over the built hub
+ * fails if one stops existing.
+ */
+export const HUB_PAGES = [
+  { path: "/open-for-good/", label: "Open for good" },
+  { path: "/how-we-work/", label: "How we work" },
+] as const;
+
 export const MEDIA_TYPES = {
   markdown: "text/markdown; charset=utf-8",
   text: "text/plain; charset=utf-8",

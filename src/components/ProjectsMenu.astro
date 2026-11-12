@@ -165,10 +165,35 @@ const groups = (Object.keys(GROUPS) as Group[]).map((group) => ({
 </style>
 
 <script>
-  // The menu opens and closes without this. It adds what a menu is expected
-  // to do: Escape closes it and returns focus, and so does a click elsewhere.
+  // The menu opens and closes on a click without this. It adds what a menu is
+  // expected to do: open under a mouse, close on Escape and return focus, and
+  // close on a click elsewhere.
   for (const menu of document.querySelectorAll<HTMLDetailsElement>("[data-menu]")) {
     const summary = menu.querySelector("summary");
+    let hovering = false;
+    let closing: ReturnType<typeof setTimeout> | undefined;
+
+    // A mouse opens the menu by pointing at it. Leaving waits a moment before
+    // closing, so crossing the gap between the button and the panel keeps it open.
+    menu.addEventListener("pointerenter", (event) => {
+      if (event.pointerType !== "mouse") return;
+      hovering = true;
+      clearTimeout(closing);
+      menu.open = true;
+    });
+    menu.addEventListener("pointerleave", (event) => {
+      if (event.pointerType !== "mouse") return;
+      hovering = false;
+      closing = setTimeout(() => {
+        if (!menu.contains(document.activeElement)) menu.open = false;
+      }, 250);
+    });
+    // Pointing already opened it, so a mouse click on the button must not toggle it shut.
+    // A keyboard's Enter arrives as a click with no detail, and still toggles.
+    summary?.addEventListener("click", (event) => {
+      if (hovering && menu.open && event.detail > 0) event.preventDefault();
+    });
+
     document.addEventListener("keydown", (event) => {
       if (event.key !== "Escape" || !menu.open) return;
       menu.open = false;

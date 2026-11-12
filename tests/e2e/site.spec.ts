@@ -37,7 +37,7 @@ test.describe("keyboard", () => {
 test.describe("the Projects menu", () => {
   test("says what every project is, not only its name", async ({ page }) => {
     await page.goto(`${hub}/`);
-    await page.getByText("Projects", { exact: true }).click();
+    await page.locator("[data-menu] summary").click();
     const menu = page.locator("[data-menu]");
     await expect(menu.getByRole("link")).toHaveCount(11);
     await expect(menu.getByRole("link", { name: /skift.*A task graph agents and people share/ })).toHaveAttribute(
@@ -48,7 +48,7 @@ test.describe("the Projects menu", () => {
 
   test("sends a project without a site to its row on the hub, and says how far along it is", async ({ page }) => {
     await page.goto(`${skift}/`);
-    await page.getByText("Projects", { exact: true }).click();
+    await page.locator("[data-menu] summary").click();
     const croft = page.locator("[data-menu]").getByRole("link", { name: /croft/ });
     await expect(croft).toHaveAttribute("href", "https://stead.ing/#croft");
     await expect(croft).toContainText("In design");
@@ -56,7 +56,7 @@ test.describe("the Projects menu", () => {
 
   test("marks the project whose site this is", async ({ page }) => {
     await page.goto(`${skift}/`);
-    await page.getByText("Projects", { exact: true }).click();
+    await page.locator("[data-menu] summary").click();
     await expect(page.locator("[data-menu]").getByRole("link", { name: /skift/ })).toHaveAttribute("aria-current", "page");
   });
 
@@ -75,17 +75,36 @@ test.describe("the Projects menu", () => {
 
   test("closes on a click elsewhere", async ({ page }) => {
     await page.goto(`${hub}/`);
-    await page.getByText("Projects", { exact: true }).click();
+    await page.locator("[data-menu] summary").click();
     // The open menu covers the top of the page, so click below it.
     await page.getByRole("contentinfo").click();
     await expect(page.locator("[data-menu] .panel")).toBeHidden();
+  });
+
+  test("opens under a mouse and closes when the mouse leaves", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const panel = page.locator("[data-menu] .panel");
+    await page.locator("[data-menu] summary").hover();
+    await expect(panel).toBeVisible();
+    // Reaching into the panel crosses a gap, and the menu has to survive it.
+    await page.locator("[data-menu]").getByRole("link", { name: /mill/ }).hover();
+    await expect(panel).toBeVisible();
+    await page.getByRole("contentinfo").hover();
+    await expect(panel).toBeHidden();
+  });
+
+  test("a mouse click on the button doesn't shut a menu the mouse just opened", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    await page.locator("[data-menu] summary").hover();
+    await page.locator("[data-menu] summary").click();
+    await expect(page.locator("[data-menu] .panel")).toBeVisible();
   });
 
   test("still opens without JavaScript", async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false });
     const page = await context.newPage();
     await page.goto(`${hub}/`);
-    await page.getByText("Projects", { exact: true }).click();
+    await page.locator("[data-menu] summary").click();
     await expect(page.locator("[data-menu]").getByRole("link", { name: /mill/ })).toBeVisible();
     await context.close();
   });
@@ -100,6 +119,39 @@ test.describe("a project's site", () => {
   test("leads back to Steading from its header", async ({ page }) => {
     await page.goto(`${skift}/`);
     await expect(page.getByRole("banner").getByRole("link", { name: "steading" })).toHaveAttribute("href", "https://stead.ing/");
+  });
+});
+
+test.describe("the hub's list of projects", () => {
+  test("a row that leads somewhere is clickable anywhere on it", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const row = page.locator("#skift");
+    await expect(row.getByRole("link", { name: "skift" })).toHaveAttribute("href", "https://skift.stead.ing/");
+    // The problem sits at the far side of the row from the name; a click there must still land on the link.
+    const pain = row.locator(".pain");
+    await pain.scrollIntoViewIfNeeded();
+    const under = await pain.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      const top = document.elementFromPoint(box.left + 10, box.top + 10);
+      return { href: top?.closest("a")?.href, cursor: top ? getComputedStyle(top).cursor : "" };
+    });
+    expect(under).toEqual({ href: "https://skift.stead.ing/", cursor: "pointer" });
+  });
+
+  test("a row with nowhere to lead is not a link", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    await expect(page.locator("#croft").getByRole("link")).toHaveCount(0);
+  });
+});
+
+test.describe("the footer", () => {
+  test("lists every project and the ways in for an agent", async ({ page }) => {
+    await page.goto(`${skift}/`);
+    const footer = page.getByRole("contentinfo");
+    await expect(footer.getByRole("navigation", { name: "Projects" }).getByRole("link")).toHaveCount(10);
+    await expect(footer.getByRole("link", { name: "Open for good" })).toHaveAttribute("href", "https://stead.ing/open-for-good/");
+    await expect(footer.getByRole("link", { name: "This page as Markdown" })).toHaveAttribute("href", "/index.md");
+    await expect(footer.getByRole("link", { name: "llms.txt", exact: true })).toHaveAttribute("href", "/llms.txt");
   });
 });
 
@@ -147,12 +199,12 @@ for (const colorScheme of ["light", "dark"] as const) {
       await page.screenshot({ path: `test-results/screenshots/${name}-${colorScheme}.png`, fullPage: true });
     }
     await page.goto(`${skift}/`);
-    await page.getByText("Projects", { exact: true }).click();
+    await page.locator("[data-menu] summary").click();
     await page.screenshot({ path: `test-results/screenshots/menu-${colorScheme}.png` });
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${hub}/`);
     await page.screenshot({ path: `test-results/screenshots/hub-phone-${colorScheme}.png`, fullPage: true });
-    await page.getByText("Projects", { exact: true }).click();
+    await page.locator("[data-menu] summary").click();
     await page.screenshot({ path: `test-results/screenshots/menu-phone-${colorScheme}.png`, fullPage: true });
     await context.close();
   });

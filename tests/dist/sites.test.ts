@@ -92,6 +92,15 @@ for (const [name, origin] of Object.entries(SITES)) {
   });
 }
 
+describe("the hub", () => {
+  const root = join(DIST, "steading");
+
+  it.runIf(existsSync(root))("has every page the other sites' footers link to", async () => {
+    const { HUB_PAGES } = await import("../../src/site.ts");
+    for (const page of HUB_PAGES) expect(existsSync(join(root, page.path, "index.html")), page.path).toBe(true);
+  });
+});
+
 describe("the fixture site", () => {
   const root = join(DIST, "fixture");
   const read = (file: string) => readFileSync(join(root, file), "utf8");

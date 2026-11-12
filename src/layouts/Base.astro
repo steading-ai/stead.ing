@@ -4,10 +4,10 @@ import "@fontsource/ibm-plex-sans/latin-600.css";
 import "@fontsource/ibm-plex-mono/latin-400.css";
 import "@fontsource/ibm-plex-mono/latin-600.css";
 import "../styles/global.css";
-import AgentNote from "../components/AgentNote.astro";
 import ProjectColors from "../components/ProjectColors.astro";
 import ProjectMark from "../components/ProjectMark.astro";
 import ProjectsMenu from "../components/ProjectsMenu.astro";
+import SiteFooter from "../components/SiteFooter.astro";
 import { getDocs } from "../lib/content.ts";
 import { STEADING } from "../projects.ts";
 import { absolute, SITE } from "../site.ts";
@@ -94,15 +94,7 @@ const links = [
     <main id="main" class:list={[{ "wrap page": !bleed }]}>
       <slot />
     </main>
-    <footer class="wrap site-footer">
-      {markdownPath && <AgentNote markdownPath={markdownPath} />}
-      <p>
-        <a href={SITE.license.url}>{SITE.license.name}</a> licensed. Contributors keep their copyright, so Steading stays open
-        for good.{" "}
-        {project.repo && <a href={project.repo}>Source on GitHub</a>}{" "}
-        {!SITE.isHub && <a href={SITE.hub}>Part of Steading</a>}
-      </p>
-    </footer>
+    <SiteFooter markdownPath={markdownPath} />
   </body>
 </html>
 
@@ -170,12 +162,5 @@ const links = [
   }
   .page {
     padding-block: 2.5rem 4rem;
-  }
-  .site-footer {
-    display: grid;
-    gap: 1rem;
-    padding-block: 2.5rem;
-    color: var(--muted);
-    font-size: 0.9rem;
   }
 </style>
