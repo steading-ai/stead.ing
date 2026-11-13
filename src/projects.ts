@@ -114,6 +114,7 @@ export const PROJECTS: readonly Project[] = [
     status: "running",
     color: { dark: "#E2B84F", light: "#8A6410" },
     glyph: "mill",
+    repo: "https://github.com/steading-ai/mill",
   },
   {
     id: "almanac",
@@ -127,7 +128,7 @@ export const PROJECTS: readonly Project[] = [
     status: "early",
     color: { dark: "#E79AAE", light: "#A63D5F" },
     glyph: "almanac",
-    repo: "https://github.com/ivy/almanac",
+    repo: "https://github.com/steading-ai/almanac",
   },
   {
     id: "thicket",
@@ -140,7 +141,7 @@ export const PROJECTS: readonly Project[] = [
     status: "early",
     color: { dark: "#B9A2EC", light: "#6A4BB0" },
     glyph: "thicket",
-    repo: "https://github.com/ivy/thicket",
+    repo: "https://github.com/steading-ai/thicket",
   },
   {
     id: "stead",

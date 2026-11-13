@@ -57,7 +57,7 @@ test.describe("the Projects menu", () => {
     await expect(menu.getByRole("link")).toHaveCount(11);
     // A project with a site of its own leads there; one without leads to its row on the hub.
     await expect(menu.getByRole("link", { name: /skift.*A task graph agents and people share/ })).toHaveAttribute("href", "https://skift.stead.ing/");
-    await expect(menu.getByRole("link", { name: /mill.*A runner that delivers tasks as merged changes/ })).toHaveAttribute("href", "/#mill");
+    await expect(menu.getByRole("link", { name: /croft/ })).toHaveAttribute("href", "/#croft");
   });
 
   test("sends a project without a site to its row on the hub, and says how far along it is", async ({ page }) => {
