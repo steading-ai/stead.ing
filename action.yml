@@ -19,7 +19,7 @@ runs:
   steps:
     # The site's code and its pinned tools live beside this file, not in the calling repository.
     - name: Install node and pnpm
-      uses: jdx/mise-action@b44d12e7d0d8ee7461bb893e1b1993500433185b # v5.2.7
+      uses: jdx/mise-action@v5.2.7
       with:
         working_directory: ${{ github.action_path }}
         install_args: node pnpm
@@ -42,11 +42,11 @@ runs:
 
     - name: Upload the site
       if: inputs.deploy == 'true'
-      uses: actions/upload-pages-artifact@fc324d3547104276b827a68afc52ff2a11cc49c9 # v5.0.0
+      uses: actions/upload-pages-artifact@v5.0.0
       with:
         path: ${{ runner.temp }}/steading-site
 
     - name: Publish to GitHub Pages
       id: deploy
       if: inputs.deploy == 'true'
-      uses: actions/deploy-pages@368f82528645a54fb793d4d04e342629a3f51346 # v5.0.1
+      uses: actions/deploy-pages@v5.0.1

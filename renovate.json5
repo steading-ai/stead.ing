@@ -3,7 +3,7 @@
 {
   $schema: "https://docs.renovatebot.com/renovate-schema.json",
   extends: ["github>ivy/renovate-config"],
-  enabledManagers: ["npm", "github-actions", "mise"],
+  enabledManagers: ["npm", "github-actions", "mise", "custom.regex"],
   lockFileMaintenance: { enabled: true },
   postUpdateOptions: ["pnpmDedupe"],
   packageRules: [
