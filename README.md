@@ -120,9 +120,9 @@ name: Site
 on:
   push:
     branches: [main]
-    paths: ["site.yaml", "README.md", "docs/**", ".github/workflows/site.yml"]
+    paths: ["site.yaml", "README.md", "docs/**", ".github/workflows/site.yml", ".github/workflows/actions.lock"]
   pull_request:
-    paths: ["site.yaml", "README.md", "docs/**", ".github/workflows/site.yml"]
+    paths: ["site.yaml", "README.md", "docs/**", ".github/workflows/site.yml", ".github/workflows/actions.lock"]
   workflow_dispatch:
 
 permissions: {}
@@ -139,7 +139,7 @@ jobs:
     permissions:
       contents: read
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
       - uses: steading-ai/stead.ing@main
@@ -158,7 +158,7 @@ jobs:
       name: github-pages
       url: ${{ steps.site.outputs.url }}
     steps:
-      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+      - uses: actions/checkout@v7.0.1
         with:
           persist-credentials: false
       - id: site
@@ -167,7 +167,7 @@ jobs:
 
 The action takes two inputs: `content`, the folder that holds `site.yaml`, the README and `docs/` (default: the repository itself), and `deploy`, which builds without publishing when `"false"`.
 
-The project's repository never installs Node or carries a lockfile. Astro, Tailwind, and everything else are pinned here and kept current by Renovate here. Renovate in the project's repository pins `steading-ai/stead.ing@main` to a commit and proposes each new one; the pull request builds the site as its check, so an update that breaks a project's site stops there.
+The project's repository never installs Node or carries a lockfile. Astro, Tailwind, and everything else are pinned here and kept current by Renovate here. The project's `.github/workflows/actions.lock`, written by [`gh actions-lock`](https://github.com/github/gh-actions-lock), pins `steading-ai/stead.ing@main` to a commit, and pins the actions the site action runs too. `gh actions-lock --relock` moves the project to the newest commit of this repository; the pull request that carries the new lockfile builds the site as its check, so an update that breaks a project's site stops there.
 
 Then, once per site, in this order:
 
