@@ -124,6 +124,12 @@ describe("the fixture site", () => {
     expect(read("docs/guide/first.md")).toContain("(../reference.md)");
   });
 
+  it.runIf(existsSync(root))("serves the pictures beside the pages, and points at them however they were written", () => {
+    expect(existsSync(join(root, "docs/assets/mark.svg"))).toBe(true);
+    expect(read("docs/index.html")).toContain('src="/docs/assets/mark.svg"');
+    expect(read("docs/reference/index.html")).toContain('src="/docs/assets/mark.svg"');
+  });
+
   it.runIf(existsSync(root))("gives a table a frame to scroll in, which the keyboard can reach", () => {
     expect(read("docs/reference/index.html")).toMatch(/<div class="table-scroll" tabindex="0" role="group" aria-label="Table"><table/);
   });

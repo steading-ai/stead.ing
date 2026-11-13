@@ -8,7 +8,7 @@ import { createHash } from "node:crypto";
 import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { parse as parseYaml } from "yaml";
-import { type DocsSettings, folders, type Layout, mountOf, NO_SETTINGS, scanPages } from "./lib/pages.ts";
+import { type DocsSettings, folders, type Layout, mountOf, NO_SETTINGS, scanImages, scanPages } from "./lib/pages.ts";
 import { type Project, projectById, STEADING } from "./projects.ts";
 
 const contentDir = resolve(process.env.STEADING_CONTENT ?? "content");
@@ -48,6 +48,8 @@ export const SITE = {
   pages,
   /** Folders that hold pages, each with the address of its own page. */
   folders: folders(pages, layout),
+  /** The pictures kept beside the pages, each with the address it is served at. */
+  images: scanImages(contentDir, layout),
   docs: read.docs,
   /** Names this content folder, so builds of different sites never share a cache. */
   cacheKey: `${project.id}-${createHash("sha256").update(contentDir).digest("hex").slice(0, 8)}`,

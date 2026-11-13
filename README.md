@@ -60,6 +60,7 @@ Nothing is written twice. The README people read on GitHub is the docs' overview
 - **Top-level pages** come in the order `docs.order` gives, then by title. **A folder's pages** stay in file order, since records are usually numbered or dated on purpose.
 - **A folder is a group** in the navigation, named by `docs.groups`, or by its own `index.md`, or after itself. A folder without an `index.md` gets a page that lists what is in it.
 - **Links are written the way they work on GitHub.** A link to a Markdown file that is a page leads to that page. A link to a folder of pages leads to the folder's page. A link to anything else in the repository (source, a workflow, a config file) leads to that file on GitHub. The Markdown twins keep links as written.
+- **Pictures are written the same way.** An image kept under `docs/` is served at the same path on the site, and a page that shows it, in Markdown or in HTML, points there. A table that is wider than the page scrolls on its own.
 
 The hub is the one site arranged differently: its pages live in [`content/`](content/) and sit at the top of the site (`content/how-we-work.md` is `/how-we-work/`).
 

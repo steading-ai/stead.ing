@@ -54,6 +54,28 @@ function markdownUnder(root: string, dir: string): string[] {
     .sort();
 }
 
+const IMAGE = /\.(svg|png|jpe?g|gif|webp|avif)$/i;
+
+function imagesUnder(root: string, dir: string): string[] {
+  const here = join(root, dir);
+  if (!existsSync(here)) return [];
+  return readdirSync(here, { withFileTypes: true }).flatMap((entry) => {
+    const path = dir === "" ? entry.name : `${dir}/${entry.name}`;
+    if (entry.isDirectory()) return entry.name.startsWith(".") || entry.name === "node_modules" ? [] : imagesUnder(root, path);
+    return IMAGE.test(entry.name) ? [path] : [];
+  });
+}
+
+/**
+ * The pictures a site's pages may show, each with the address it is served
+ * at: the images kept beside the pages, in the same shape as their folder.
+ * `docs/assets/banner.svg` in a project is `/docs/assets/banner.svg`.
+ */
+export function scanImages(root: string, layout: Layout): Map<string, string> {
+  const files = imagesUnder(root, layout === "hub" ? "" : "docs");
+  return new Map(files.map((file) => [file, `/${file}`]));
+}
+
 const excluded = (file: string, exclude: readonly string[]) =>
   exclude.some((rule) => (rule.endsWith("/") ? file.startsWith(rule) : file === rule));
 

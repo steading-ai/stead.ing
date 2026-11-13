@@ -22,6 +22,8 @@ export interface LinkTargets {
   pages: ReadonlyMap<string, string>;
   /** Each folder of pages' address, by its path from the content folder. */
   folders: ReadonlyMap<string, string>;
+  /** Each picture the site serves, by its file's path from the content folder. */
+  images?: ReadonlyMap<string, string> | undefined;
   /** Where the project's other files can be read on the web, if anywhere. */
   source?: { blob: string; tree: string } | undefined;
 }
@@ -59,6 +61,46 @@ export function rewriteDocLinks(targets: LinkTargets) {
         const rewritten = resolveLink(href, from, targets);
         if (rewritten !== href) ctx.setProperty(node, "href", rewritten);
       },
+    },
+  });
+}
+
+/** Point a picture's relative address at where the site serves it. Anything else is returned unchanged. */
+export function resolveImage(src: string, fromFile: string, targets: LinkTargets): string {
+  if (EXTERNAL.test(src)) return src;
+  const inside = relative(targets.root, resolve(dirname(fromFile), src)).split(sep).join("/");
+  return targets.images?.get(inside) ?? src;
+}
+
+const SOURCES = /\b(src|srcset)="([^"]+)"/g;
+
+/**
+ * Sätteri plugin applying `resolveImage` to every picture in a Markdown file
+ * under the content folder, whether it was written as Markdown or as HTML.
+ */
+export function rewriteDocImages(targets: LinkTargets) {
+  const fileOf = (url: URL | undefined) => {
+    if (!url) return undefined;
+    const from = fileURLToPath(url);
+    return relative(targets.root, from).startsWith("..") ? undefined : from;
+  };
+  return defineHastPlugin({
+    name: "rewrite-doc-images",
+    element: {
+      filter: ["img"],
+      visit(node, ctx) {
+        const src = node.properties?.src;
+        const from = fileOf(ctx.fileURL);
+        if (typeof src !== "string" || !from) return;
+        const rewritten = resolveImage(src, from, targets);
+        if (rewritten !== src) ctx.setProperty(node, "src", rewritten);
+      },
+    },
+    raw(node, ctx) {
+      const from = fileOf(ctx.fileURL);
+      if (!from) return;
+      const rewritten = node.value.replace(SOURCES, (_, name: string, value: string) => `${name}="${resolveImage(value, from, targets)}"`);
+      if (rewritten !== node.value) ctx.replaceNode(node, { type: "raw", value: rewritten });
     },
   });
 }

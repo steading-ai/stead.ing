@@ -3,6 +3,8 @@ title: Reference
 description: A page with frontmatter and no heading of its own.
 ---
 
+![The fixture's mark](assets/mark.svg)
+
 Go back to [the overview](../README.md) or [the first steps](guide/first.md#then), or out to [the web](https://example.com/).
 
 ```console

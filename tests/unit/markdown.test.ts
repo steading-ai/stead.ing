@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { inline, leadingTitle, type LinkTargets, markdownPath, resolveLink } from "../../src/lib/markdown.ts";
+import { inline, leadingTitle, type LinkTargets, markdownPath, resolveImage, resolveLink } from "../../src/lib/markdown.ts";
 
 const targets: LinkTargets = {
   root: "/repo",
@@ -14,6 +14,7 @@ const targets: LinkTargets = {
     ["docs/guide", "/docs/guide/"],
     ["docs/adrs", "/docs/adrs/"],
   ]),
+  images: new Map([["docs/assets/mark.svg", "/docs/assets/mark.svg"]]),
   source: { blob: "https://example.com/blob/main", tree: "https://example.com/tree/main" },
 };
 
@@ -24,6 +25,20 @@ describe("markdownPath", () => {
     ["/docs/guide/first/", "/docs/guide/first.md"],
   ])("the twin of %s is %s", (page, twin) => {
     expect(markdownPath(page)).toBe(twin);
+  });
+});
+
+describe("resolveImage", () => {
+  it.each([
+    ["docs/assets/mark.svg", "/repo/README.md"],
+    ["assets/mark.svg", "/repo/docs/reference.md"],
+    ["../assets/mark.svg", "/repo/docs/guide/first.md"],
+  ])("points %s, written in %s, at where the site serves it", (src, from) => {
+    expect(resolveImage(src, from, targets)).toBe("/docs/assets/mark.svg");
+  });
+
+  it.each(["https://example.com/mark.svg", "/already/served.svg", "assets/missing.svg", "../../outside.svg"])("leaves %s as written", (src) => {
+    expect(resolveImage(src, "/repo/docs/reference.md", targets)).toBe(src);
   });
 });
 

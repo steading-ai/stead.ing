@@ -1,5 +1,5 @@
 import { describe, expect, it } from "vitest";
-import { folders, NO_SETTINGS, scanPages } from "../../src/lib/pages.ts";
+import { folders, NO_SETTINGS, scanImages, scanPages } from "../../src/lib/pages.ts";
 
 const PROJECT = new URL("../fixtures/site", import.meta.url).pathname;
 const HUB = new URL("../../content", import.meta.url).pathname;
@@ -35,6 +35,12 @@ describe("a project's pages", () => {
 
   it("knows each folder of pages, including one with no page of its own", () => {
     expect(Object.fromEntries(folders(pages, "project"))).toEqual({ docs: "/docs/", "docs/guide": "/docs/guide/", "docs/adrs": "/docs/adrs/" });
+  });
+});
+
+describe("a project's pictures", () => {
+  it("are the images under docs, served in the same shape as the folder", () => {
+    expect([...scanImages(PROJECT, "project")]).toEqual([["docs/assets/mark.svg", "/docs/assets/mark.svg"]]);
   });
 });
 
