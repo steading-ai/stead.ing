@@ -335,7 +335,7 @@ test.describe("a project's front page", () => {
   test("sends what a project is not to the project that is", async ({ page }) => {
     await page.goto(`${fixture}/`);
     const row = page.getByRole("row", { name: /Not a runner/ });
-    await expect(row.getByRole("link", { name: "mill" })).toHaveAttribute("href", "https://stead.ing/#mill");
+    await expect(row.getByRole("link", { name: "mill" })).toHaveAttribute("href", "https://mill.stead.ing/");
   });
 
   test("ends on the invitation, with a way to start", async ({ page }) => {

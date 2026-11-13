@@ -114,6 +114,7 @@ export const PROJECTS: readonly Project[] = [
     status: "running",
     color: { dark: "#E2B84F", light: "#8A6410" },
     glyph: "mill",
+    site: "https://mill.stead.ing/",
     repo: "https://github.com/steading-ai/mill",
   },
   {
