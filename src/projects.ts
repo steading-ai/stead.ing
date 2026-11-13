@@ -141,6 +141,7 @@ export const PROJECTS: readonly Project[] = [
     status: "early",
     color: { dark: "#B9A2EC", light: "#6A4BB0" },
     glyph: "thicket",
+    site: "https://thicket.stead.ing/",
     repo: "https://github.com/steading-ai/thicket",
   },
   {
