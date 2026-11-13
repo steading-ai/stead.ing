@@ -5,11 +5,10 @@ node = "26.13.1"
 pnpm = "12.18.0"
 hk = "2.12.0"
 pkl = "0.33.0"
-ghalint = "1.6.0"
-actionlint = "1.7.12"
+jactionlint = "2.6.0"
 jq = "1.8.2"
 "npm:markdownlint-cli" = "0.50.0"
-# actionlint runs it over each workflow's scripts.
+# jactionlint runs it over each workflow's scripts.
 shellcheck = "0.11.0"
 
 [settings]

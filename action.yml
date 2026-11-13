@@ -23,6 +23,8 @@ runs:
       with:
         working_directory: ${{ github.action_path }}
         install_args: node pnpm
+        # This action publishes, so it restores no cache entry that another run could have planted.
+        cache: false
 
     - name: Install dependencies
       shell: bash
