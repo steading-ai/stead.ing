@@ -67,7 +67,7 @@ export const SITE = {
   source: !isHub && project.repo ? { blob: `${project.repo}/blob/main`, tree: `${project.repo}/tree/main` } : undefined,
   hub: "https://stead.ing/",
   /** Where the people building Steading talk. */
-  chat: "https://discord.gg/7A7Pb7N92",
+  chat: "https://discord.gg/BjCu2vHgX4",
   license: { name: "ISC", url: "https://opensource.org/license/isc-license-txt" },
 } as const;
 
