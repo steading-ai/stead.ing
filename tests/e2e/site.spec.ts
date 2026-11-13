@@ -141,9 +141,13 @@ test.describe("the day strip", () => {
     page.locator("[data-count=merged]").evaluate((element) => Number(element.textContent?.replace(/,/g, "")));
 
   test("counts merged pull requests upward as the day runs", async ({ page }) => {
+    // The strip starts at the visitor's own time of day, and some hours are quieter than others.
+    // A fixed mid-morning, run forward by the clock, sees the same merges wherever and whenever the test runs.
+    await page.clock.install({ time: new Date("2026-01-05T10:00:00") });
     await page.goto(`${hub}/`);
     const before = await merged(page);
-    await expect.poll(() => merged(page), { timeout: 15_000 }).toBeGreaterThan(before);
+    await page.clock.runFor(30_000);
+    expect(await merged(page)).toBeGreaterThan(before);
   });
 
   test("says what an event was, and what set it off, when pointed at", async ({ page }) => {
