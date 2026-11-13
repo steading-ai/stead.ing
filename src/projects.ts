@@ -129,6 +129,7 @@ export const PROJECTS: readonly Project[] = [
     status: "early",
     color: { dark: "#E79AAE", light: "#A63D5F" },
     glyph: "almanac",
+    site: "https://almanac.stead.ing/",
     repo: "https://github.com/steading-ai/almanac",
   },
   {
