@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { backlog, BACKLOG_BASE, clock, dayName, LOOKBACK, storiesBetween, storiesStartingIn } from "../../src/lib/timeline.ts";
-import { finishedBetween, frame, latest, Packer, type View } from "../../src/lib/timeline-view.ts";
+import { frame, latest, Packer, type View } from "../../src/lib/timeline-view.ts";
 
 const WEEK = storiesBetween(72, 72 + 24 * 7);
 const events = WEEK.flatMap((story) => story.events);
@@ -78,11 +78,6 @@ describe("drawing it", () => {
     const mill = events.filter((event) => event.lane === "mill");
     const first = mill.map((event) => packer.row(event));
     expect(mill.map((event) => packer.row(event))).toEqual(first);
-  });
-
-  it("counts what finishes in a stretch of time exactly once", () => {
-    const whole = finishedBetween(WEEK, 100, 110).length;
-    expect(finishedBetween(WEEK, 100, 105).length + finishedBetween(WEEK, 105, 110).length).toBe(whole);
   });
 
   it("reports the event that began most recently", () => {

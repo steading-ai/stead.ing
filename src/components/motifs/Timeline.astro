@@ -2,22 +2,20 @@
 // One day on a steading, as it is meant to run: a lane for the person and one
 // for each project, with work appearing at "now" and sliding into the past.
 // The picture below is one frame, drawn at build time; the script makes it
-// move, adds the detail shown on hover, and ticks the counts.
+// move and adds the detail shown on hover. Whatever is passed in (a label)
+// sits beside the Pause button, on the strip's top line.
 import { LIGHT_BOX, LIGHTS } from "../../lib/mark.ts";
-import { clock, type LaneId, storiesBetween } from "../../lib/timeline.ts";
-import { frame, LABELS, lanes, latest, MARGIN, Packer, type View } from "../../lib/timeline-view.ts";
+import { type LaneId, storiesBetween } from "../../lib/timeline.ts";
+import { frame, LABELS, lanes, MARGIN, Packer, type View } from "../../lib/timeline-view.ts";
 import { PROJECTS } from "../../projects.ts";
 
 interface Props {
   /** Names this timeline, so several can share a page. */
   id: string;
   view: View;
-  /** Counts shown before the picture starts moving. */
-  merged?: number;
-  deployed?: number;
 }
 
-const { id, view, merged = 48210, deployed = 6104 } = Astro.props;
+const { id, view } = Astro.props;
 const WIDTH = 1152;
 const NOW = 72 + 14.5;
 const { lanes: placed, height } = lanes(view);
@@ -28,9 +26,7 @@ const unbuilt = PROJECTS.filter((project) => project.status === "design" && plac
 const hollow = new Set(unbuilt.map((project) => project.id as LaneId));
 const drawn = frame(view, stories, NOW - hours - 1, NOW + 1, new Packer(), hollow);
 const nowX = WIDTH - MARGIN;
-const last = latest(stories, NOW);
 const project = (id: string) => PROJECTS.find((candidate) => candidate.id === id);
-const format = (count: number) => count.toLocaleString("en-US");
 // The marks beside the lane names, sized to the lanes.
 const glyph = view.compact ? 10 : 14;
 ---
@@ -42,10 +38,7 @@ const glyph = view.compact ? 10 : 14;
   data-hollow={[...hollow].join(" ")}
 >
   <div class="bar">
-    <p class="counts">
-      <span><b data-count="merged" data-value={merged}>{format(merged)}</b> pull requests merged</span>
-      <span><b data-count="deployed" data-value={deployed}>{format(deployed)}</b> deployed</span>
-    </p>
+    <slot />
     <button type="button" data-pause hidden>Pause</button>
   </div>
   <div class="stage" data-stage>
@@ -83,7 +76,6 @@ const glyph = view.compact ? 10 : 14;
     </svg>
     <div class="tip" data-tip hidden></div>
   </div>
-  <p class="latest" data-latest>{last ? `${clock(last.start)} ${last.lane}: ${last.text}` : ""}</p>
 </figure>
 
 <script>
@@ -105,19 +97,8 @@ const glyph = view.compact ? 10 : 14;
     gap: 0.25rem 1.5rem;
     margin-bottom: 0.5rem;
   }
-  .timeline .counts {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 0.25rem 2rem;
-    color: var(--muted);
-  }
-  .timeline .counts b {
-    color: var(--ink);
-    font-size: 1.35rem;
-    font-weight: 600;
-    font-variant-numeric: tabular-nums;
-  }
   .timeline [data-pause] {
+    margin-left: auto;
     padding: 0.15rem 0.6rem;
     border: 1px solid var(--line);
     border-radius: 0.3rem;
@@ -239,10 +220,6 @@ const glyph = view.compact ? 10 : 14;
     stroke: var(--ember);
     opacity: 1;
   }
-  .timeline.muted .counts b,
-  .timeline.compact .counts b {
-    font-size: 1rem;
-  }
   .timeline.compact .name {
     font-size: 11px;
   }
@@ -282,12 +259,5 @@ const glyph = view.compact ? 10 : 14;
   .timeline .tip .cause {
     color: var(--muted);
     font-size: 0.8rem;
-  }
-  .timeline .latest {
-    margin-top: 0.5rem;
-    overflow: hidden;
-    color: var(--muted);
-    text-overflow: ellipsis;
-    white-space: nowrap;
   }
 </style>

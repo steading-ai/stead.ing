@@ -1,13 +1,11 @@
 /**
  * Makes the still timeline move. It slides the drawing so "now" stays at the
- * right edge, redraws as new hours come into view, counts what finishes, and
- * shows an event's detail when it is pointed at. Without this script the page
+ * right edge, redraws as new hours come into view, marks the story happening
+ * now, and shows an event's detail when it is pointed at. Without this script the page
  * shows the one frame drawn at build time.
  */
 import { clock, type LaneId, storiesBetween, type Story, type TimelineEvent } from "./timeline.ts";
-import { finishedBetween, frame, LABELS, lanes, latest, MARGIN, Packer, type View } from "./timeline-view.ts";
-
-const count = (value: number) => value.toLocaleString("en-US");
+import { frame, LABELS, lanes, latest, MARGIN, Packer, type View } from "./timeline-view.ts";
 
 function run(figure: HTMLElement): void {
   const view = JSON.parse(figure.dataset.view ?? "{}") as View;
@@ -18,9 +16,8 @@ function run(figure: HTMLElement): void {
   const clip = figure.querySelector<SVGRectElement>("[data-clip] rect");
   const nowLine = figure.querySelector<SVGLineElement>("[data-now-line]");
   const tip = figure.querySelector<HTMLElement>("[data-tip]");
-  const line = figure.querySelector<HTMLElement>("[data-latest]");
   const button = figure.querySelector<HTMLButtonElement>("[data-pause]");
-  if (!stage || !svg || !scroll || !clip || !nowLine || !tip || !line || !button) return;
+  if (!stage || !svg || !scroll || !clip || !nowLine || !tip || !button) return;
 
   const { height } = lanes(view);
   const packer = new Packer();
@@ -39,12 +36,6 @@ function run(figure: HTMLElement): void {
   let live: number | undefined;
   let pointing = false;
   let pinned = false;
-
-  const counters = [...figure.querySelectorAll<HTMLElement>("[data-count]")].map((element) => ({
-    element,
-    key: element.dataset.count as "merged" | "deployed",
-    value: Number(element.dataset.value),
-  }));
 
   function measure(): void {
     width = stage!.clientWidth;
@@ -77,21 +68,11 @@ function run(figure: HTMLElement): void {
 
   function report(): void {
     const event = latest(stories, now);
-    if (!event) return;
-    line!.textContent = `${clock(event.start)} ${event.lane}: ${event.text}`;
-    if (event.story === live) return;
+    if (!event || event.story === live) return;
     // Mark the story happening now, so a quiet strip can spend its color there.
     for (const element of scroll!.querySelectorAll(".live")) element.classList.remove("live");
     for (const element of scroll!.querySelectorAll(`[data-story="${event.story}"]`)) element.classList.add("live");
     live = event.story;
-  }
-
-  function tick(from: number, to: number): void {
-    for (const event of finishedBetween(stories, from, to)) {
-      for (const counter of counters) {
-        if (event[counter.key]) counter.element.textContent = count(++counter.value);
-      }
-    }
   }
 
   function focus(story: number | undefined): void {
@@ -190,10 +171,8 @@ function run(figure: HTMLElement): void {
     const seconds = Math.min((time - last) / 1000, 0.1);
     last = time;
     if (!paused && !pointing && !pinned) {
-      const before = now;
       now += seconds * view.speed;
       if (now > drawnTo - ahead / 2) draw();
-      tick(before, now);
       place();
       if (time - reported > 600) {
         report();

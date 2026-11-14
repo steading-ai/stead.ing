@@ -137,22 +137,11 @@ test.describe("a project's site", () => {
 });
 
 test.describe("the day strip", () => {
-  const merged = (page: import("@playwright/test").Page) =>
-    page.locator("[data-count=merged]").evaluate((element) => Number(element.textContent?.replace(/,/g, "")));
-
-  test("counts merged pull requests upward as the day runs", async ({ page }) => {
-    // The strip starts at the visitor's own time of day, and some hours are quieter than others.
-    // A fixed mid-morning, run forward by the clock, sees the same merges wherever and whenever the test runs.
-    await page.clock.install({ time: new Date("2026-01-05T10:00:00") });
-    await page.goto(`${hub}/`);
-    const before = await merged(page);
-    await page.clock.runFor(30_000);
-    expect(await merged(page)).toBeGreaterThan(before);
-  });
-
   test("says what an event was, and what set it off, when pointed at", async ({ page }) => {
     await page.goto(`${hub}/`);
     const strip = page.locator("[data-timeline]");
+    // The mouse can only point at what is on screen, and the strip sits below the fold.
+    await strip.scrollIntoViewIfNeeded();
     // Runs still ahead of "now" are drawn but out of sight, so pick one in the middle of the strip.
     const frame = await strip.locator("svg[role=img]").boundingBox();
     const boxes = await strip.locator("[data-scroll] .clip.p-mill").evaluateAll((clips) => clips.map((clip) => clip.getBoundingClientRect().toJSON()));
@@ -199,7 +188,6 @@ test.describe("the day strip", () => {
     const strip = page.locator("[data-timeline]");
     expect(await strip.locator("[data-scroll] .clip").count()).toBeGreaterThan(10);
     await expect(strip.getByRole("button")).toHaveCount(0);
-    await expect(strip.locator("[data-latest]")).not.toBeEmpty();
     await context.close();
   });
 });

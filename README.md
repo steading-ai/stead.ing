@@ -51,7 +51,7 @@ Nothing is written twice. The README people read on GitHub is the docs' overview
 | `pairs` | no | "Works better with": any number of `project` (an id) and `body`. |
 | `docs` | no | How the docs are arranged: `sections` (the navigation in named parts, described under [Docs](#docs)), `order` (top-level pages, by name, in reading order, for a site without sections), `exclude` (files, or folders ending in a slash, to leave out), and `groups` (names for folders). |
 
-`body`, `note`, and `instead` may use `` `code` ``, `**bold**`, `*emphasis*`, and `[links](https://example.com)`. [`tests/fixtures/site/site.yaml`](tests/fixtures/site/site.yaml) uses every field.
+`headline`, `body`, `note`, and `instead` may use `` `code` ``, `**bold**`, `*emphasis*`, and `[links](https://example.com)`. [`tests/fixtures/site/site.yaml`](tests/fixtures/site/site.yaml) uses every field.
 
 ### Docs
 

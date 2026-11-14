@@ -23,8 +23,6 @@ export interface TimelineEvent {
   text: string;
   /** Tasks added to the backlog (positive) or finished (negative). */
   nodes?: number;
-  merged?: boolean;
-  deployed?: boolean;
   /** A question that only the person can answer. */
   asks?: boolean;
   /** For the person's lane: their words, short enough to print beside their mark. */
@@ -135,8 +133,6 @@ function run(start: number, length: number, ref: number, title: string, options:
       end: start + length,
       text: `#${ref} ${title}: planned, built, reviewed${options.revise ? ", sent back once, revised" : ""}, merged${options.deploy ? ", deployed" : ""}.`,
       nodes: -1,
-      merged: true,
-      ...(options.deploy ? { deployed: true } : {}),
     },
   ];
 }
@@ -219,7 +215,7 @@ function repair({ at, random }: Context): { title: string; events: Draft[] } {
   return {
     title: `An update to ${what} broke a build`,
     events: [
-      { lane: "almanac", start: at, end: at + 0.3, text: `An update to ${what} broke a build. Read the failure, fixed one line in a sandbox, pushed it; checks passed and the update merged.`, merged: true },
+      { lane: "almanac", start: at, end: at + 0.3, text: `An update to ${what} broke a build. Read the failure, fixed one line in a sandbox, pushed it; checks passed and the update merged.` },
     ],
   };
 }
