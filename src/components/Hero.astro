@@ -39,21 +39,6 @@ const sentences = headline.split(/(?<=\.)\s+/);
   .display span {
     display: block;
   }
-  /* The word the headline leans on: set in italic and underscored by one stroke of the site's color. */
-  .display :global(em) {
-    position: relative;
-    font-style: italic;
-  }
-  .display :global(em)::after {
-    content: "";
-    position: absolute;
-    inset-inline: 0.05em;
-    bottom: -0.02em;
-    height: 0.11em;
-    background: var(--accent);
-    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8.5 Q 90 1.5 197 6.5' fill='none' stroke='black' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E")
-      center / 100% 100% no-repeat;
-  }
   /* The summary belongs to the headline, so it sits closer to it than the parts below do to each other. */
   .display + .lead {
     margin-top: -0.25rem;

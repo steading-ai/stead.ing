@@ -8,7 +8,7 @@ import { projectById } from "../projects.ts";
 import GitHubMark from "./GitHubMark.astro";
 import Hero from "./Hero.astro";
 import JoinIn from "./JoinIn.astro";
-import FlowMap from "./motifs/FlowMap.astro";
+import Platform from "./Platform.astro";
 import Steps from "./motifs/Steps.astro";
 import Timeline from "./motifs/Timeline.astro";
 import ProjectIndex from "./ProjectIndex.astro";
@@ -78,20 +78,7 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
   </div>
 </section>
 
-<section class="band" aria-labelledby="idea">
-  <div class="wrap">
-    <h2 id="idea" class="display-2">A platform you can take apart</h2>
-    <p class="subtitle">Great on its own, better together</p>
-    <p class="lead measure mt-4">
-      Everyone else is building one big system for you to move into. Steading is a platform too, but it's made of projects,
-      each built to do one job well, each with an open interface. If you have a better idea for a project, swap in your own;
-      the rest keeps working.
-    </p>
-    <div class="mt-10">
-      <FlowMap id="map" />
-    </div>
-  </div>
-</section>
+<Platform />
 
 <section class="band band-surface" aria-labelledby="projects">
   <div class="wrap">
@@ -271,13 +258,6 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
     padding: calc(var(--hero-gap) * 0.5) 1rem;
     border: 1px solid var(--line);
     border-radius: 0.75rem;
-  }
-
-  .subtitle {
-    margin-top: 0.5rem;
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: 1.15rem;
   }
 
   /* The day in five steps, across the page. */

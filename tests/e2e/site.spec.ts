@@ -193,13 +193,20 @@ test.describe("the day strip", () => {
 });
 
 test.describe("the product map", () => {
-  test("takes a small part of the screen", async ({ page }) => {
+  test("fits in one screen of a desktop window, with its closer look, key, and steps", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${hub}/`);
-    const box = await page.locator("figure.flow .scroll > svg").boundingBox();
-    expect(box?.height).toBeLessThan(300);
+    const section = page.locator("section.platform");
+    await expect(section.locator(".about")).toBeVisible();
+    await expect(section.locator(".legend li")).toHaveCount(8);
+    await expect(section.locator(".loop li")).toHaveCount(5);
+    const box = await section.boundingBox();
+    expect(box?.height).toBeLessThanOrEqual(900);
   });
 
-  test("comes before the list of projects, and every project on it leads to its entry there", async ({ page }) => {
+  test("comes before the list of projects, and without JavaScript every project on it leads to its entry there", async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
     await page.goto(`${hub}/`);
     const map = page.locator("figure.flow");
     const links = map.getByRole("link");
@@ -213,6 +220,36 @@ test.describe("the product map", () => {
     await map.getByRole("link", { name: /croft/ }).click();
     await expect(page).toHaveURL(/#croft$/);
     await expect(page.locator("#croft")).toBeInViewport();
+    await context.close();
+  });
+
+  test("looks closer at the project picked on the map, and says how far along it is", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const section = page.locator("section.platform");
+    await expect(section.locator(".panel.p-skift")).toBeVisible();
+    await section.locator("figure.flow").getByRole("link", { name: /croft/ }).click();
+    const croft = section.locator(".panel.p-croft");
+    await expect(croft).toBeVisible();
+    await expect(croft).toContainText("Credentials die with the machine.");
+    await expect(croft).toContainText("In design.");
+    await expect(section.locator(".panel.p-skift")).toBeHidden();
+    await expect(page).not.toHaveURL(/#croft$/);
+    await croft.getByRole("link", { name: "Find it among the projects" }).click();
+    await expect(page.locator("#croft")).toBeInViewport();
+  });
+
+  test("changes the closer look without JavaScript, by pointer or keyboard", async ({ browser }) => {
+    const context = await browser.newContext({ javaScriptEnabled: false });
+    const page = await context.newPage();
+    await page.goto(`${hub}/`);
+    const section = page.locator("section.platform");
+    await section.locator(".tabs label.p-mill").click();
+    await expect(section.locator(".panel.p-mill")).toBeVisible();
+    await expect(section.getByRole("radio", { name: "mill" })).toBeChecked();
+    await page.keyboard.press("ArrowRight");
+    await expect(section.locator(".panel.p-almanac")).toBeVisible();
+    await expect(section.locator(".panel.p-mill")).toBeHidden();
+    await context.close();
   });
 
   test("moves, and holds still for someone who asked for less motion", async ({ page, browser }) => {

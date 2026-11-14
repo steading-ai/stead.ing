@@ -122,6 +122,27 @@ h3,
   letter-spacing: -0.03em;
   text-wrap: balance;
 }
+/* The words a heading leans on: underscored by one stroke of the site's color. The page's headline sets them in italic too. */
+.display em,
+.display-2 em {
+  position: relative;
+  font-style: normal;
+  white-space: nowrap;
+}
+.display em {
+  font-style: italic;
+}
+.display em::after,
+.display-2 em::after {
+  content: "";
+  position: absolute;
+  inset-inline: 0.05em;
+  bottom: -0.02em;
+  height: 0.11em;
+  background: var(--accent);
+  mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8.5 Q 90 1.5 197 6.5' fill='none' stroke='black' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E")
+    center / 100% 100% no-repeat;
+}
 .title {
   font-size: clamp(1.5rem, 3.4vw, 2rem);
   line-height: 1.15;
