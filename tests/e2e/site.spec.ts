@@ -140,6 +140,8 @@ test.describe("the day strip", () => {
   test("says what an event was, and what set it off, when pointed at", async ({ page }) => {
     await page.goto(`${hub}/`);
     const strip = page.locator("[data-timeline]");
+    // The mouse can only point at what is on screen, and the strip sits below the fold.
+    await strip.scrollIntoViewIfNeeded();
     // Runs still ahead of "now" are drawn but out of sight, so pick one in the middle of the strip.
     const frame = await strip.locator("svg[role=img]").boundingBox();
     const boxes = await strip.locator("[data-scroll] .clip.p-mill").evaluateAll((clips) => clips.map((clip) => clip.getBoundingClientRect().toJSON()));

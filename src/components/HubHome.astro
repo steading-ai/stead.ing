@@ -4,25 +4,63 @@
 // real, and how to build it with us. The hero's words come from
 // content/site.yaml.
 import type { Landing } from "../lib/schema.ts";
+import { projectById } from "../projects.ts";
+import GitHubMark from "./GitHubMark.astro";
 import Hero from "./Hero.astro";
 import JoinIn from "./JoinIn.astro";
 import FlowMap from "./motifs/FlowMap.astro";
 import Steps from "./motifs/Steps.astro";
 import Timeline from "./motifs/Timeline.astro";
 import ProjectIndex from "./ProjectIndex.astro";
+import ProjectMark from "./ProjectMark.astro";
 
 interface Props {
   landing: Landing & { prompt: string };
 }
 
 const { landing } = Astro.props;
+const SOURCE = "https://github.com/steading-ai";
+// The projects that have a lane in the timeline, in the order work moves through them.
+const stack = ["skift", "mill", "almanac", "thicket", "croft", "knowledge"].map(projectById);
+// Like the Projects menu: a project's own site, or else its row further down this page, which says how far along it is.
+const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id}`;
 ---
 
 <Hero headline={landing.headline} summary={landing.summary} prompt={landing.prompt}>
-  <p class="facts">
-    Paste the prompt into your agent, or <a href="#projects">start with the project for your problem</a>.
-  </p>
-  <Timeline id="hero" view={{ pxPerHour: 130, backlog: false, threads: true, speed: 1 / 10, tone: "muted", compact: true }} />
+  <Fragment slot="before-prompt">
+    <div class="source">
+      <a class="button-primary" href={SOURCE}>
+        <GitHubMark size={20} />
+        Browse source on GitHub
+        <span aria-hidden="true">↗</span>
+      </a>
+      <p class="license">Open source · ISC · DCO</p>
+    </div>
+    <section class="part" aria-labelledby="stack">
+      <div class="part-head">
+        <h2 id="stack" class="eyebrow">The stack at a glance</h2>
+        <p class="aside">Useful alone. Better together.</p>
+      </div>
+      <ul class="stack">
+        {
+          stack.map((project) => (
+            <li class={`p-${project.id}`}>
+              <ProjectMark glyph={project.glyph} size={32} bare />
+              <p>
+                <a href={href(project)}>{project.name}</a>
+                <span>{project.kind}</span>
+              </p>
+            </li>
+          ))
+        }
+      </ul>
+    </section>
+  </Fragment>
+  <section class="part in-action" aria-labelledby="in-action">
+    <Timeline id="hero" view={{ pxPerHour: 130, backlog: false, threads: true, speed: 1 / 10, tone: "muted", compact: true }}>
+      <h2 id="in-action" class="eyebrow">See it in action</h2>
+    </Timeline>
+  </section>
 </Hero>
 
 <section class="band band-surface" aria-labelledby="why">
@@ -105,6 +143,136 @@ const { landing } = Astro.props;
 <JoinIn />
 
 <style>
+  /*
+   * The hero, top to bottom: the source, the stack, the prompt, and the day.
+   * Each part after the first opens on a rule and a small label, so the whole
+   * of it reads in one screen.
+   */
+  .eyebrow,
+  :global(.hero [data-prompt-box] figcaption) {
+    font-family: var(--font-mono);
+    font-size: 0.95rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+  .part,
+  :global(.hero [data-prompt-box]) {
+    padding-top: var(--hero-gap);
+    border-top: 1px solid var(--line);
+  }
+  .part-head {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: baseline;
+    justify-content: space-between;
+    gap: 0.25rem 2rem;
+  }
+  .aside {
+    color: var(--muted);
+    font-size: 1.05rem;
+  }
+
+  .source {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.75rem 1.5rem;
+    margin-top: 0.5rem;
+  }
+  .source .button-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.3rem;
+    font-size: 1.05rem;
+  }
+  .license {
+    color: var(--muted);
+  }
+  @media (max-width: 29.99rem) {
+    .source .button-primary {
+      font-size: 0.95rem;
+    }
+  }
+  @media (min-width: 40rem) {
+    .license {
+      padding-left: 1.5rem;
+      border-left: 1px solid var(--line);
+    }
+  }
+
+  /* Six cards: one row where they fit, else rows of three or two, never a row with a gap in it. */
+  .stack {
+    display: grid;
+    gap: 0.75rem;
+    margin-top: calc(var(--hero-gap) * 0.8);
+  }
+  @media (min-width: 30rem) {
+    .stack {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 48rem) {
+    .stack {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 80rem) {
+    .stack {
+      grid-template-columns: repeat(6, minmax(0, 1fr));
+    }
+  }
+  /* A card is one link: the project's name, stretched over the whole card. */
+  .stack li {
+    position: relative;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    padding: 0.55rem 0.9rem;
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+    background: var(--surface);
+  }
+  .stack p {
+    line-height: 1.3;
+  }
+  .stack li:hover {
+    border-color: var(--accent);
+  }
+  .stack a {
+    font-family: var(--font-mono);
+    font-size: 1.15rem;
+    font-weight: 600;
+    text-decoration: none;
+  }
+  .stack a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+  .stack li:hover a {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+  }
+  .stack span {
+    display: block;
+    color: var(--muted);
+    font-size: 0.95rem;
+    line-height: 1.3;
+  }
+
+  /* The day: its label on the strip's top line, beside Pause, and its picture in a frame. */
+  .in-action :global(.timeline .bar) {
+    align-items: center;
+    margin-bottom: calc(var(--hero-gap) * 0.6);
+  }
+  .in-action :global(.timeline .stage) {
+    padding: calc(var(--hero-gap) * 0.5) 1rem;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+  }
+
   .subtitle {
     margin-top: 0.5rem;
     color: var(--muted);

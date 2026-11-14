@@ -43,6 +43,8 @@ export interface Project {
   what: string;
   /** What it does, in a few words: "Holds the plan". */
   job: string;
+  /** What kind of thing it is, in a word or two: "Work graph". Set for the projects the hub's hero shows. */
+  kind?: string;
   group: Group;
   /** The problem it answers, in the words of someone who has it. Visitors scan for these. */
   pain: string;
@@ -66,7 +68,7 @@ export const STEADING: Project = {
   name: "steading",
   what: "The platform these projects make up",
   group: "deliver",
-  job: "One person. A thousand agents.",
+  job: "You and a thousand agents.",
   pain: "I have more ideas than hours.",
   blurb: "Open-source projects for planning, running, fencing, and watching AI agents on machines you own.",
   status: "running",
@@ -92,6 +94,7 @@ export const PROJECTS: readonly Project[] = [
   {
     id: "skift",
     name: "skift",
+    kind: "Work graph",
     what: "A task graph agents and people share",
     group: "deliver",
     job: "Holds the plan",
@@ -106,6 +109,7 @@ export const PROJECTS: readonly Project[] = [
   {
     id: "mill",
     name: "mill",
+    kind: "Software factory",
     what: "A runner that delivers tasks as merged changes",
     group: "deliver",
     job: "Does the work",
@@ -120,6 +124,7 @@ export const PROJECTS: readonly Project[] = [
   {
     id: "almanac",
     name: "almanac",
+    kind: "Dependency repair",
     what: "Automatic repair for broken dependency updates",
     group: "maintain",
     job: "Keeps things maintained",
@@ -135,6 +140,7 @@ export const PROJECTS: readonly Project[] = [
   {
     id: "thicket",
     name: "thicket",
+    kind: "Agent fleet",
     what: "Agents you reach from Slack or a phone call",
     group: "reach",
     job: "Agents you can talk to",
@@ -161,6 +167,7 @@ export const PROJECTS: readonly Project[] = [
   {
     id: "croft",
     name: "croft",
+    kind: "Sandboxes",
     what: "Sandboxes and virtual machines for agent work",
     group: "fence",
     job: "Keeps work fenced in",
@@ -185,6 +192,7 @@ export const PROJECTS: readonly Project[] = [
   {
     id: "knowledge",
     name: "knowledge",
+    kind: "Shared memory",
     what: "A memory agents can ask, with sources",
     group: "deliver",
     job: "Remembers what was learned",

@@ -1,7 +1,9 @@
 ---
 // The opening of every front page: the headline, a summary, and the first
 // step, which is always a prompt to paste into your own agent. Anything a site
-// adds (an install command, a picture of the product at work) goes in the slot.
+// adds (an install command, a picture of the product at work) goes in the slot
+// after the prompt; what has to be read before it goes in `before-prompt`.
+import { inline } from "../lib/markdown.ts";
 import PromptBox from "./PromptBox.astro";
 
 interface Props {
@@ -15,17 +17,20 @@ const sentences = headline.split(/(?<=\.)\s+/);
 ---
 
 <section class="hero wrap">
-  <h1 class="display">{sentences.map((sentence) => <span>{sentence} </span>)}</h1>
+  <h1 class="display">{sentences.map((sentence) => <span set:html={`${inline(sentence)} `} />)}</h1>
   <p class="lead measure">{summary}</p>
+  <slot name="before-prompt" />
   <PromptBox prompt={prompt} />
   <slot />
 </section>
 
 <style>
+  /* The space between parts gives way on a short window, so the whole opening still fits in one screen. */
   .hero {
+    --hero-gap: clamp(0.75rem, 1.9vh, 1.1rem);
     display: grid;
-    gap: 1.5rem;
-    padding-block: clamp(1.25rem, 4vw, 2.5rem) clamp(2.5rem, 6vw, 4rem);
+    gap: var(--hero-gap);
+    padding-block: var(--hero-gap) clamp(2.5rem, 6vw, 4rem);
   }
   /* A grid item is as wide as its widest content unless told otherwise. What sits in the slot is another component's, so the rule has to reach past this one's own. */
   .hero > :global(*) {
@@ -34,9 +39,28 @@ const sentences = headline.split(/(?<=\.)\s+/);
   .display span {
     display: block;
   }
+  /* The word the headline leans on: set in italic and underscored by one stroke of the site's color. */
+  .display :global(em) {
+    position: relative;
+    font-style: italic;
+  }
+  .display :global(em)::after {
+    content: "";
+    position: absolute;
+    inset-inline: 0.05em;
+    bottom: -0.02em;
+    height: 0.11em;
+    background: var(--accent);
+    mask: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 12' preserveAspectRatio='none'%3E%3Cpath d='M3 8.5 Q 90 1.5 197 6.5' fill='none' stroke='black' stroke-width='5' stroke-linecap='round'/%3E%3C/svg%3E")
+      center / 100% 100% no-repeat;
+  }
+  /* The summary belongs to the headline, so it sits closer to it than the parts below do to each other. */
+  .display + .lead {
+    margin-top: -0.25rem;
+  }
   /* The first step is the point of the page: it takes the full width, at a size that says so. */
   .hero :global(.prompt) {
-    padding: 1.1rem 1.25rem;
+    padding: 0.5rem 0.6rem 0.5rem 1.25rem;
   }
   .hero :global(.prompt pre) {
     font-size: 1.05rem;
@@ -45,11 +69,11 @@ const sentences = headline.split(/(?<=\.)\s+/);
     color: var(--muted);
     font-size: 0.95rem;
   }
-  .hero :global(.timeline) {
-    margin-top: 1rem;
-  }
   @media (min-width: 72rem) {
     /* A headline of two short sentences runs on one line across the page. */
+    .display {
+      font-size: clamp(2rem, min(5.2vw, 7.4vh), 4.25rem);
+    }
     .display span {
       display: inline;
     }
