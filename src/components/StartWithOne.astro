@@ -1,8 +1,9 @@
 ---
 // "Start with one piece": the few projects a newcomer can pick up today, each
-// with the need it answers, what it does about it, and how far along it is.
-// A card is one link to the project's own site.
-import { PROJECTS, STATUS_LABEL } from "../projects.ts";
+// with the need it answers and what it does about it. A card is one link to
+// the project's own site, and the line over it takes the project's color
+// when pointed at.
+import { PROJECTS } from "../projects.ts";
 import ProjectMark from "./ProjectMark.astro";
 
 const lineup = PROJECTS.flatMap((project) => (project.start && project.site ? [{ ...project, start: project.start, site: project.site }] : []));
@@ -24,7 +25,6 @@ const lineup = PROJECTS.flatMap((project) => (project.start && project.site ? [{
             </h3>
             <p class="need">{project.start.need}</p>
             <p class="does">{project.start.does}</p>
-            <p class:list={["status", project.status]}>{STATUS_LABEL[project.status]}</p>
           </li>
         ))
       }
@@ -66,7 +66,8 @@ const lineup = PROJECTS.flatMap((project) => (project.start && project.site ? [{
     padding-top: 1.25rem;
     border-top: 2px solid var(--line);
   }
-  li:hover {
+  li:hover,
+  li:focus-within {
     border-top-color: var(--accent);
   }
   h3 {
@@ -85,10 +86,6 @@ const lineup = PROJECTS.flatMap((project) => (project.start && project.site ? [{
     position: absolute;
     inset: 0;
   }
-  li:hover h3 a {
-    text-decoration: underline;
-    text-decoration-color: var(--accent);
-  }
   .need {
     margin-top: 0.9rem;
     font-size: 1.25rem;
@@ -101,36 +98,6 @@ const lineup = PROJECTS.flatMap((project) => (project.start && project.site ? [{
     color: var(--muted);
     font-size: 1.1rem;
     line-height: 1.45;
-  }
-  /* How far along it is: a filled light for what runs every day, a ring for what is early. */
-  .status {
-    display: flex;
-    align-items: center;
-    gap: 0.6rem;
-    margin-top: 0.9rem;
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: 0.9rem;
-  }
-  .status::before {
-    content: "";
-    box-sizing: border-box;
-    width: 0.7rem;
-    height: 0.7rem;
-    border: 2px solid var(--muted);
-    border-radius: 50%;
-  }
-  .status.running::before {
-    border-color: var(--running);
-    background: var(--running);
-  }
-  .start {
-    --running: #4c8a2b;
-  }
-  @media (prefers-color-scheme: dark) {
-    .start {
-      --running: #8fc76a;
-    }
   }
   .more {
     margin-top: 2rem;

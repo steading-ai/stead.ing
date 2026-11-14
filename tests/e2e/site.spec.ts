@@ -296,11 +296,10 @@ test.describe("the product map", () => {
 });
 
 test.describe("the hub's first pieces", () => {
-  test("offers three projects to start with, after the map, and says how far along each is", async ({ page }) => {
+  test("offers three projects to start with, after the map", async ({ page }) => {
     await page.goto(`${hub}/`);
     const start = page.locator("section.start");
     await expect(start.getByRole("heading", { level: 3 })).toHaveText(["skift", "mill", "almanac"]);
-    await expect(start.locator(".status")).toHaveText(["Running daily", "Running daily", "Early"]);
     const after = await page.evaluate(() => {
       const [map, section] = ["section.platform", "section.start"].map((selector) => document.querySelector(selector));
       return Boolean(map && section && map.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING);
