@@ -1,0 +1,442 @@
+---
+// The hub's "a platform you can take apart": the product map, a closer look at
+// one project at a time beside it, a key to what moves on the map, and the
+// loop in five steps, each lit while the map shows it. The whole of it fits in
+// one screen of a desktop window.
+//
+// Which project is looked at is a group of radio buttons, so it works without
+// JavaScript. With it, a project on the map picks itself.
+import { CYCLE, during, KINDS, type Sender, STEPS } from "../lib/flow.ts";
+import { PROJECTS, STATUS_LABEL } from "../projects.ts";
+import FlowMap from "./motifs/FlowMap.astro";
+import ProjectMark from "./ProjectMark.astro";
+
+const tour = PROJECTS.flatMap((project) => (project.tour ? [{ ...project, tour: project.tour }] : []));
+const glyph = (sender: Sender) => PROJECTS.find((project) => project.id === sender)?.glyph;
+
+// One rule per project: its radio button shows its panel and marks it on the map.
+const picks = tour
+  .map(
+    ({ id }) =>
+      `.tour:has(#about-${id}:checked) .panel.p-${id}{visibility:visible}` +
+      `.tour:has(#about-${id}:checked) .flow .node.p-${id} .box{stroke:var(--accent);stroke-width:2.5;stroke-dasharray:none}`,
+  )
+  .join("");
+const lights = STEPS.map((step, index) => during(`tour-step-${index}`, [[step.from, step.to]])).join("");
+---
+
+<style is:inline set:html={picks + lights}></style>
+
+<section class="platform" aria-labelledby="idea">
+  <div class="wrap">
+    <div class="tour" data-tour>
+      <header class="head">
+        <h2 id="idea" class="display-2">A platform you can <em>take apart</em>.</h2>
+        <p class="subtitle">Great on its own, better together.</p>
+        <p class="pitch">
+          Steading is a platform made of independent projects, each built to do one job well, with open interfaces that work
+          together. Use what you need, replace what you don't, and keep the rest working.
+        </p>
+      </header>
+
+      <div class="map">
+        <FlowMap id="map" />
+      </div>
+
+      <div class="legend">
+        <h3 class="eyebrow">Things in motion</h3>
+        <ul>
+          {
+            Object.values(KINDS).map((kind) => (
+              <li>
+                <svg viewBox="0 0 16 16" aria-hidden="true" set:html={kind.icon} />
+                {kind.label}
+              </li>
+            ))
+          }
+          <li class="dashes">
+            <svg viewBox="0 0 28 16" aria-hidden="true">
+              <path d="M1 8H27"></path>
+            </svg>
+            Early, in design, or planned
+          </li>
+        </ul>
+      </div>
+
+      <div class="about">
+        <div class="tabs" role="radiogroup" aria-label="Look closer at a project">
+          {
+            tour.map((project, index) => (
+              <label class={`p-${project.id}`}>
+                <input type="radio" name="about" id={`about-${project.id}`} value={project.id} checked={index === 0} class="sr-only" />
+                <ProjectMark glyph={project.glyph} size={20} bare />
+                <span class="sr-only">{project.name}</span>
+              </label>
+            ))
+          }
+        </div>
+        <div class="panels">
+          {
+            tour.map((project) => (
+              <article class={`panel p-${project.id}`} aria-labelledby={`about-${project.id}-name`}>
+                <header>
+                  <ProjectMark glyph={project.glyph} size={36} bare />
+                  <h3 id={`about-${project.id}-name`}>{project.name}</h3>
+                </header>
+                <p class="what">{project.what}.</p>
+                <div class="body">
+                  <div>
+                    <h4 class="eyebrow">The problem</h4>
+                    <p>{project.tour.problem}</p>
+                  </div>
+                  <div>
+                    <h4 class="eyebrow">The Steading approach</h4>
+                    <ul class="approach">
+                      {project.tour.approach.map((point) => (
+                        <li>{point}</li>
+                      ))}
+                    </ul>
+                  </div>
+                </div>
+                <footer>
+                  <p>
+                    <strong>{STATUS_LABEL[project.status]}.</strong> {project.tour.today}
+                  </p>
+                  {project.site ? <a href={project.site}>{new URL(project.site).host}</a> : <a href={`#${project.id}`}>Find it among the projects</a>}
+                </footer>
+              </article>
+            ))
+          }
+        </div>
+      </div>
+    </div>
+
+    <div class="loop">
+      <h3 class="eyebrow">The flow</h3>
+      <ol>
+        {
+          STEPS.map((step, index) => (
+            <li class={step.by === "you" ? "by-you" : `p-${step.by}`} style={`--light:tour-step-${index}`}>
+              {glyph(step.by) ? <ProjectMark glyph={glyph(step.by) ?? "console"} size={26} bare /> : <span class="shipped" />}
+              <p>
+                <strong>{step.title}</strong>
+                {step.text}
+              </p>
+            </li>
+          ))
+        }
+      </ol>
+    </div>
+  </div>
+</section>
+
+<script>
+  // A project on the map picks itself for the closer look. Without this, it leads to the project's entry or site.
+  for (const tour of document.querySelectorAll<HTMLElement>("[data-tour]")) {
+    tour.addEventListener("click", (event) => {
+      if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
+      const node = event.target instanceof Element ? event.target.closest<SVGAElement>("[data-project]") : null;
+      const pick = node && tour.querySelector<HTMLInputElement>(`input[name="about"][value="${node.dataset.project}"]`);
+      if (!pick) return;
+      event.preventDefault();
+      pick.checked = true;
+      tour.querySelector(".about")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
+    });
+  }
+</script>
+
+<style define:vars={{ cycle: `${CYCLE}s` }}>
+  .platform {
+    --gap: clamp(0.75rem, 1.9vh, 1.1rem);
+    padding-block: clamp(2rem, 5vh, 3.5rem);
+  }
+  .eyebrow {
+    font-family: var(--font-mono);
+    font-size: 0.8rem;
+    font-weight: 600;
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+  }
+
+  .tour {
+    display: grid;
+    gap: var(--gap) 2.5rem;
+  }
+  .tour > * {
+    min-width: 0;
+  }
+  /* Wide enough for both: the story and the map on the left, the closer look down the whole of the right. */
+  @media (min-width: 85rem) {
+    .tour {
+      grid-template: "head about" auto "map about" 1fr "legend about" auto / minmax(0, 1.8fr) minmax(22rem, 1fr);
+    }
+    .head {
+      grid-area: head;
+    }
+    .map {
+      grid-area: map;
+      align-self: center;
+    }
+    .legend {
+      grid-area: legend;
+    }
+    .about {
+      grid-area: about;
+    }
+  }
+
+  .subtitle {
+    margin-top: 0.4rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 1.1rem;
+    font-weight: 600;
+  }
+  .pitch {
+    max-width: 68ch;
+    margin-top: 0.75rem;
+    font-size: 1.1rem;
+    line-height: 1.5;
+  }
+
+  .legend {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.4rem 1.25rem;
+  }
+  .legend ul {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.3rem 1.1rem;
+    font-size: 0.875rem;
+  }
+  .legend li {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+  }
+  .legend svg {
+    height: 1rem;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 1.6;
+    stroke-linecap: round;
+    stroke-linejoin: round;
+  }
+  .legend svg :global(.dot) {
+    fill: currentColor;
+    stroke: none;
+  }
+  .legend .dashes {
+    color: var(--muted);
+  }
+  .legend .dashes svg {
+    stroke-width: 2;
+    stroke-dasharray: 5 4;
+  }
+
+  /* The closer look: one project at a time, in a card as tall as the tallest of them, so nothing below it moves. */
+  .about {
+    container-type: inline-size;
+    position: relative;
+    display: flex;
+    flex-direction: column;
+    gap: 0.6rem;
+    padding: 1rem 1.25rem;
+    border: 1px solid var(--line);
+    border-radius: 0.75rem;
+    background: var(--surface);
+  }
+  .tabs {
+    display: flex;
+    gap: 0.2rem;
+  }
+  .tabs label {
+    padding: 0.2rem;
+    border: 1px solid transparent;
+    border-radius: 0.4rem;
+  }
+  .tabs label:hover {
+    border-color: var(--line);
+  }
+  .tabs label:has(:checked) {
+    border-color: var(--accent);
+    background: color-mix(in srgb, var(--accent) 10%, transparent);
+  }
+  .tabs label:has(:focus-visible) {
+    outline: 3px solid var(--ember);
+    outline-offset: 2px;
+  }
+  /* Where the card is wide enough, the marks sit on the same line as the project's name. */
+  @container (min-width: 24.5rem) {
+    .tabs {
+      position: absolute;
+      top: 1.15rem;
+      right: 1.25rem;
+    }
+  }
+  .panels {
+    display: grid;
+    flex: 1;
+  }
+  .panel {
+    grid-area: 1 / 1;
+    display: flex;
+    flex-direction: column;
+    visibility: hidden;
+    font-size: 0.925rem;
+    line-height: 1.45;
+  }
+  .panel header {
+    display: flex;
+    align-items: center;
+    gap: 0.7rem;
+  }
+  .panel h3 {
+    font-size: 1.5rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  .panel .what {
+    margin-top: 0.4rem;
+    color: var(--muted);
+    font-size: 1rem;
+  }
+  .panel h4 {
+    margin-block: 0.7rem 0.3rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 0.25rem;
+    background: var(--ground);
+  }
+  /* Under the map, where the card runs the width of the page, the problem and the approach sit side by side. */
+  @container (min-width: 46rem) {
+    .body {
+      display: grid;
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 2rem;
+    }
+  }
+  .approach {
+    display: grid;
+    gap: 0.3rem;
+  }
+  .approach li {
+    position: relative;
+    padding-left: 1.5rem;
+  }
+  /* A tick in the project's color, drawn in lines like the rest. */
+  .approach li::before {
+    content: "";
+    position: absolute;
+    top: 0.3em;
+    left: 0.15rem;
+    width: 0.85em;
+    height: 0.45em;
+    border: solid var(--accent);
+    border-width: 0 0 2px 2px;
+    rotate: -45deg;
+  }
+  .panel footer {
+    display: grid;
+    gap: 0.35rem;
+    margin-top: auto;
+    padding-top: 0.7rem;
+    font-size: 0.875rem;
+  }
+  .panel footer p {
+    color: var(--muted);
+  }
+  .panel footer strong {
+    color: var(--ink);
+    font-weight: 600;
+  }
+  .panel footer a {
+    justify-self: start;
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+
+  /* The loop in words. Each step's bar lights while the map above is showing it. */
+  .loop {
+    display: grid;
+    gap: 0.6rem 1.5rem;
+    margin-top: var(--gap);
+    padding-top: var(--gap);
+    border-top: 1px solid var(--line);
+  }
+  .loop ol {
+    display: grid;
+    gap: 0.75rem;
+  }
+  .loop li {
+    position: relative;
+    display: flex;
+    align-items: flex-start;
+    gap: 0.7rem;
+    padding: 0.7rem 0.85rem;
+    border: 1px solid var(--line);
+    border-radius: 0.6rem;
+    background: var(--surface);
+    font-size: 0.875rem;
+    line-height: 1.4;
+  }
+  .loop li::before {
+    content: "";
+    position: absolute;
+    inset: -1px;
+    border: 2px solid var(--accent);
+    border-radius: inherit;
+    opacity: 0;
+    animation: var(--light) var(--cycle) linear infinite;
+    pointer-events: none;
+  }
+  .loop .by-you {
+    --accent: var(--ember);
+  }
+  .loop strong {
+    display: block;
+    font-family: var(--font-mono);
+    font-size: 1rem;
+    font-weight: 600;
+  }
+  .loop p {
+    color: var(--muted);
+  }
+  .loop strong {
+    color: var(--ink);
+  }
+  .loop .shipped {
+    flex-shrink: 0;
+    width: 18px;
+    height: 18px;
+    margin: 4px;
+    border: 2.5px solid var(--ember);
+  }
+  @media (min-width: 40rem) {
+    .loop ol {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .loop {
+      grid-template-columns: auto minmax(0, 1fr);
+      align-items: center;
+    }
+    .loop ol {
+      grid-template-columns: repeat(5, minmax(0, 1fr));
+      gap: 1.75rem;
+    }
+    /* An arrow from each step to the next. */
+    .loop li + li::after {
+      content: "→";
+      position: absolute;
+      top: 50%;
+      left: -1.75rem;
+      width: 1.75rem;
+      color: var(--muted);
+      text-align: center;
+      translate: 0 -50%;
+    }
+  }
+</style>

@@ -2,12 +2,11 @@
 // A workbench for comparing designs before one is chosen. Built only when
 // STEADING_LAB is set, so it never reaches a published site.
 import type { GetStaticPaths } from "astro";
-import FlowMap from "../../components/motifs/FlowMap.astro";
 import Steps from "../../components/motifs/Steps.astro";
 import Base from "../../layouts/Base.astro";
 
 export const getStaticPaths = (() =>
-  process.env.STEADING_LAB ? [{ params: { page: "map" } }, { params: { page: "story" } }] : []) satisfies GetStaticPaths;
+  process.env.STEADING_LAB ? [{ params: { page: "story" } }] : []) satisfies GetStaticPaths;
 
 const { page } = Astro.params;
 
@@ -17,67 +16,7 @@ const stories = [
   { id: "rail", name: "3. Rail", idea: "Down a line, with larger drawings in rings, like stops on a route." },
   { id: "turns", name: "4. Turns", idea: "The row, with a bar over each step that lights in its turn, ending on the blocked agent." },
 ] as const;
-
-const variations = [
-  {
-    id: "line",
-    name: "1. Line",
-    idea: "The projects a task passes through, as labelled boxes. Tasks travel the lines, each project lights while it is busy, and requests leave through the gateway the whole time.",
-    props: { cast: "core", nodes: "boxes", narrate: false },
-  },
-  {
-    id: "marks",
-    name: "2. Marks",
-    idea: "The same machine with no boxes: each project is its mark and its name. The quietest of the four.",
-    props: { cast: "core", nodes: "marks", narrate: false },
-  },
-  {
-    id: "told",
-    name: "3. Narrated",
-    idea: "The line, with one sentence under it that changes in step with what is moving, so nobody has to work out what they are watching.",
-    props: { cast: "core", nodes: "boxes", narrate: true },
-  },
-  {
-    id: "all",
-    name: "4. Everyone",
-    idea: "All ten projects: the console across the top, and stead and fallow alongside. Narrated.",
-    props: { cast: "all", nodes: "boxes", narrate: true },
-  },
-] as const;
 ---
-
-{
-  page === "map" && (
-    <Base title="Product map variations" noindex bleed>
-      <div class="wrap intro">
-        <h1 class="title">Product map variations</h1>
-        <p class="measure mt-2 text-muted">
-          Four takes on a small, moving product map, each shown where it would sit on the hub. The one on the hub today is
-          about three times as tall.
-        </p>
-      </div>
-      {variations.map((variation) => (
-        <section class="variation" aria-labelledby={`v-${variation.id}`}>
-          <div class="wrap">
-            <p class="caption">
-              <strong id={`v-${variation.id}`}>{variation.name}</strong> {variation.idea}
-            </p>
-            <h2 class="display-2">A platform you can take apart</h2>
-            <p class="subtitle">Great on its own, better together</p>
-            <p class="lead measure mt-4">
-              Everyone else is building one big system for you to move into. Steading is a platform too, but it's made of
-              projects, each built to do one job well, each with an open interface. If you have a better idea for a project,
-              swap in your own; the rest keeps working.
-            </p>
-            <div class="mt-8">
-              <FlowMap id={variation.id} {...variation.props} />
-            </div>
-          </div>
-        </section>
-      ))}
-    </Base>
-  )
-}
 
 {
   page === "story" && (
@@ -127,12 +66,6 @@ const variations = [
     border-left: 4px solid var(--ember);
     background: var(--surface);
     font-size: 0.95rem;
-  }
-  .subtitle {
-    margin-top: 0.5rem;
-    color: var(--muted);
-    font-family: var(--font-mono);
-    font-size: 1.15rem;
   }
   /* The hub's story sits in half the page; a row of five needs more. */
   .column {

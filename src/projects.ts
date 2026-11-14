@@ -43,7 +43,7 @@ export interface Project {
   what: string;
   /** What it does, in a few words: "Holds the plan". */
   job: string;
-  /** What kind of thing it is, in a word or two: "Work graph". Set for the projects the hub's hero shows. */
+  /** What kind of thing it is, in a word or two: "Work graph". Set for the projects the hub's hero and map show. */
   kind?: string;
   group: Group;
   /** The problem it answers, in the words of someone who has it. Visitors scan for these. */
@@ -52,6 +52,8 @@ export interface Project {
   blurb: string;
   /** A measured instance of the problem, where there is one. */
   measured?: string;
+  /** The hub's closer look, for a project on its map: the problem at length, how the project answers it, and where it stands today. */
+  tour?: { problem: string; approach: readonly [string, string, string, string]; today: string };
   status: Status;
   /** The accent on Loam (dark) and on Daylight (light). */
   color: { dark: string; light: string };
@@ -103,6 +105,16 @@ export const PROJECTS: readonly Project[] = [
     status: "running",
     color: { dark: "#7FB2E5", light: "#2E62A3" },
     glyph: "skift",
+    tour: {
+      problem: "Project trackers were built for people and treat an agent as a bot account. They can't answer the one question an orchestrator needs answered: what is ready to work on right now? A tracker kept in a repository can, but it ties the plan to one repository and one checkout.",
+      approach: [
+        "Work is a graph. A task is ready once what it waits on is done.",
+        "Agents and people file, split, and finish work the same way.",
+        "A claim expires unless it is renewed, so a crash can't hold work.",
+        "Work only a person can do is assigned to one, and waits.",
+      ],
+      today: "A working service, command line, and MCP server. Its own backlog is held in skift.",
+    },
     site: "https://skift.stead.ing/",
     repo: "https://github.com/steading-ai/skift",
   },
@@ -118,6 +130,16 @@ export const PROJECTS: readonly Project[] = [
     status: "running",
     color: { dark: "#E2B84F", light: "#8A6410" },
     glyph: "mill",
+    tour: {
+      problem: "Nothing takes a ready task to a merged change without a person starting it, scoping it, and babysitting it. Guardrails written as prose ask the model to police itself: steps get skipped, and nothing records which ones ran. The backlog grows faster than it drains.",
+      approach: [
+        "Claims the next ready task from skift, and keeps no queue of its own.",
+        "A step closes only on a fact mill checked outside the session.",
+        "The reviewer is a separate session that cannot write.",
+        "Every step, attempt, and cost is on record. A crash resumes.",
+      ],
+      today: "Delivers work on its own repository. The sandbox's host setup is not packaged yet.",
+    },
     site: "https://mill.stead.ing/",
     repo: "https://github.com/steading-ai/mill",
   },
@@ -134,6 +156,16 @@ export const PROJECTS: readonly Project[] = [
     status: "early",
     color: { dark: "#E79AAE", light: "#A63D5F" },
     glyph: "almanac",
+    tour: {
+      problem: "Dependency updates pile up faster than anyone merges them: on one account, 97 of 119 open pull requests. Automerge clears the healthy ones and does nothing for the broken ones. Starting an agent for every event turns a burst of webhooks into a burst of spending.",
+      approach: [
+        "Code does everything code can. A model is called last.",
+        "The repair agent works with no network and no credentials.",
+        "Only checks written as plain code let a patch through.",
+        "It never merges. It pushes the fix to the pull request.",
+      ],
+      today: "Repairs Renovate pull requests on its author's repositories. Filing work in skift is planned.",
+    },
     site: "https://almanac.stead.ing/",
     repo: "https://github.com/steading-ai/almanac",
   },
@@ -149,6 +181,16 @@ export const PROJECTS: readonly Project[] = [
     status: "early",
     color: { dark: "#B9A2EC", light: "#6A4BB0" },
     glyph: "thicket",
+    tour: {
+      problem: "Standing work, like patching, monitoring, and an inbox, happens by hand or in a session you have to sit in front of. And an agent that patches a server as root needs different privileges from one that reads your email. A prompt can't enforce that. A unix account can.",
+      approach: [
+        "Each agent is one unix account on one host.",
+        "The same agent answers from Slack, a phone call, or Claude Code.",
+        "Agents that read untrusted text can't reach agents that hold root.",
+        "Talk an idea through, and the agent files it in skift.",
+      ],
+      today: "One operator runs it, with four agents on a home server. There is no installer yet.",
+    },
     site: "https://thicket.stead.ing/",
     repo: "https://github.com/steading-ai/thicket",
   },
@@ -176,10 +218,21 @@ export const PROJECTS: readonly Project[] = [
     status: "design",
     color: { dark: "#7FC4B3", light: "#2A7466" },
     glyph: "croft",
+    tour: {
+      problem: "Agent runs and CI jobs both run other people's code in a box: one machine for each piece of work, fast the second time, with one way out and no credential that outlives the job. Today that box lives inside mill, with a single fence. Nothing on the host can safely run a stranger's pull request.",
+      approach: [
+        "A container for work you trust, a virtual machine for work you don't.",
+        "Everything leaves through one proxy on the host.",
+        "Credentials die with the machine.",
+        "Caches make the second run fast, and flow one way only.",
+      ],
+      today: "Nothing runs yet. Mill's own sandbox does this job today.",
+    },
   },
   {
     id: "gateway",
     name: "gateway",
+    kind: "Credential proxy",
     what: "A proxy that holds credentials so agents don't",
     group: "fence",
     job: "Holds the keys",
@@ -188,6 +241,16 @@ export const PROJECTS: readonly Project[] = [
     status: "design",
     color: { dark: "#6CC6D9", light: "#1F6E80" },
     glyph: "gateway",
+    tour: {
+      problem: "A session signed in as you can read your long-lived credential: the one secret that outlives every step, where the agent's shell can reach it. An agent that holds a key can leak it, and no sentence in a prompt changes that.",
+      approach: [
+        "The session holds a short-lived token. The host holds the real key.",
+        "The real credential is attached on the way out.",
+        "Budgets and model choices are enforced outside the agent.",
+        "What each response cost is recorded as it passes.",
+      ],
+      today: "Inside mill today, for model requests only. Its own name is still to come.",
+    },
   },
   {
     id: "knowledge",
@@ -201,6 +264,16 @@ export const PROJECTS: readonly Project[] = [
     status: "design",
     color: { dark: "#D58BD0", light: "#8A3A86" },
     glyph: "knowledge",
+    tour: {
+      problem: "Every agent starts each job from scratch. The same context gets explained again, and stale docs get treated as truth.",
+      approach: [
+        "A short answer, with its sources and how fresh each one is.",
+        "It says where its sources disagree.",
+        "Each agent sees only what it is allowed to read.",
+        "A wrong answer becomes a proposed edit to the doc itself.",
+      ],
+      today: "A prototype exists and is being rethought. Its own name is still to come.",
+    },
   },
   {
     id: "fallow",
