@@ -12,6 +12,8 @@ const PAGES = {
   "a page with code and a table": at("fixture", "/docs/reference/"),
   "a page in a folder": at("fixture", "/docs/guide/first/"),
   "a folder's generated page": at("fixture", "/docs/adrs/"),
+  "a long page with its contents": at("fixture", "/docs/guide/long/"),
+  "a page in a folded section": at("fixture", "/docs/adrs/001-first-decision/"),
   "not found": at("steading", "/404.html"),
 };
 
