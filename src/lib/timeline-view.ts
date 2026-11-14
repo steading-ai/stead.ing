@@ -190,12 +190,7 @@ export function frame(view: View, stories: readonly Story[], from: number, to: n
   return { svg: parts.join(""), events, stories: new Map(stories.map((story) => [story.id, story])) };
 }
 
-/** The events whose end falls in a stretch of time: what the counters tick on. */
-export function finishedBetween(stories: readonly Story[], after: number, upTo: number): TimelineEvent[] {
-  return stories.flatMap((story) => story.events).filter((event) => event.end > after && event.end <= upTo);
-}
-
-/** The event that most recently began: what the line under the picture reports. */
+/** The event that most recently began: the story happening now. */
 export function latest(stories: readonly Story[], now: number): TimelineEvent | undefined {
   let found: TimelineEvent | undefined;
   for (const event of stories.flatMap((story) => story.events)) {
