@@ -295,6 +295,31 @@ test.describe("the product map", () => {
   });
 });
 
+test.describe("the hub's first pieces", () => {
+  test("offers three projects to start with, after the map, and says how far along each is", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const start = page.locator("section.start");
+    await expect(start.getByRole("heading", { level: 3 })).toHaveText(["skift", "mill", "almanac"]);
+    await expect(start.locator(".status")).toHaveText(["Running daily", "Running daily", "Early"]);
+    const after = await page.evaluate(() => {
+      const [map, section] = ["section.platform", "section.start"].map((selector) => document.querySelector(selector));
+      return Boolean(map && section && map.compareDocumentPosition(section) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(after).toBe(true);
+  });
+
+  test("a card is one link to the project's own site", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    const need = page.locator("section.start").getByText("Your dependency updates keep breaking.");
+    await need.scrollIntoViewIfNeeded();
+    const under = await need.evaluate((element) => {
+      const box = element.getBoundingClientRect();
+      return document.elementFromPoint(box.left + 10, box.top + 10)?.closest("a")?.href;
+    });
+    expect(under).toBe("https://almanac.stead.ing/");
+  });
+});
+
 test.describe("the footer", () => {
   test("lists every project and the ways in for an agent", async ({ page }) => {
     await page.goto(`${skift}/`);

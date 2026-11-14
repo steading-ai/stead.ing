@@ -1,0 +1,143 @@
+---
+// "Start with one piece": the few projects a newcomer can pick up today, each
+// with the need it answers, what it does about it, and how far along it is.
+// A card is one link to the project's own site.
+import { PROJECTS, STATUS_LABEL } from "../projects.ts";
+import ProjectMark from "./ProjectMark.astro";
+
+const lineup = PROJECTS.flatMap((project) => (project.start && project.site ? [{ ...project, start: project.start, site: project.site }] : []));
+---
+
+<section class="start band-surface" aria-labelledby="start">
+  <div class="wrap">
+    <h2 id="start" class="display-2">Start with one piece.</h2>
+    <p class="pitch">
+      You don't have to adopt the whole stack. Pick something useful today. <strong>The rest can come later.</strong>
+    </p>
+    <ul class="lineup">
+      {
+        lineup.map((project) => (
+          <li class={`p-${project.id}`}>
+            <h3>
+              <ProjectMark glyph={project.glyph} size={44} bare />
+              <a href={project.site}>{project.name}</a>
+            </h3>
+            <p class="need">{project.start.need}</p>
+            <p class="does">{project.start.does}</p>
+            <p class:list={["status", project.status]}>{STATUS_LABEL[project.status]}</p>
+          </li>
+        ))
+      }
+    </ul>
+    <p class="more">More projects are taking shape.</p>
+  </div>
+</section>
+
+<style>
+  .start {
+    padding-block: clamp(2rem, 5vh, 3.25rem);
+  }
+  .pitch {
+    margin-top: 0.6rem;
+    font-size: 1.15rem;
+    line-height: 1.5;
+  }
+  .pitch strong {
+    font-weight: 600;
+  }
+  .lineup {
+    display: grid;
+    gap: 1.75rem 2rem;
+    margin-top: 2rem;
+  }
+  @media (min-width: 44rem) {
+    .lineup {
+      grid-template-columns: repeat(3, minmax(0, 1fr));
+    }
+  }
+  @media (min-width: 64rem) {
+    .lineup {
+      column-gap: 3rem;
+    }
+  }
+  /* A card is one link: the project's name, stretched over the whole of it. */
+  li {
+    position: relative;
+    padding-top: 1.25rem;
+    border-top: 2px solid var(--line);
+  }
+  li:hover {
+    border-top-color: var(--accent);
+  }
+  h3 {
+    display: flex;
+    align-items: center;
+    gap: 0.9rem;
+    font-size: 2rem;
+    line-height: 1.2;
+    letter-spacing: -0.02em;
+  }
+  h3 a {
+    text-decoration: none;
+  }
+  h3 a::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+  }
+  li:hover h3 a {
+    text-decoration: underline;
+    text-decoration-color: var(--accent);
+  }
+  .need {
+    margin-top: 0.9rem;
+    font-size: 1.25rem;
+    font-weight: 600;
+    line-height: 1.3;
+  }
+  .does {
+    max-width: 30ch;
+    margin-top: 0.5rem;
+    color: var(--muted);
+    font-size: 1.1rem;
+    line-height: 1.45;
+  }
+  /* How far along it is: a filled light for what runs every day, a ring for what is early. */
+  .status {
+    display: flex;
+    align-items: center;
+    gap: 0.6rem;
+    margin-top: 0.9rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+  }
+  .status::before {
+    content: "";
+    box-sizing: border-box;
+    width: 0.7rem;
+    height: 0.7rem;
+    border: 2px solid var(--muted);
+    border-radius: 50%;
+  }
+  .status.running::before {
+    border-color: var(--running);
+    background: var(--running);
+  }
+  .start {
+    --running: #4c8a2b;
+  }
+  @media (prefers-color-scheme: dark) {
+    .start {
+      --running: #8fc76a;
+    }
+  }
+  .more {
+    margin-top: 2rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+    color: var(--muted);
+    font-size: 1.05rem;
+    text-align: right;
+  }
+</style>

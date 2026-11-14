@@ -50,6 +50,8 @@ export interface Project {
   pain: string;
   /** One sentence on what it does about that. */
   blurb: string;
+  /** For a project the hub offers as a first piece: the need it answers, said to the reader, and what it does about it. */
+  start?: { need: string; does: string };
   /** The hub's closer look, for a project on its map: the problem at length, how the project answers it, and where it stands today. */
   tour?: { problem: string; approach: readonly [string, string, string, string]; today: string };
   status: Status;
@@ -103,6 +105,7 @@ export const PROJECTS: readonly Project[] = [
     status: "running",
     color: { dark: "#7FB2E5", light: "#2E62A3" },
     glyph: "skift",
+    start: { need: "Your agents need a shared plan.", does: "Keep work, dependencies, and readiness in one place." },
     tour: {
       problem: "Project trackers were built for people and treat an agent as a bot account. They can't answer the one question an orchestrator needs answered: what is ready to work on right now? A tracker kept in a repository can, but it ties the plan to one repository and one checkout.",
       approach: [
@@ -128,6 +131,7 @@ export const PROJECTS: readonly Project[] = [
     status: "running",
     color: { dark: "#E2B84F", light: "#8A6410" },
     glyph: "mill",
+    start: { need: "You want work to ship itself.", does: "Take ready tasks through building, review, and delivery." },
     tour: {
       problem: "Nothing takes a ready task to a merged change without a person starting it, scoping it, and babysitting it. Guardrails written as prose ask the model to police itself: steps get skipped, and nothing records which ones ran. The backlog grows faster than it drains.",
       approach: [
@@ -153,6 +157,7 @@ export const PROJECTS: readonly Project[] = [
     status: "early",
     color: { dark: "#E79AAE", light: "#A63D5F" },
     glyph: "almanac",
+    start: { need: "Your dependency updates keep breaking.", does: "Repair the updates that break your build, and push the fix." },
     tour: {
       problem: "Dependency updates pile up faster than anyone merges them: on one account, 97 of 119 open pull requests. Automerge clears the healthy ones and does nothing for the broken ones. Starting an agent for every event turns a burst of webhooks into a burst of spending.",
       approach: [
