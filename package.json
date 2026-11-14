@@ -20,7 +20,9 @@
     "@tailwindcss/typography": "0.5.20",
     "@tailwindcss/vite": "4.3.5",
     "astro": "7.4.11",
+    "satori": "0.63.2",
     "satteri": "0.11.7",
+    "sharp": "0.35.5",
     "tailwindcss": "4.3.5",
     "yaml": "2.9.1"
   },
