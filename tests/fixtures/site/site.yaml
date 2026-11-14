@@ -113,6 +113,14 @@ pairs:
     body: talks to it.
 docs:
   order: [reference]
+  sections:
+    - title: Using it
+      pages: [guide/]
+    - title: Building it
+      collapsed: true
+      pages:
+        - reference: Commands
+        - adrs/
   exclude:
     - docs/adrs/000-template.md
     - docs/drafts/

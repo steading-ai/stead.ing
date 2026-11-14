@@ -26,16 +26,31 @@ export interface PageSource {
   index: boolean;
 }
 
+/** A named part of the navigation: the pages a reader with one kind of need looks through. */
+export interface SectionSetting {
+  title: string;
+  /**
+   * Top-level pages by route and folders by name with a slash after it, in
+   * reading order: `[install, adrs/]`. An entry written `install: Install`
+   * gives the page a shorter name in the navigation.
+   */
+  pages: (string | Record<string, string>)[];
+  /** Folded away until the reader opens it, or is on one of its pages. */
+  collapsed?: boolean | undefined;
+}
+
 export interface DocsSettings {
-  /** Top-level pages in the order they should be read, by route: `[vision, core-principles]`. The rest follow by title. */
+  /** Top-level pages in the order they should be read, by route: `[vision, core-principles]`. The rest follow by title. Sections, where a site names them, take its place. */
   order: string[];
   /** Files, or folders ending in a slash, to leave out: `[docs/adrs/000-adr-template.md, docs/plans/]`. */
   exclude: string[];
   /** Names for folders, where the folder's own name will not do: `{ adrs: Decisions }`. */
   groups: Record<string, string>;
+  /** The navigation in named sections, in order. What no section lists follows in one called "More". */
+  sections: SectionSetting[];
 }
 
-export const NO_SETTINGS: DocsSettings = { order: [], exclude: [], groups: {} };
+export const NO_SETTINGS: DocsSettings = { order: [], exclude: [], groups: {}, sections: [] };
 
 /** Where a layout's pages are mounted. */
 export const mountOf = (layout: Layout) => (layout === "hub" ? "/" : "/docs/");

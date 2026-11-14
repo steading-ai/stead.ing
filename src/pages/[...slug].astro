@@ -1,8 +1,10 @@
 ---
 import type { GetStaticPaths } from "astro";
 import { render } from "astro:content";
+import OnThisPage from "../components/OnThisPage.astro";
 import { getPages, type LoadedDoc } from "../lib/content.ts";
-import type { NavGroup } from "../lib/docs.ts";
+import type { NavItem, NavSection } from "../lib/docs.ts";
+import { contents } from "../lib/toc.ts";
 import Base from "../layouts/Base.astro";
 import { SITE } from "../site.ts";
 
@@ -13,39 +15,63 @@ export const getStaticPaths = (async () => {
 
 interface Props {
   doc: LoadedDoc;
-  nav: NavGroup[];
+  nav: NavSection[];
 }
 
 const { doc, nav } = Astro.props;
-const Content = doc.entry ? (await render(doc.entry)).Content : undefined;
+const rendered = doc.entry ? await render(doc.entry) : undefined;
+const Content = rendered?.Content;
+const headings = contents(rendered?.headings ?? []);
 const here = (path: string) => (path === doc.path ? "page" : undefined);
+/** Whether the reader is in a folder: on its own page, or on one of the pages in it. */
+const within = (item: NavItem) => item.doc.path === doc.path || (item.pages ?? []).some((page) => page.doc.path === doc.path);
+/** A folded section opens for the page it holds. */
+const holds = (section: NavSection) => section.items.some(within);
 ---
 
 <Base title={doc.title} description={doc.data.description} path={doc.path} markdownPath={doc.markdown}>
-  <div class="grid gap-10 lg:grid-cols-[16rem_minmax(0,1fr)]">
-    <nav aria-label="Pages" class="pages lg:order-first">
+  <div class:list={["layout", { contents: headings.length > 0 }]}>
+    <nav aria-label="Pages" class="pages">
       {
-        nav.map((group) => (
-          <div class="group">
-            {group.index && (
-              <a class="folder" href={group.index.path} aria-current={here(group.index.path)}>
-                {group.label}
-              </a>
-            )}
-            <ul>
-              {group.docs.map((entry) => (
-                <li>
-                  <a href={entry.path} aria-current={here(entry.path)}>
-                    {entry.label}
-                  </a>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))
+        nav.map((section) => {
+          const Wrap = section.title && section.collapsed ? "details" : "div";
+          return (
+            <Wrap class="section" open={Wrap === "details" && holds(section)}>
+              {section.title && (Wrap === "details" ? <summary>{section.title}</summary> : <p class="heading">{section.title}</p>)}
+              <ul>
+                {section.items.map((item) => (
+                  <li>
+                    <a class:list={{ folder: item.pages }} href={item.doc.path} aria-current={here(item.doc.path)}>
+                      {item.label}
+                    </a>
+                    {item.pages && within(item) && (
+                      <ul class="records">
+                        {item.pages.map((page) => (
+                          <li>
+                            <a href={page.doc.path} aria-current={here(page.doc.path)} title={page.doc.title}>
+                              {page.mark && <span class="mark">{page.mark}</span>}
+                              <span class="name">{page.label}</span>
+                            </a>
+                          </li>
+                        ))}
+                      </ul>
+                    )}
+                  </li>
+                ))}
+              </ul>
+            </Wrap>
+          );
+        })
       }
     </nav>
-    <article class="order-first min-w-0 lg:order-none">
+    <article>
+      {
+        headings.length > 0 && (
+          <div class="max-w-prose">
+            <OnThisPage headings={headings} placement="above" />
+          </div>
+        )
+      }
       <div class="prose max-w-prose">
         {!doc.hasHeading && <h1>{doc.title}</h1>}
         {Content && <Content />}
@@ -69,29 +95,85 @@ const here = (path: string) => (path === doc.path ? "page" : undefined);
         )
       }
     </article>
+    {headings.length > 0 && <OnThisPage headings={headings} placement="beside" />}
   </div>
 </Base>
 
+<script>
+  import { start } from "../lib/pages-client.ts";
+  start(document);
+</script>
+
 <style>
+  /*
+   * One column on a narrow window: the page, then the navigation. From 64rem
+   * the navigation stands beside the page, and from 72rem the page's own
+   * contents stand on its other side, which leaves the page its full measure.
+   * Both stay in view while the page scrolls.
+   */
+  .layout {
+    display: grid;
+    gap: 2.5rem;
+  }
+  article {
+    order: -1;
+    min-width: 0;
+  }
+  .layout :global(.toc.beside) {
+    display: none;
+  }
+  @media (min-width: 64rem) {
+    .layout {
+      grid-template-columns: 14rem minmax(0, 1fr);
+      column-gap: 2rem;
+    }
+    article {
+      order: 0;
+    }
+    .pages,
+    .layout :global(.toc.beside) {
+      position: sticky;
+      top: 1.5rem;
+      align-self: start;
+      max-height: calc(100vh - 3rem);
+      overflow-y: auto;
+    }
+    /* At the top of a page the header holds the navigation down, past the window's foot. Room to scroll its last lines clear of that. */
+    .pages {
+      padding-bottom: 6rem;
+    }
+  }
+  @media (min-width: 72rem) {
+    .layout.contents {
+      grid-template-columns: 14rem minmax(0, 1fr) 12rem;
+    }
+    .layout :global(.toc.beside) {
+      display: block;
+    }
+    .layout :global(.toc.above) {
+      display: none;
+    }
+  }
+
   .pages {
     font-size: 0.95rem;
   }
-  .group + .group {
+  .section + .section {
     margin-top: 1.25rem;
+  }
+  /* A section's name says who its pages are for. A folded one opens on a click, and for the page it holds. */
+  .heading,
+  summary {
+    margin-bottom: 0.35rem;
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 600;
   }
   .pages a {
     display: block;
     padding: 0.2rem 0 0.2rem 0.75rem;
     border-left: 3px solid var(--line);
     text-decoration: none;
-  }
-  /* A folder's name is its own page, and heads the pages filed under it. */
-  .pages .folder {
-    padding-left: 0;
-    border-left: 0;
-    font-family: var(--font-mono);
-    font-size: 0.85rem;
-    font-weight: 600;
   }
   .pages a:hover {
     border-left-color: var(--muted);
@@ -103,9 +185,34 @@ const here = (path: string) => (path === doc.path ? "page" : undefined);
     border-left-color: var(--accent);
     font-weight: 600;
   }
-  .pages .folder[aria-current="page"] {
-    text-decoration: underline;
-    text-decoration-color: var(--accent);
-    text-decoration-thickness: 3px;
+  /* A folder is one line until you are in it. The mark says there is more behind it, and turns when it is showing. */
+  .pages .folder::after {
+    content: "›";
+    display: inline-block;
+    margin-left: 0.4rem;
+    color: var(--muted);
+  }
+  .pages li:has(> .records) > .folder::after {
+    transform: rotate(90deg);
+  }
+  /* A folder's pages: smaller, set in, and held to two lines, since a record's title is a sentence. */
+  .records {
+    font-size: 0.875rem;
+  }
+  .records a {
+    display: flex;
+    gap: 0.5rem;
+    padding-left: 1.5rem;
+  }
+  .records .mark {
+    color: var(--muted);
+    font-family: var(--font-mono);
+  }
+  .records .name {
+    display: -webkit-box;
+    overflow: hidden;
+    -webkit-box-orient: vertical;
+    -webkit-line-clamp: 2;
+    line-clamp: 2;
   }
 </style>

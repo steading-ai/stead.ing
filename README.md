@@ -7,7 +7,7 @@ Each project's site is published from the project's own repository, by its own w
 ## What every site has
 
 - **A front page** written by `site.yaml`: the headline, a prompt to paste into your agent, and whichever sections the project fills in.
-- **Docs at `/docs/`**, built from the project's `README.md` and every Markdown file under `docs/`, with navigation that follows the folder.
+- **Docs at `/docs/`**, built from the project's `README.md` and every Markdown file under `docs/`, with navigation that follows the folder, or the sections the project names. A page with more than one section lists them beside it and marks the one being read.
 - **A Markdown twin of every page.** Swap a page's trailing slash for `.md` (`/docs/vision/` is also `/docs/vision.md`; the front page is `/index.md`).
 - **`/llms.txt` and `/llms-full.txt`**, so an agent can read the whole site without parsing HTML.
 - **The same header and footer**: a Projects menu that lists every Steading project with a line saying what it is, and the project's own color and mark.
@@ -49,7 +49,7 @@ Nothing is written twice. The README people read on GitHub is the docs' overview
 | `not` | no | "What it is not": a list of `title`, `body` (why not), and `use` (the id of the project to use for that). |
 | `instead` | no | A line after the "is not" table, saying what the project is for. |
 | `pairs` | no | "Works better with": any number of `project` (an id) and `body`. |
-| `docs` | no | How the docs are arranged: `order` (top-level pages, by name, in reading order), `exclude` (files, or folders ending in a slash, to leave out), and `groups` (names for folders). |
+| `docs` | no | How the docs are arranged: `sections` (the navigation in named parts, described under [Docs](#docs)), `order` (top-level pages, by name, in reading order, for a site without sections), `exclude` (files, or folders ending in a slash, to leave out), and `groups` (names for folders). |
 
 `body`, `note`, and `instead` may use `` `code` ``, `**bold**`, `*emphasis*`, and `[links](https://example.com)`. [`tests/fixtures/site/site.yaml`](tests/fixtures/site/site.yaml) uses every field.
 
@@ -58,7 +58,22 @@ Nothing is written twice. The README people read on GitHub is the docs' overview
 - **The README is the overview.** It is the page at `/docs/`, and the navigation calls it "Overview".
 - **A page's title** is its `title` in frontmatter, or else its first `# Heading`. Frontmatter is optional.
 - **Top-level pages** come in the order `docs.order` gives, then by title. **A folder's pages** stay in file order, since records are usually numbered or dated on purpose.
-- **A folder is a group** in the navigation, named by `docs.groups`, or by its own `index.md`, or after itself. A folder without an `index.md` gets a page that lists what is in it.
+- **A folder is one line** in the navigation, named by `docs.groups`, or by its own `index.md`, or after itself, and leading to the folder's page. Its pages appear beneath it only while the reader is in the folder, each held to two lines and led by the number or date its file name opens with. A folder without an `index.md` gets a page that lists what is in it.
+- **Sections split the navigation by reader.** `docs.sections` is a list, each entry a `title` and the `pages` under it: top-level pages by name, and folders by name with a slash after it. An entry written `install: Install` gives the page a shorter name in the navigation than its title. `collapsed: true` folds a section away until the reader opens it or is on one of its pages. The overview leads, the sections follow in the order given, and whatever no section lists follows in one called "More". A build fails on a section that lists what is not a page, or lists a page twice.
+
+  ```yaml
+  docs:
+    sections:
+      - title: Using it
+        pages:
+          - install: Install
+          - guide/
+      - title: Developing it
+        collapsed: true
+        pages: [developing, adrs/]
+  ```
+
+- **A page's contents stand beside it.** A page with two or more sections lists its `##` and `###` headings under "On this page", beside the page in a wide window and folded above it in a narrow one. The list is links without JavaScript, and marks the section being read with it.
 - **Links are written the way they work on GitHub.** A link to a Markdown file that is a page leads to that page. A link to a folder of pages leads to the folder's page. A link to anything else in the repository (source, a workflow, a config file) leads to that file on GitHub. The Markdown twins keep links as written.
 - **Pictures are written the same way.** An image kept under `docs/` is served at the same path on the site, and a page that shows it, in Markdown or in HTML, points there. A table that is wider than the page scrolls on its own.
 

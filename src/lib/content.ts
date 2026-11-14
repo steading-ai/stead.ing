@@ -4,7 +4,7 @@ import { type CollectionEntry, getCollection } from "astro:content";
 import { PROJECTS } from "../projects.ts";
 import { SITE } from "../site.ts";
 import type { SiteInfo } from "./discovery.ts";
-import { type Doc, type NavGroup, navigation, ordered, toDoc } from "./docs.ts";
+import { type Doc, type NavSection, navigation, ordered, toDoc } from "./docs.ts";
 import { promptFor } from "./prompt.ts";
 import type { Landing } from "./schema.ts";
 
@@ -24,7 +24,7 @@ const fileOf = (entry: CollectionEntry<"docs">) => {
 };
 
 /** The pages arranged for reading, and the same pages as one list in that order. */
-export async function getPages(): Promise<{ nav: NavGroup[]; docs: LoadedDoc[] }> {
+export async function getPages(): Promise<{ nav: NavSection[]; docs: LoadedDoc[] }> {
   // Astro warns on every read of an empty collection, and a site with no pages yet is fine.
   if (SITE.pages.length === 0) return { nav: [], docs: [] };
   const sources = new Map(SITE.pages.map((page) => [page.file, page]));

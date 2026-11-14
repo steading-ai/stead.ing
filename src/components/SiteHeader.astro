@@ -17,7 +17,7 @@ const { path } = Astro.props;
 const { project } = SITE;
 const { nav } = await getPages();
 // The hub's few pages are named one by one. A project has many, so its docs are one link.
-const pages = SITE.isHub ? (nav[0]?.docs ?? []).slice(0, 3).map((doc) => ({ href: doc.path, label: doc.label })) : nav.length > 0 ? [{ href: SITE.mount, label: "Docs" }] : [];
+const pages = SITE.isHub ? (nav[0]?.items ?? []).slice(0, 3).map((item) => ({ href: item.doc.path, label: item.label })) : nav.length > 0 ? [{ href: SITE.mount, label: "Docs" }] : [];
 const source = SITE.isHub ? "https://github.com/steading-ai" : project.repo;
 const links = [...pages, ...(source ? [{ href: source, label: "GitHub" }] : [])];
 const here = (href: string) => (path !== undefined && (href === path || (href === SITE.mount && !SITE.isHub && path.startsWith(SITE.mount))) ? "page" : undefined);

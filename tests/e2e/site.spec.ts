@@ -376,6 +376,35 @@ test.describe("a project's docs", () => {
     await expect(page).toHaveURL(/\/docs\/adrs\/001-first-decision\/$/);
   });
 
+  test("keep a folder's pages out of the navigation until you are in the folder", async ({ page }) => {
+    await page.goto(`${fixture}/docs/`);
+    const nav = page.getByRole("navigation", { name: "Pages" });
+    await expect(nav.getByRole("link", { name: "The guide" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "First steps" })).toHaveCount(0);
+    await nav.getByRole("link", { name: "The guide" }).click();
+    await expect(nav.getByRole("link", { name: "The guide" })).toHaveAttribute("aria-current", "page");
+    await expect(nav.getByRole("link", { name: "First steps" })).toBeVisible();
+  });
+
+  test("keep a folded section shut until you open it", async ({ page }) => {
+    await page.goto(`${fixture}/docs/`);
+    const nav = page.getByRole("navigation", { name: "Pages" });
+    await expect(nav.getByText("Using it")).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Commands" })).toBeHidden();
+    await nav.getByText("Building it").click();
+    await expect(nav.getByRole("link", { name: "Commands" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "Decisions" })).toBeVisible();
+  });
+
+  test("open a folded section for the page it holds, under the name the section gives it", async ({ page }) => {
+    await page.goto(`${fixture}/docs/reference/`);
+    const nav = page.getByRole("navigation", { name: "Pages" });
+    await expect(nav.getByRole("link", { name: "Commands" })).toHaveAttribute("aria-current", "page");
+    await page.goto(`${fixture}/docs/adrs/002-second-decision/`);
+    await expect(nav.getByRole("link", { name: "Decisions" })).toBeVisible();
+    await expect(nav.getByRole("link", { name: "002: A second decision" })).toHaveAttribute("aria-current", "page");
+  });
+
   test("leave out what the project excludes", async ({ request }) => {
     expect((await request.get(`${fixture}/docs/drafts/unfinished/`)).status()).toBe(404);
     expect((await request.get(`${fixture}/docs/adrs/000-template/`)).status()).toBe(404);
@@ -387,8 +416,61 @@ test.describe("pages", () => {
     await page.goto(`${fixture}/docs/guide/first/`);
     const nav = page.getByRole("navigation", { name: "Pages" });
     await expect(nav.getByRole("link", { name: "First steps" })).toHaveAttribute("aria-current", "page");
-    await nav.getByRole("link", { name: "Reference" }).click();
-    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Reference");
+    await nav.getByRole("link", { name: "Overview" }).click();
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("Fixture project");
+  });
+
+  test.describe("on a wide window", () => {
+    test.use({ viewport: { width: 1280, height: 720 } });
+
+    test("a long page lists its sections beside it", async ({ page }) => {
+      await page.goto(`${fixture}/docs/guide/long/`);
+      const contents = page.getByRole("navigation", { name: "On this page" });
+      await expect(contents.getByRole("link")).toHaveText(["Install", "With a package", "From source", "Configure", "Check it works"]);
+      await expect(page.locator("details.toc")).toBeHidden();
+    });
+
+    test("the list marks the section being read, and follows the reader down the page", async ({ page }) => {
+      await page.goto(`${fixture}/docs/guide/long/`);
+      const contents = page.getByRole("navigation", { name: "On this page" });
+      await expect(contents.locator('[aria-current="true"]')).toHaveCount(0);
+      await contents.getByRole("link", { name: "From source" }).click();
+      await expect(page).toHaveURL(/#from-source$/);
+      await expect(contents.locator('[aria-current="true"]')).toHaveText("From source");
+      await page.getByRole("heading", { name: "Configure" }).evaluate((heading) => scrollTo(0, scrollY + heading.getBoundingClientRect().top - 40));
+      await expect(contents.locator('[aria-current="true"]')).toHaveText("Configure");
+      await page.evaluate(() => scrollTo(0, document.documentElement.scrollHeight));
+      await expect(contents.locator('[aria-current="true"]')).toHaveText("Check it works");
+      await page.evaluate(() => scrollTo(0, 0));
+      await expect(contents.locator('[aria-current="true"]')).toHaveCount(0);
+    });
+
+    test("a page with one section or none has no list", async ({ page }) => {
+      await page.goto(`${fixture}/docs/guide/first/`);
+      await expect(page.getByRole("heading", { name: "Then" })).toBeVisible();
+      await expect(page.getByRole("navigation", { name: "On this page" })).toHaveCount(0);
+    });
+
+    test("the navigation and the list stay in view down a long page", async ({ page }) => {
+      await page.goto(`${fixture}/docs/guide/long/`);
+      await page.evaluate(() => scrollTo(0, 1500));
+      await expect(page.getByRole("navigation", { name: "Pages" }).getByRole("link", { name: "Overview" })).toBeInViewport();
+      await expect(page.getByRole("navigation", { name: "On this page" }).getByRole("link", { name: "Install", exact: true })).toBeInViewport();
+    });
+  });
+
+  test.describe("on a phone", () => {
+    test.use({ viewport: { width: 390, height: 844 } });
+
+    test("a long page's sections are folded above it", async ({ page }) => {
+      await page.goto(`${fixture}/docs/guide/long/`);
+      const contents = page.getByRole("navigation", { name: "On this page" });
+      await expect(contents).toBeHidden();
+      await page.locator("details.toc summary").click();
+      await contents.getByRole("link", { name: "Configure" }).click();
+      await expect(page).toHaveURL(/#configure$/);
+      await expect(page.getByRole("heading", { name: "Configure" })).toBeInViewport();
+    });
   });
 
   test("the Markdown twin is served as Markdown", async ({ request }) => {
