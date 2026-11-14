@@ -126,6 +126,23 @@ export const landingSchema = z.strictObject({
       order: z.array(z.string().min(1)).default([]),
       exclude: z.array(z.string().min(1)).default([]),
       groups: z.record(z.string(), z.string().min(1)).default({}),
+      sections: z
+        .array(
+          z.strictObject({
+            title: z.string().min(1),
+            /** A page's route, a folder's name with a slash after it, or either with a shorter name: `install: Install`. */
+            pages: z
+              .array(
+                z.union([
+                  z.string().min(1),
+                  z.record(z.string().min(1), z.string().min(1)).refine((entry) => Object.keys(entry).length === 1, "Name one page per entry, as `page: Label`."),
+                ]),
+              )
+              .min(1),
+            collapsed: z.boolean().optional(),
+          }),
+        )
+        .default([]),
     })
     .optional(),
 });

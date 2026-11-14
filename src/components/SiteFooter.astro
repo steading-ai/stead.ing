@@ -16,9 +16,9 @@ const { project } = SITE;
 const hub = SITE.isHub ? "/" : (STEADING.site as string);
 const onHub = (path: string) => (SITE.isHub ? path : new URL(path, hub).href);
 const projectHref = (other: Project) => other.site ?? `${hub}#${other.id}`;
-// The top-level pages, then each folder by its own page.
+// The first lines of the navigation: pages, and each folder by its own page.
 const { nav } = await getPages();
-const pages = nav.flatMap((group) => (group.index ? [group.index] : group.docs)).slice(0, 8);
+const pages = nav.flatMap((section) => section.items).slice(0, 8);
 ---
 
 <footer class="site-footer">
@@ -57,9 +57,9 @@ const pages = nav.flatMap((group) => (group.index ? [group.index] : group.docs))
             <li>
               <a href="/">Front page</a>
             </li>
-            {pages.map((doc) => (
+            {pages.map((item) => (
               <li>
-                <a href={doc.path}>{doc.label}</a>
+                <a href={item.doc.path}>{item.label}</a>
               </li>
             ))}
             {project.repo && (
