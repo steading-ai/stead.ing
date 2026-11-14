@@ -88,6 +88,16 @@ for (const [name, origin] of Object.entries(SITES)) {
       }
     });
 
+    it("gives a shared link a picture of its own, the size services ask for", () => {
+      const png = readFileSync(join(root, "og.png"));
+      expect(png.subarray(1, 4).toString("latin1")).toBe("PNG");
+      expect([png.readUInt32BE(16), png.readUInt32BE(20)]).toEqual([1200, 630]);
+      for (const page of pages) {
+        expect(html(page), page).toContain(`<meta property="og:image" content="${origin}/og.png"`);
+        expect(html(page), page).toContain('<meta name="twitter:card" content="summary_large_image"');
+      }
+    });
+
     it("keeps its fonts under the 120 KB budget", () => {
       const fonts = files(root).filter((file) => /\.woff2?$/.test(file));
       const woff2 = fonts.filter((file) => file.endsWith(".woff2"));

@@ -336,6 +336,17 @@ test.describe("what we believe", () => {
   });
 });
 
+test.describe("sharing", () => {
+  test("a link to the hub shows its card", async ({ page, request }) => {
+    await page.goto(`${hub}/`);
+    await expect(page.locator('meta[property="og:image"]')).toHaveAttribute("content", "https://stead.ing/og.png");
+    await expect(page.locator('meta[property="og:image:alt"]')).toHaveAttribute("content", "steading: You and a thousand agents. stead.ing");
+    const card = await request.get(`${hub}/og.png`);
+    expect(card.ok()).toBe(true);
+    expect(card.headers()["content-type"]).toBe("image/png");
+  });
+});
+
 test.describe("the footer", () => {
   test("lists every project and the ways in for an agent", async ({ page }) => {
     await page.goto(`${skift}/`);

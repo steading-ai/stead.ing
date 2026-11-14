@@ -8,6 +8,8 @@ import "../styles/global.css";
 import ProjectColors from "../components/ProjectColors.astro";
 import SiteFooter from "../components/SiteFooter.astro";
 import SiteHeader from "../components/SiteHeader.astro";
+import { CARD } from "../lib/card.ts";
+import { getLanding } from "../lib/content.ts";
 import { absolute, SITE } from "../site.ts";
 
 interface Props {
@@ -25,6 +27,9 @@ interface Props {
 const { title, description, path, markdownPath, bleed = false, noindex = false } = Astro.props;
 const { project } = SITE;
 const fullTitle = title === SITE.title ? `${title}: ${project.job}` : `${title} · ${SITE.title}`;
+// Every page of a site shares its card (src/pages/og.png.ts), which says what the card shows.
+const { headline } = await getLanding();
+const cardAlt = `${project.name}: ${headline.replaceAll("*", "")} ${new URL(SITE.origin).host}`;
 
 ---
 
@@ -46,6 +51,12 @@ const fullTitle = title === SITE.title ? `${title}: ${project.job}` : `${title} 
     {description && <meta property="og:description" content={description} />}
     {path && <meta property="og:url" content={absolute(path)} />}
     <meta property="og:type" content="website" />
+    <meta property="og:image" content={absolute("/og.png")} />
+    <meta property="og:image:type" content="image/png" />
+    <meta property="og:image:width" content={String(CARD.width)} />
+    <meta property="og:image:height" content={String(CARD.height)} />
+    <meta property="og:image:alt" content={cardAlt} />
+    <meta name="twitter:card" content="summary_large_image" />
     <ProjectColors />
   </head>
   <body class="bg-ground text-ink">
