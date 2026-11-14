@@ -63,18 +63,21 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
   </section>
 </Hero>
 
-<section class="band band-surface" aria-labelledby="why">
+<section class="why band-surface" aria-labelledby="why">
   <div class="wrap">
     <h2 id="why" class="display-2">You've got more ideas than hours.</h2>
-    <p class="mt-6 measure">
-      You pay for a model subscription (or <em>four</em>) and either max it out or barely use it. Not for lack of ideas, but
-      because babysitting agents eats up most of your time.
+    <p class="told">
+      You start an agent, give it a goal, and move on to something else. Then you come back to find it stuck, waiting for the
+      one thing only you can do.
     </p>
-    <div class="day">
-      <Steps variant="turns" />
+    <Steps />
+    <div class="bottleneck">
+      <p class="punch">The bottleneck is <em>you.</em></p>
+      <p class="by-design">Not by choice. By design.</p>
+      <p class="same-wall">
+        <a href="/history/">We hit the same wall. <span aria-hidden="true">→</span></a>
+      </p>
     </div>
-    <p class="monday"><em>Every morning feels like Monday brain.</em></p>
-    <p class="same-wall"><a href="/history/">We hit the same wall.</a></p>
   </div>
 </section>
 
@@ -261,20 +264,63 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
   }
 
   /* The day in five steps, across the page. */
-  .day {
-    max-width: 56rem;
+  /*
+   * Between the hero and the map: the reader's own day, and what is wrong with
+   * it, said in less than a screen so the answer below is still in sight.
+   */
+  .why {
+    padding-block: clamp(1.75rem, 4.5vh, 2.75rem);
   }
-  .monday {
-    margin-top: 2.5rem;
+  .told {
+    max-width: 74ch;
+    margin-top: 0.6rem;
+    color: var(--muted);
+    font-size: 1.15rem;
+    line-height: 1.5;
+  }
+  .why :global(.steps) {
+    margin-top: 1.75rem;
+  }
+  .bottleneck {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 2.5rem;
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  .punch {
     font-family: var(--font-mono);
-    font-size: clamp(1.25rem, 3vw, 1.75rem);
-    line-height: 1.25;
-    text-wrap: balance;
+    font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+    font-style: italic;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+  .punch em {
+    color: var(--ember);
+  }
+  .by-design {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
   }
   /* The way on from here: how Steading came out of the same day. */
   .same-wall {
-    margin-top: 0.75rem;
-    font-size: 1.15rem;
+    font-size: 1.1rem;
+  }
+  @media (min-width: 60rem) {
+    .by-design {
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      padding-left: 2.5rem;
+      border-left: 1px solid var(--line);
+    }
+    .same-wall {
+      margin-left: auto;
+    }
   }
 
   .beliefs {

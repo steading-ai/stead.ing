@@ -26,6 +26,22 @@ test.describe("the first step", () => {
 });
 
 test.describe("the hub's story", () => {
+  test("says where the bottleneck is in half a screen, between the hero and the map", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`${hub}/`);
+    const why = page.locator("section.why");
+    await expect(why.locator(".steps li")).toHaveCount(5);
+    await expect(why).toContainText("The bottleneck is you.");
+    const box = await why.boundingBox();
+    expect(box?.height).toBeLessThanOrEqual(450);
+    const between = await page.evaluate(() => {
+      const [hero, section, map] = [".hero", "section.why", "section.platform"].map((selector) => document.querySelector(selector));
+      const follows = (a: Element | null | undefined, b: Element | null | undefined) => Boolean(a && b && a.compareDocumentPosition(b) & Node.DOCUMENT_POSITION_FOLLOWING);
+      return follows(hero, section) && follows(section, map);
+    });
+    expect(between).toBe(true);
+  });
+
   test("leads from the day's last step to how Steading came about", async ({ page }) => {
     await page.goto(`${hub}/`);
     await page.getByRole("link", { name: "We hit the same wall." }).click();
