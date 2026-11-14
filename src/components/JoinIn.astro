@@ -17,24 +17,52 @@ const source = SITE.isHub ? "https://github.com/steading-ai" : (SITE.project.rep
 <section class:list={["band", { "band-surface": surface }]} aria-labelledby="join">
   <div class="wrap">
     <h2 id="join" class="display">Don't build it all on your own!</h2>
-    <p class="lead measure mt-6">
+    <p class="invite">
       Everyone is building their own version of this and hitting the same walls. Build it with a community instead. Come
       hang out on <a href={SITE.chat}>Discord</a>, pick up an open task, ask questions, or show us what you've made!
     </p>
     <p class="ways">
-      <a class="button-primary" href={start}>Get started</a>
-      <a href={SITE.chat}>Join the Discord</a>
-      <a href={source}>{SITE.isHub ? "Steading on GitHub" : `${SITE.project.name} on GitHub`}</a>
+      <a class="button-primary" href={start}>
+        Get started
+        <svg viewBox="0 0 16 16" aria-hidden="true"><path d="M2.5 8h10.5M9 3.8 13.2 8 9 12.2"></path></svg>
+      </a>
+      <a href={SITE.chat}>Join the Discord <span aria-hidden="true">↗</span></a>
+      <a href={source}>{SITE.isHub ? "Steading on GitHub" : `${SITE.project.name} on GitHub`} <span aria-hidden="true">↗</span></a>
     </p>
   </div>
 </section>
 
 <style>
+  .invite {
+    max-width: 60ch;
+    margin-top: 1.5rem;
+    font-size: clamp(1.15rem, 2.2vw, 1.4rem);
+    line-height: 1.5;
+  }
+  /* An arrow says where each way leads: further down this page, or off to another site. */
   .ways {
     display: flex;
     flex-wrap: wrap;
     align-items: center;
-    gap: 0.75rem 2rem;
-    margin-top: 1.75rem;
+    gap: 1rem 2.25rem;
+    margin-top: 2rem;
+    font-size: 1.15rem;
+  }
+  .ways .button-primary {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.6rem;
+    padding: 0.7rem 1.4rem;
+    font-size: 1.15rem;
+  }
+  /* Drawn, not typed: Plex has no arrow as heavy as the words beside it. */
+  .ways svg {
+    width: 1.05em;
+    height: 1.05em;
+    fill: none;
+    stroke: currentColor;
+    stroke-width: 2.2;
+    stroke-linecap: round;
+    stroke-linejoin: round;
   }
 </style>

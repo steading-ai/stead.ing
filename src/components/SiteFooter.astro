@@ -2,7 +2,7 @@
 // The map at the bottom of every page: every project, this site's pages, the
 // parts of Steading that aren't a project, and the ways in for an agent.
 import { getPages } from "../lib/content.ts";
-import { PROJECTS, type Project, STEADING } from "../projects.ts";
+import { PROJECTS, STEADING, whereabouts } from "../projects.ts";
 import { HUB_PAGES, SITE } from "../site.ts";
 import ProjectMark from "./ProjectMark.astro";
 
@@ -15,7 +15,6 @@ const { markdownPath } = Astro.props;
 const { project } = SITE;
 const hub = SITE.isHub ? "/" : (STEADING.site as string);
 const onHub = (path: string) => (SITE.isHub ? path : new URL(path, hub).href);
-const projectHref = (other: Project) => other.site ?? `${hub}#${other.id}`;
 // The first lines of the navigation: pages, and each folder by its own page.
 const { nav } = await getPages();
 const pages = nav.flatMap((section) => section.items).slice(0, 8);
@@ -40,9 +39,13 @@ const pages = nav.flatMap((section) => section.items).slice(0, 8);
         {
           PROJECTS.map((other) => (
             <li>
-              <a href={projectHref(other)} aria-current={other.id === project.id ? "page" : undefined}>
-                {other.name}
-              </a>
+              {whereabouts(other, hub) ? (
+                <a href={whereabouts(other, hub)} aria-current={other.id === project.id ? "page" : undefined}>
+                  {other.name}
+                </a>
+              ) : (
+                other.name
+              )}
             </li>
           ))
         }
@@ -76,7 +79,7 @@ const pages = nav.flatMap((section) => section.items).slice(0, 8);
       <h2 id="footer-steading">Steading</h2>
       <ul>
         <li><a href={hub}>Front page</a></li>
-        <li><a href={`${hub}#projects`}>Projects, by the problem they fix</a></li>
+        <li><a href={`${hub}#idea`}>How the projects fit together</a></li>
         {
           HUB_PAGES.map((page) => (
             <li>

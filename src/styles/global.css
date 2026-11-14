@@ -195,6 +195,25 @@ h3,
   stroke: var(--accent);
 }
 
+/* The hub's small drawings (src/lib/icons.ts): lines in the text color, and the parts marked `ray` in ember. */
+.line-icon {
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.7;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+.line-icon .dot {
+  fill: currentColor;
+  stroke: none;
+}
+.line-icon .ray {
+  stroke: var(--ember);
+}
+.line-icon .ray.dot {
+  fill: var(--ember);
+}
+
 /* The one primary action on a page, in the site's own color. On the hub that is ember. */
 .button-primary {
   display: inline-block;

@@ -2,13 +2,13 @@
 // The family, in one menu: every project with its light and a line saying what
 // it is, grouped by what it is for. A name alone tells a newcomer nothing, so
 // no project is listed by name alone. A project with its own site links there;
-// the rest link to their row on the hub, which says how far along they are.
-import { GROUPS, type Group, PROJECTS, type Project, STATUS_LABEL, STEADING } from "../projects.ts";
+// one on the hub's map links to its closer look there, which says how far
+// along it is; the rest are listed without a link until they have either.
+import { GROUPS, type Group, PROJECTS, STATUS_LABEL, STEADING, whereabouts } from "../projects.ts";
 import { SITE } from "../site.ts";
 import ProjectMark from "./ProjectMark.astro";
 
 const hub = SITE.isHub ? "/" : (STEADING.site as string);
-const href = (project: Project) => project.site ?? `${hub}#${project.id}`;
 const groups = (Object.keys(GROUPS) as Group[]).map((group) => ({
   id: group,
   label: GROUPS[group],
@@ -25,9 +25,12 @@ const groups = (Object.keys(GROUPS) as Group[]).map((group) => ({
           <section aria-labelledby={`menu-${group.id}`}>
             <h2 id={`menu-${group.id}`}>{group.label}</h2>
             <ul>
-              {group.projects.map((project) => (
+              {group.projects.map((project) => {
+                const href = whereabouts(project, hub);
+                const Entry = href ? "a" : "div";
+                return (
                 <li class={`p-${project.id}`}>
-                  <a href={href(project)} aria-current={SITE.project.id === project.id ? "page" : undefined}>
+                  <Entry class="entry" href={href} aria-current={SITE.project.id === project.id ? "page" : undefined}>
                     <ProjectMark glyph={project.glyph} size={32} bare />
                     <span>
                       <span class="name">
@@ -36,16 +39,17 @@ const groups = (Object.keys(GROUPS) as Group[]).map((group) => ({
                       </span>
                       <span class="what">{project.what}</span>
                     </span>
-                  </a>
+                  </Entry>
                 </li>
-              ))}
+                );
+              })}
             </ul>
           </section>
         ))
       }
     </div>
     <p class="all">
-      <a href={`${hub}#projects`}>Every project, by the problem it fixes</a>
+      <a href={`${hub}#idea`}>How the projects fit together</a>
     </p>
   </div>
 </details>
@@ -105,7 +109,7 @@ const groups = (Object.keys(GROUPS) as Group[]).map((group) => ({
   a {
     text-decoration: none;
   }
-  li a {
+  li .entry {
     display: flex;
     gap: 0.85rem;
     padding: 0.55rem 0.6rem;

@@ -5,8 +5,7 @@
 // today; dashed ones are early, in design, or still to be joined up.
 import { BURSTS, BUSY, CYCLE, during, EDGES, type EdgeId, head, KINDS, middle, NODES, OUTSIDE, type Sender, SIZE, STREAMS, travel, WORLD, YOU } from "../../lib/flow.ts";
 import { LIGHT_BOX, LIGHTS } from "../../lib/mark.ts";
-import { PROJECTS } from "../../projects.ts";
-import { SITE } from "../../site.ts";
+import { PROJECTS, whereabouts } from "../../projects.ts";
 
 interface Props {
   /** Names this map, so several can share a page. */
@@ -15,8 +14,6 @@ interface Props {
 
 const { id } = Astro.props;
 const project = (name: string) => PROJECTS.find((candidate) => candidate.id === name);
-// Every project on the map leads somewhere: to its own site once it has one, and to its entry on the hub until then.
-const href = (name: string) => project(name)?.site ?? `${SITE.isHub ? "" : SITE.hub}#${name}`;
 // A line, and what moves along it, wears the color of whoever sends it.
 const by = (sender: Sender) => (sender === "you" || sender === "world" ? `by-${sender}` : `p-${sender}`);
 const edges = Object.entries(EDGES) as [EdgeId, (typeof EDGES)[EdgeId]][];
@@ -106,7 +103,7 @@ const loop = (name: string) => `animation:${id}-${name} ${CYCLE}s linear infinit
             </Fragment>
           );
           return about ? (
-            <a href={href(node.id)} class={`node p-${node.id}`} data-project={node.id}>
+            <a href={whereabouts(about, "/")} class={`node p-${node.id}`} data-project={node.id}>
               {inside}
             </a>
           ) : (

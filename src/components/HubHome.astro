@@ -1,17 +1,18 @@
 ---
 // stead.ing's front page: where software is going and how to start today,
-// then which project fixes your problem, how they fit together, that it's
-// real, and how to build it with us. The hero's words come from
+// what is in the reader's way, how the projects fit together, which one to
+// start with, what we believe, and how to build it with us. The hero's words come from
 // content/site.yaml.
 import type { Landing } from "../lib/schema.ts";
-import { projectById } from "../projects.ts";
+import { projectById, whereabouts } from "../projects.ts";
+import Beliefs from "./Beliefs.astro";
 import GitHubMark from "./GitHubMark.astro";
 import Hero from "./Hero.astro";
 import JoinIn from "./JoinIn.astro";
 import Platform from "./Platform.astro";
+import StartWithOne from "./StartWithOne.astro";
 import Steps from "./motifs/Steps.astro";
 import Timeline from "./motifs/Timeline.astro";
-import ProjectIndex from "./ProjectIndex.astro";
 import ProjectMark from "./ProjectMark.astro";
 
 interface Props {
@@ -22,8 +23,6 @@ const { landing } = Astro.props;
 const SOURCE = "https://github.com/steading-ai";
 // The projects that have a lane in the timeline, in the order work moves through them.
 const stack = ["skift", "mill", "almanac", "thicket", "croft", "knowledge"].map(projectById);
-// Like the Projects menu: a project's own site, or else its row further down this page, which says how far along it is.
-const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id}`;
 ---
 
 <Hero headline={landing.headline} summary={landing.summary} prompt={landing.prompt}>
@@ -47,7 +46,7 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
             <li class={`p-${project.id}`}>
               <ProjectMark glyph={project.glyph} size={32} bare />
               <p>
-                <a href={href(project)}>{project.name}</a>
+                <a href={whereabouts(project, "/")}>{project.name}</a>
                 <span>{project.kind}</span>
               </p>
             </li>
@@ -63,69 +62,29 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
   </section>
 </Hero>
 
-<section class="band band-surface" aria-labelledby="why">
+<section class="why band-surface" aria-labelledby="why">
   <div class="wrap">
     <h2 id="why" class="display-2">You've got more ideas than hours.</h2>
-    <p class="mt-6 measure">
-      You pay for a model subscription (or <em>four</em>) and either max it out or barely use it. Not for lack of ideas, but
-      because babysitting agents eats up most of your time.
+    <p class="told">
+      You start an agent, give it a goal, and move on to something else. Then you come back to find it stuck, waiting for the
+      one thing only you can do.
     </p>
-    <div class="day">
-      <Steps variant="turns" />
+    <Steps />
+    <div class="bottleneck">
+      <p class="punch">The bottleneck is <em>you.</em></p>
+      <p class="by-design">Not by choice. By design.</p>
+      <p class="same-wall">
+        <a href="/history/">We hit the same wall. <span aria-hidden="true">→</span></a>
+      </p>
     </div>
-    <p class="monday"><em>Every morning feels like Monday brain.</em></p>
-    <p class="same-wall"><a href="/history/">We hit the same wall.</a></p>
   </div>
 </section>
 
 <Platform />
 
-<section class="band band-surface" aria-labelledby="projects">
-  <div class="wrap">
-    <h2 id="projects" class="display-2">What's your biggest bottleneck?</h2>
-    <p class="lead measure mt-4">
-      Start with what's slowing you down today. Every project works on its own, and they get better <em>together</em>.
-    </p>
-    <div class="mt-10">
-      <ProjectIndex />
-    </div>
-  </div>
-</section>
+<StartWithOne />
 
-<section class="band" aria-labelledby="beliefs">
-  <div class="wrap">
-    <h2 id="beliefs" class="display-2">What we believe</h2>
-    <dl class="beliefs mt-10">
-      <div>
-        <dt>You decide what. Agents do the rest.</dt>
-        <dd>Nobody should have to sit in a chat window for work to move.</dd>
-      </div>
-      <div>
-        <dt>Proof, not promises.</dt>
-        <dd>"Done" means a program checked it.</dd>
-      </div>
-      <div>
-        <dt>Real fences, not polite requests.</dt>
-        <dd>
-          What an agent can touch is limited by the operating system, the network, or a virtual machine, not by a sentence in a
-          prompt.
-        </dd>
-      </div>
-      <div>
-        <dt>Code over prompts.</dt>
-        <dd>A model is called only where judgment is actually needed.</dd>
-      </div>
-      <div>
-        <dt>Yours.</dt>
-        <dd>Your hardware, your database, your rules.</dd>
-      </div>
-      <div>
-        <dt>Fork it.</dt>
-        <dd>Take any project and make it your own. Send back what's worth sharing.</dd>
-      </div>
-    </dl>
-  </div>
-</section>
+<Beliefs />
 
 <JoinIn />
 
@@ -261,40 +220,62 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
   }
 
   /* The day in five steps, across the page. */
-  .day {
-    max-width: 56rem;
+  /*
+   * Between the hero and the map: the reader's own day, and what is wrong with
+   * it, said in less than a screen so the answer below is still in sight.
+   */
+  .why {
+    padding-block: clamp(1.75rem, 4.5vh, 2.75rem);
   }
-  .monday {
-    margin-top: 2.5rem;
+  .told {
+    max-width: 74ch;
+    margin-top: 0.6rem;
+    color: var(--muted);
+    font-size: 1.15rem;
+    line-height: 1.5;
+  }
+  .why :global(.steps) {
+    margin-top: 1.75rem;
+  }
+  .bottleneck {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 0.5rem 2.5rem;
+    margin-top: 1.75rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--line);
+  }
+  .punch {
     font-family: var(--font-mono);
-    font-size: clamp(1.25rem, 3vw, 1.75rem);
-    line-height: 1.25;
-    text-wrap: balance;
+    font-size: clamp(1.6rem, 3.6vw, 2.4rem);
+    font-style: italic;
+    font-weight: 600;
+    line-height: 1.15;
+    letter-spacing: -0.03em;
+  }
+  .punch em {
+    color: var(--ember);
+  }
+  .by-design {
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 1.05rem;
   }
   /* The way on from here: how Steading came out of the same day. */
   .same-wall {
-    margin-top: 0.75rem;
-    font-size: 1.15rem;
-  }
-
-  .beliefs {
-    display: grid;
-    border-top: 1px solid var(--line);
-  }
-  .beliefs > div {
-    display: grid;
-    gap: 0.25rem 3rem;
-    padding-block: 1.1rem;
-    border-bottom: 1px solid var(--line);
-  }
-  .beliefs dt {
-    font-family: var(--font-mono);
-    font-size: 1.15rem;
-    font-weight: 600;
+    font-size: 1.1rem;
   }
   @media (min-width: 60rem) {
-    .beliefs > div {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
+    .by-design {
+      align-self: stretch;
+      display: flex;
+      align-items: center;
+      padding-left: 2.5rem;
+      border-left: 1px solid var(--line);
+    }
+    .same-wall {
+      margin-left: auto;
     }
   }
 </style>
