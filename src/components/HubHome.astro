@@ -5,6 +5,7 @@
 // content/site.yaml.
 import type { Landing } from "../lib/schema.ts";
 import { projectById, whereabouts } from "../projects.ts";
+import Beliefs from "./Beliefs.astro";
 import GitHubMark from "./GitHubMark.astro";
 import Hero from "./Hero.astro";
 import JoinIn from "./JoinIn.astro";
@@ -83,40 +84,7 @@ const stack = ["skift", "mill", "almanac", "thicket", "croft", "knowledge"].map(
 
 <StartWithOne />
 
-<section class="band" aria-labelledby="beliefs">
-  <div class="wrap">
-    <h2 id="beliefs" class="display-2">What we believe</h2>
-    <dl class="beliefs mt-10">
-      <div>
-        <dt>You decide what. Agents do the rest.</dt>
-        <dd>Nobody should have to sit in a chat window for work to move.</dd>
-      </div>
-      <div>
-        <dt>Proof, not promises.</dt>
-        <dd>"Done" means a program checked it.</dd>
-      </div>
-      <div>
-        <dt>Real fences, not polite requests.</dt>
-        <dd>
-          What an agent can touch is limited by the operating system, the network, or a virtual machine, not by a sentence in a
-          prompt.
-        </dd>
-      </div>
-      <div>
-        <dt>Code over prompts.</dt>
-        <dd>A model is called only where judgment is actually needed.</dd>
-      </div>
-      <div>
-        <dt>Yours.</dt>
-        <dd>Your hardware, your database, your rules.</dd>
-      </div>
-      <div>
-        <dt>Fork it.</dt>
-        <dd>Take any project and make it your own. Send back what's worth sharing.</dd>
-      </div>
-    </dl>
-  </div>
-</section>
+<Beliefs />
 
 <JoinIn />
 
@@ -308,27 +276,6 @@ const stack = ["skift", "mill", "almanac", "thicket", "croft", "knowledge"].map(
     }
     .same-wall {
       margin-left: auto;
-    }
-  }
-
-  .beliefs {
-    display: grid;
-    border-top: 1px solid var(--line);
-  }
-  .beliefs > div {
-    display: grid;
-    gap: 0.25rem 3rem;
-    padding-block: 1.1rem;
-    border-bottom: 1px solid var(--line);
-  }
-  .beliefs dt {
-    font-family: var(--font-mono);
-    font-size: 1.15rem;
-    font-weight: 600;
-  }
-  @media (min-width: 60rem) {
-    .beliefs > div {
-      grid-template-columns: minmax(0, 5fr) minmax(0, 6fr);
     }
   }
 </style>

@@ -319,6 +319,23 @@ test.describe("the hub's first pieces", () => {
   });
 });
 
+test.describe("what we believe", () => {
+  test("says six things, three to a row on a wide screen, before the closing invitation", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`${hub}/`);
+    const beliefs = page.locator("section.beliefs");
+    await expect(beliefs.getByRole("heading", { level: 3 })).toHaveCount(6);
+    await expect(beliefs.getByRole("heading", { level: 3 }).first()).toHaveText("You decide. Agents do the rest.");
+    const tops = await beliefs.locator("li").evaluateAll((items) => items.map((item) => Math.round(item.getBoundingClientRect().top)));
+    expect(new Set(tops).size).toBe(2);
+    const before = await page.evaluate(() => {
+      const [section, join] = ["section.beliefs", "#join"].map((selector) => document.querySelector(selector));
+      return Boolean(section && join && section.compareDocumentPosition(join) & Node.DOCUMENT_POSITION_FOLLOWING);
+    });
+    expect(before).toBe(true);
+  });
+});
+
 test.describe("the footer", () => {
   test("lists every project and the ways in for an agent", async ({ page }) => {
     await page.goto(`${skift}/`);
