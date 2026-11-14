@@ -5,6 +5,7 @@
 import { getPages } from "../lib/content.ts";
 import { STEADING } from "../projects.ts";
 import { SITE } from "../site.ts";
+import GitHubMark from "./GitHubMark.astro";
 import ProjectMark from "./ProjectMark.astro";
 import ProjectsMenu from "./ProjectsMenu.astro";
 
@@ -19,7 +20,6 @@ const { nav } = await getPages();
 // The hub's few pages are named one by one. A project has many, so its docs are one link.
 const pages = SITE.isHub ? (nav[0]?.items ?? []).slice(0, 3).map((item) => ({ href: item.doc.path, label: item.label })) : nav.length > 0 ? [{ href: SITE.mount, label: "Docs" }] : [];
 const source = SITE.isHub ? "https://github.com/steading-ai" : project.repo;
-const links = [...pages, ...(source ? [{ href: source, label: "GitHub" }] : [])];
 const here = (href: string) => (path !== undefined && (href === path || (href === SITE.mount && !SITE.isHub && path.startsWith(SITE.mount))) ? "page" : undefined);
 ---
 
@@ -45,13 +45,24 @@ const here = (href: string) => (path !== undefined && (href === path || (href ==
     <ul>
       <li><ProjectsMenu /></li>
       {
-        links.map((link) => (
+        pages.map((link) => (
           <li>
             <a href={link.href} aria-current={here(link.href)}>
               {link.label}
             </a>
           </li>
         ))
+      }
+      {
+        source && (
+          <li>
+            <a href={source} class="source">
+              <GitHubMark />
+              GitHub
+              <span aria-hidden="true">↗</span>
+            </a>
+          </li>
+        )
       }
     </ul>
   </nav>
@@ -65,7 +76,7 @@ const here = (href: string) => (path !== undefined && (href === path || (href ==
     align-items: center;
     justify-content: space-between;
     gap: 0.5rem 2rem;
-    padding-block: 1rem;
+    padding-block: 0.75rem;
   }
   .crumbs {
     display: flex;
@@ -109,6 +120,21 @@ const here = (href: string) => (path !== undefined && (href === path || (href ==
   nav li > a:hover,
   nav li > a[aria-current="page"] {
     text-decoration-color: var(--accent);
+  }
+  /* The way out to the source, set apart from the pages of this site. */
+  nav .source {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.45rem;
+    padding: 0.35rem 0.8rem;
+    border: 1px solid var(--line);
+    border-radius: 0.5rem;
+    background: var(--surface);
+    font-weight: 600;
+    text-decoration: none;
+  }
+  nav .source:hover {
+    border-color: var(--ink);
   }
   @media (max-width: 47.99rem) {
     .wordmark {
