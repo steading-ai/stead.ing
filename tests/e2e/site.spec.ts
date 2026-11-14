@@ -70,18 +70,27 @@ test.describe("the Projects menu", () => {
     await page.goto(`${hub}/`);
     await page.locator("[data-menu] summary").click();
     const menu = page.locator("[data-menu]");
-    await expect(menu.getByRole("link")).toHaveCount(11);
-    // A project with a site of its own leads there; one without leads to its row on the hub.
+    // Seven projects lead somewhere, and one link leads to how they fit together.
+    await expect(menu.getByRole("link")).toHaveCount(8);
+    // A project with a site of its own leads there; one on the hub's map leads to its closer look there.
     await expect(menu.getByRole("link", { name: /skift.*A task graph agents and people share/ })).toHaveAttribute("href", "https://skift.stead.ing/");
     await expect(menu.getByRole("link", { name: /croft/ })).toHaveAttribute("href", "/#croft");
   });
 
-  test("sends a project without a site to its row on the hub, and says how far along it is", async ({ page }) => {
+  test("sends a project without a site to its closer look on the hub, and says how far along it is", async ({ page }) => {
     await page.goto(`${skift}/`);
     await page.locator("[data-menu] summary").click();
     const croft = page.locator("[data-menu]").getByRole("link", { name: /croft/ });
     await expect(croft).toHaveAttribute("href", "https://stead.ing/#croft");
     await expect(croft).toContainText("In design");
+  });
+
+  test("lists a project with nowhere to lead yet, without a link", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    await page.locator("[data-menu] summary").click();
+    const menu = page.locator("[data-menu]");
+    await expect(menu.getByText("Disk cleanup for what agents leave behind")).toBeVisible();
+    await expect(menu.getByRole("link", { name: /fallow/ })).toHaveCount(0);
   });
 
   test("marks the project whose site this is", async ({ page }) => {
@@ -139,9 +148,11 @@ test.describe("the Projects menu", () => {
     await context.close();
   });
 
-  test("the hub's row for a project is where its menu link lands", async ({ page }) => {
+  test("the hub's closer look at a project is where its menu link lands", async ({ page }) => {
     await page.goto(`${hub}/#croft`);
+    await expect(page.locator("#croft")).toBeVisible();
     await expect(page.locator("#croft")).toBeInViewport();
+    await expect(page.getByRole("radio", { name: "croft" })).toBeChecked();
   });
 });
 
@@ -220,22 +231,22 @@ test.describe("the product map", () => {
     expect(box?.height).toBeLessThanOrEqual(900);
   });
 
-  test("comes before the list of projects, and without JavaScript every project on it leads to its entry there", async ({ browser }) => {
+  test("without JavaScript, every project on it leads to its site or its closer look", async ({ browser }) => {
     const context = await browser.newContext({ javaScriptEnabled: false });
     const page = await context.newPage();
     await page.goto(`${hub}/`);
     const map = page.locator("figure.flow");
     const links = map.getByRole("link");
     await expect(links).toHaveCount(7);
-    const above = await page.evaluate(() => {
-      const idea = document.querySelector("#idea");
-      const projects = document.querySelector("#projects");
-      return Boolean(idea && projects && idea.compareDocumentPosition(projects) & Node.DOCUMENT_POSITION_FOLLOWING);
-    });
-    expect(above).toBe(true);
+    await expect(map.getByRole("link", { name: /skift/ })).toHaveAttribute("href", "https://skift.stead.ing/");
     await map.getByRole("link", { name: /croft/ }).click();
     await expect(page).toHaveURL(/#croft$/);
-    await expect(page.locator("#croft")).toBeInViewport();
+    await expect(page.locator("#croft")).toBeVisible();
+    await expect(page.locator(".panel.p-skift")).toBeHidden();
+    // The project sent for gives way to whichever is picked next.
+    await page.locator(".tabs label.p-mill").click();
+    await expect(page.locator(".panel.p-mill")).toBeVisible();
+    await expect(page.locator("#croft")).toBeHidden();
     await context.close();
   });
 
@@ -250,8 +261,6 @@ test.describe("the product map", () => {
     await expect(croft).toContainText("In design.");
     await expect(section.locator(".panel.p-skift")).toBeHidden();
     await expect(page).not.toHaveURL(/#croft$/);
-    await croft.getByRole("link", { name: "Find it among the projects" }).click();
-    await expect(page.locator("#croft")).toBeInViewport();
   });
 
   test("changes the closer look without JavaScript, by pointer or keyboard", async ({ browser }) => {
@@ -286,33 +295,13 @@ test.describe("the product map", () => {
   });
 });
 
-test.describe("the hub's list of projects", () => {
-  test("a row that leads somewhere is clickable anywhere on it", async ({ page }) => {
-    await page.goto(`${hub}/`);
-    const row = page.locator("#skift");
-    await expect(row.getByRole("link", { name: "skift" })).toHaveAttribute("href", "https://skift.stead.ing/");
-    // The problem sits at the far side of the row from the name; a click there must still land on the link.
-    const pain = row.locator(".pain");
-    await pain.scrollIntoViewIfNeeded();
-    const under = await pain.evaluate((element) => {
-      const box = element.getBoundingClientRect();
-      const top = document.elementFromPoint(box.left + 10, box.top + 10);
-      return { href: top?.closest("a")?.href, cursor: top ? getComputedStyle(top).cursor : "" };
-    });
-    expect(under).toEqual({ href: "https://skift.stead.ing/", cursor: "pointer" });
-  });
-
-  test("a row with nowhere to lead is not a link", async ({ page }) => {
-    await page.goto(`${hub}/`);
-    await expect(page.locator("#croft").getByRole("link")).toHaveCount(0);
-  });
-});
-
 test.describe("the footer", () => {
   test("lists every project and the ways in for an agent", async ({ page }) => {
     await page.goto(`${skift}/`);
     const footer = page.getByRole("contentinfo");
-    await expect(footer.getByRole("navigation", { name: "Projects" }).getByRole("link")).toHaveCount(10);
+    // All ten are named; the seven with somewhere to lead are links.
+    await expect(footer.getByRole("navigation", { name: "Projects" }).getByRole("listitem")).toHaveCount(10);
+    await expect(footer.getByRole("navigation", { name: "Projects" }).getByRole("link")).toHaveCount(7);
     await expect(footer.getByRole("link", { name: "Open for good" })).toHaveAttribute("href", "https://stead.ing/open-for-good/");
     await expect(footer.getByRole("link", { name: "This page as Markdown" })).toHaveAttribute("href", "/index.md");
     await expect(footer.getByRole("link", { name: "llms.txt", exact: true })).toHaveAttribute("href", "/llms.txt");

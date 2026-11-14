@@ -1,17 +1,16 @@
 ---
 // stead.ing's front page: where software is going and how to start today,
-// then which project fixes your problem, how they fit together, that it's
-// real, and how to build it with us. The hero's words come from
+// what is in the reader's way, how the projects fit together, what we
+// believe, and how to build it with us. The hero's words come from
 // content/site.yaml.
 import type { Landing } from "../lib/schema.ts";
-import { projectById } from "../projects.ts";
+import { projectById, whereabouts } from "../projects.ts";
 import GitHubMark from "./GitHubMark.astro";
 import Hero from "./Hero.astro";
 import JoinIn from "./JoinIn.astro";
 import Platform from "./Platform.astro";
 import Steps from "./motifs/Steps.astro";
 import Timeline from "./motifs/Timeline.astro";
-import ProjectIndex from "./ProjectIndex.astro";
 import ProjectMark from "./ProjectMark.astro";
 
 interface Props {
@@ -22,8 +21,6 @@ const { landing } = Astro.props;
 const SOURCE = "https://github.com/steading-ai";
 // The projects that have a lane in the timeline, in the order work moves through them.
 const stack = ["skift", "mill", "almanac", "thicket", "croft", "knowledge"].map(projectById);
-// Like the Projects menu: a project's own site, or else its row further down this page, which says how far along it is.
-const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id}`;
 ---
 
 <Hero headline={landing.headline} summary={landing.summary} prompt={landing.prompt}>
@@ -47,7 +44,7 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
             <li class={`p-${project.id}`}>
               <ProjectMark glyph={project.glyph} size={32} bare />
               <p>
-                <a href={href(project)}>{project.name}</a>
+                <a href={whereabouts(project, "/")}>{project.name}</a>
                 <span>{project.kind}</span>
               </p>
             </li>
@@ -83,19 +80,7 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
 
 <Platform />
 
-<section class="band band-surface" aria-labelledby="projects">
-  <div class="wrap">
-    <h2 id="projects" class="display-2">What's your biggest bottleneck?</h2>
-    <p class="lead measure mt-4">
-      Start with what's slowing you down today. Every project works on its own, and they get better <em>together</em>.
-    </p>
-    <div class="mt-10">
-      <ProjectIndex />
-    </div>
-  </div>
-</section>
-
-<section class="band" aria-labelledby="beliefs">
+<section class="band band-surface" aria-labelledby="beliefs">
   <div class="wrap">
     <h2 id="beliefs" class="display-2">What we believe</h2>
     <dl class="beliefs mt-10">
@@ -130,7 +115,7 @@ const href = (project: (typeof stack)[number]) => project.site ?? `#${project.id
   </div>
 </section>
 
-<JoinIn />
+<JoinIn surface={false} />
 
 <style>
   /*

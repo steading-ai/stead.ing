@@ -2,7 +2,7 @@
 // The other Steading projects this one pairs with, and what each adds. Give it
 // any number of projects, each with a few words on what it brings.
 import { inline } from "../lib/markdown.ts";
-import { projectById } from "../projects.ts";
+import { projectById, whereabouts } from "../projects.ts";
 import { SITE } from "../site.ts";
 import ProjectMark from "./ProjectMark.astro";
 
@@ -15,8 +15,7 @@ interface Props {
 const { surface = false } = Astro.props;
 
 const pairs = Astro.props.pairs.map((pair) => ({ ...pair, project: projectById(pair.project) }));
-// A project with its own site links there; the rest link to their entry on the hub.
-const href = (id: string, site: string | undefined) => site ?? `${SITE.isHub ? "/" : SITE.hub}#${id}`;
+const hub = SITE.isHub ? "/" : SITE.hub;
 ---
 
 {
@@ -29,9 +28,13 @@ const href = (id: string, site: string | undefined) => site ?? `${SITE.isHub ? "
             <li class={`p-${pair.project.id}`}>
               <ProjectMark glyph={pair.project.glyph} size={40} bare />
               <p>
-                <a class="name" href={href(pair.project.id, pair.project.site)}>
-                  {pair.project.name}
-                </a>{" "}
+                {whereabouts(pair.project, hub) ? (
+                  <a class="name" href={whereabouts(pair.project, hub)}>
+                    {pair.project.name}
+                  </a>
+                ) : (
+                  <span class="name">{pair.project.name}</span>
+                )}{" "}
                 <span set:html={inline(pair.body)} />
               </p>
             </li>

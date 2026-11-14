@@ -5,7 +5,9 @@
 // one screen of a desktop window.
 //
 // Which project is looked at is a group of radio buttons, so it works without
-// JavaScript. With it, a project on the map picks itself.
+// JavaScript. With it, a project on the map picks itself. Each closer look is
+// also an address (`/#croft`), which is where the rest of the site sends a
+// reader for a project that has no site of its own.
 import { CYCLE, during, KINDS, type Sender, STEPS } from "../lib/flow.ts";
 import { PROJECTS, STATUS_LABEL } from "../projects.ts";
 import FlowMap from "./motifs/FlowMap.astro";
@@ -15,12 +17,28 @@ const tour = PROJECTS.flatMap((project) => (project.tour ? [{ ...project, tour: 
 const glyph = (sender: Sender) => PROJECTS.find((project) => project.id === sender)?.glyph;
 
 // One rule per project: its radio button shows its panel and marks it on the map.
+const picked = (id: string) => `.flow .node.p-${id} .box{stroke:var(--accent);stroke-width:2.5;stroke-dasharray:none}`;
+const first = tour[0]?.id;
 const picks = tour
-  .map(
-    ({ id }) =>
-      `.tour:has(#about-${id}:checked) .panel.p-${id}{visibility:visible}` +
-      `.tour:has(#about-${id}:checked) .flow .node.p-${id} .box{stroke:var(--accent);stroke-width:2.5;stroke-dasharray:none}`,
-  )
+  .flatMap(({ id }) => {
+    const chosen = `.tour:has(#about-${id}:checked)`;
+    // Without the script, a reader sent to a project's address sees that project until they pick another.
+    const sent = `.tour:not([data-live]):has(#about-${first}:checked):has(#${id}:target)`;
+    return [
+      `${chosen} .panel.p-${id}{visibility:visible}`,
+      `${chosen} ${picked(id)}`,
+      ...(id === first
+        ? []
+        : [
+            `${sent} .panel.p-${first}{visibility:hidden}`,
+            `${sent} .panel.p-${id}{visibility:visible}`,
+            `${sent} .tabs label.p-${first}{border-color:transparent;background:none}`,
+            `${sent} .tabs label.p-${id}{border-color:var(--accent);background:color-mix(in srgb,var(--accent) 10%,transparent)}`,
+            `${sent} .flow .node.p-${first} .box{stroke:color-mix(in srgb,var(--accent) 60%,var(--line));stroke-width:1.5}`,
+            `${sent} ${picked(id)}`,
+          ]),
+    ];
+  })
   .join("");
 const lights = STEPS.map((step, index) => during(`tour-step-${index}`, [[step.from, step.to]])).join("");
 ---
@@ -78,7 +96,7 @@ const lights = STEPS.map((step, index) => during(`tour-step-${index}`, [[step.fr
         <div class="panels">
           {
             tour.map((project) => (
-              <article class={`panel p-${project.id}`} aria-labelledby={`about-${project.id}-name`}>
+              <article id={project.id} class={`panel p-${project.id}`} aria-labelledby={`about-${project.id}-name`}>
                 <header>
                   <ProjectMark glyph={project.glyph} size={36} bare />
                   <h3 id={`about-${project.id}-name`}>{project.name}</h3>
@@ -102,7 +120,7 @@ const lights = STEPS.map((step, index) => during(`tour-step-${index}`, [[step.fr
                   <p>
                     <strong>{STATUS_LABEL[project.status]}.</strong> {project.tour.today}
                   </p>
-                  {project.site ? <a href={project.site}>{new URL(project.site).host}</a> : <a href={`#${project.id}`}>Find it among the projects</a>}
+                  {project.site && <a href={project.site}>{new URL(project.site).host}</a>}
                 </footer>
               </article>
             ))
@@ -131,15 +149,23 @@ const lights = STEPS.map((step, index) => during(`tour-step-${index}`, [[step.fr
 </section>
 
 <script>
-  // A project on the map picks itself for the closer look. Without this, it leads to the project's entry or site.
+  // A project on the map picks itself for the closer look, and so does a project's address (`/#croft`).
+  // Without this, the map leads to the project's site or address, and the stylesheet shows the project sent for.
   for (const tour of document.querySelectorAll<HTMLElement>("[data-tour]")) {
+    const pick = (id: string | undefined) => {
+      const input = tour.querySelector<HTMLInputElement>(`input[name="about"][value="${CSS.escape(id ?? "")}"]`);
+      if (input) input.checked = true;
+      return Boolean(input);
+    };
+    tour.dataset.live = "";
+    const sent = () => pick(location.hash.slice(1));
+    sent();
+    addEventListener("hashchange", sent);
     tour.addEventListener("click", (event) => {
       if (event.button !== 0 || event.metaKey || event.ctrlKey || event.shiftKey || event.altKey) return;
       const node = event.target instanceof Element ? event.target.closest<SVGAElement>("[data-project]") : null;
-      const pick = node && tour.querySelector<HTMLInputElement>(`input[name="about"][value="${node.dataset.project}"]`);
-      if (!pick) return;
+      if (!pick(node?.dataset.project)) return;
       event.preventDefault();
-      pick.checked = true;
       tour.querySelector(".about")?.scrollIntoView({ block: "nearest", behavior: "smooth" });
     });
   }
@@ -285,6 +311,8 @@ const lights = STEPS.map((step, index) => during(`tour-step-${index}`, [[step.fr
     display: flex;
     flex-direction: column;
     visibility: hidden;
+    /* Sent to a project's address, the reader lands with the heading above it still in sight. */
+    scroll-margin-top: 5rem;
     font-size: 0.925rem;
     line-height: 1.45;
   }

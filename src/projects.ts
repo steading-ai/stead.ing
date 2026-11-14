@@ -50,8 +50,6 @@ export interface Project {
   pain: string;
   /** One sentence on what it does about that. */
   blurb: string;
-  /** A measured instance of the problem, where there is one. */
-  measured?: string;
   /** The hub's closer look, for a project on its map: the problem at length, how the project answers it, and where it stands today. */
   tour?: { problem: string; approach: readonly [string, string, string, string]; today: string };
   status: Status;
@@ -152,7 +150,6 @@ export const PROJECTS: readonly Project[] = [
     job: "Keeps things maintained",
     pain: "Dependency updates pile up faster than I merge them.",
     blurb: "Repairs broken dependency updates for tens of cents.",
-    measured: "One account: 97 of 119 open pull requests.",
     status: "early",
     color: { dark: "#E79AAE", light: "#A63D5F" },
     glyph: "almanac",
@@ -283,7 +280,6 @@ export const PROJECTS: readonly Project[] = [
     job: "Takes back the disk",
     pain: "My disk is full of what agents left behind.",
     blurb: "Takes back the disk your agents leave behind.",
-    measured: "One workstation: 41 GB.",
     status: "design",
     color: { dark: "#B5C47A", light: "#5E6B22" },
     glyph: "fallow",
@@ -292,6 +288,15 @@ export const PROJECTS: readonly Project[] = [
 
 /** The hub and every project, by id. */
 export const ALL: readonly Project[] = [STEADING, ...PROJECTS];
+
+/**
+ * Where a project can be read about: its own site, or else its closer look on
+ * the hub's map. A project with neither has nowhere to lead yet. `hub` is the
+ * hub's front page as the caller reaches it: "/" from the hub itself.
+ */
+export function whereabouts(project: Project, hub: string): string | undefined {
+  return project.site ?? (project.tour ? `${hub}#${project.id}` : undefined);
+}
 
 export function projectById(id: string): Project {
   const project = ALL.find((candidate) => candidate.id === id);
