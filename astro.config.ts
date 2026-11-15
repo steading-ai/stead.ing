@@ -1,11 +1,22 @@
-import { cpSync, mkdirSync } from "node:fs";
-import { dirname, join } from "node:path";
+import { cpSync, createReadStream, mkdirSync } from "node:fs";
+import { dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { satteri } from "@astrojs/markdown-satteri";
 import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "astro/config";
 import { rewriteDocImages, rewriteDocLinks, scrollWideTables } from "./src/lib/markdown.ts";
 import { SITE } from "./src/site.ts";
+
+/** The kinds of picture src/lib/pages.ts finds beside a site's pages. */
+const PICTURE_TYPES: Record<string, string> = {
+  ".svg": "image/svg+xml",
+  ".png": "image/png",
+  ".jpg": "image/jpeg",
+  ".jpeg": "image/jpeg",
+  ".gif": "image/gif",
+  ".webp": "image/webp",
+  ".avif": "image/avif",
+};
 
 const targets = {
   root: SITE.contentDir,
@@ -35,6 +46,16 @@ export default defineConfig({
       // The pictures beside a site's pages are served where the pages point at them.
       name: "steading-images",
       hooks: {
+        // The dev server answers for them at the same addresses, so a page shows its pictures before it is built.
+        "astro:server:setup": ({ server }) => {
+          const byAddress = new Map([...SITE.images].map(([file, address]) => [address, file]));
+          server.middlewares.use((request, response, next) => {
+            const file = byAddress.get(decodeURIComponent((request.url ?? "").split("?")[0] ?? ""));
+            if (!file) return next();
+            response.setHeader("Content-Type", PICTURE_TYPES[extname(file).toLowerCase()] ?? "application/octet-stream");
+            createReadStream(join(SITE.contentDir, file)).pipe(response);
+          });
+        },
         "astro:build:done": ({ dir }) => {
           for (const [file, address] of SITE.images) {
             const to = join(fileURLToPath(dir), address);
