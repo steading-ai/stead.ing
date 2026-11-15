@@ -8,7 +8,7 @@
  */
 import { createReadStream, existsSync, statSync } from "node:fs";
 import { createServer } from "node:http";
-import { extname, join, normalize, resolve } from "node:path";
+import { extname, join, normalize, resolve, sep } from "node:path";
 
 const TYPES: Record<string, string> = {
   ".html": "text/html; charset=utf-8",
@@ -29,8 +29,10 @@ const TYPES: Record<string, string> = {
 /** The file a request path maps to, or undefined when the site has nothing there. */
 export function fileFor(root: string, pathname: string): string | undefined {
   const path = normalize(decodeURIComponent(pathname));
-  if (path.includes("..")) return undefined;
-  const target = join(root, path);
+  // A path may name a file with dots in it (Astro names a `[...slug]` page's stylesheet `_..<hash>.css`), but never one outside the site.
+  const base = resolve(root);
+  const target = resolve(base, `.${path.startsWith("/") ? path : `/${path}`}`);
+  if (target !== base && !target.startsWith(base + sep)) return undefined;
   if (!existsSync(target)) return undefined;
   if (!statSync(target).isDirectory()) return target;
   const index = join(target, "index.html");
