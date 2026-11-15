@@ -234,26 +234,28 @@ const parts = await Promise.all(sections.map(async (section) => ({ ...section, a
       align-self: start;
       margin-top: 4rem;
     }
-    .inner:not(.pictured) .prose > :global(ol),
+    .inner:not(.pictured) .prose > :global(ol:not(.cycle-list)),
     .inner:not(.pictured) .prose > :global(.table-scroll),
     .inner:not(.pictured) .prose > :global(table) {
       grid-column: 1 / -1;
     }
-    .inner:not(.pictured) .prose > :global(ol) {
+    .inner:not(.pictured) .prose > :global(ol:not(.cycle-list)) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .has-cycle .prose > :global(.cycle) {
+    .has-cycle .prose > :global(.cycle-ring) {
       grid-column: 1 / -1;
+      margin-top: 2rem;
     }
   }
-  /* Wide enough for both, a loop stands beside the words that introduce it. */
+  /* Wide enough for both, a loop's ring stands beside its words, and the words keep their list. */
   @media (min-width: 80rem) {
     .inner.has-cycle .prose {
-      grid-template-columns: minmax(0, 1fr) 640px;
+      grid-template-columns: minmax(0, 1fr) 520px;
     }
-    .inner.has-cycle .prose > :global(.cycle) {
+    .inner.has-cycle .prose > :global(.cycle-ring) {
       grid-column: 2;
       grid-row: 1 / span 8;
+      align-self: center;
       margin: 0;
     }
   }
@@ -295,7 +297,7 @@ const parts = await Promise.all(sections.map(async (section) => ({ ...section, a
     font-size: 0.9rem;
   }
   /* A numbered list is a run of steps: each its own card, read in order. A loop draws its own list. */
-  .prose > :global(ol) {
+  .prose > :global(ol:not(.cycle-list)) {
     display: grid;
     gap: 0.75rem;
     padding: 0;
@@ -303,11 +305,11 @@ const parts = await Promise.all(sections.map(async (section) => ({ ...section, a
     list-style: none;
   }
   @media (min-width: 48rem) {
-    .prose > :global(ol) {
+    .prose > :global(ol:not(.cycle-list)) {
       grid-template-columns: repeat(2, minmax(0, 1fr));
     }
   }
-  .prose > :global(ol > li) {
+  .prose > :global(ol:not(.cycle-list) > li) {
     position: relative;
     margin: 0;
     padding: 0.8rem 1rem 0.8rem 3rem;
@@ -316,10 +318,10 @@ const parts = await Promise.all(sections.map(async (section) => ({ ...section, a
     background: var(--ground);
     counter-increment: step;
   }
-  .part:not(.band-surface) .prose > :global(ol > li) {
+  .part:not(.band-surface) .prose > :global(ol:not(.cycle-list) > li) {
     background: var(--surface);
   }
-  .prose > :global(ol > li::before) {
+  .prose > :global(ol:not(.cycle-list) > li::before) {
     content: counter(step);
     position: absolute;
     top: 0.8rem;

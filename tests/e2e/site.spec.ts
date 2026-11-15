@@ -76,14 +76,16 @@ test.describe("the history page", () => {
   test("draws the chicken-and-egg loop as a ring, and keeps it a numbered list", async ({ page }) => {
     await page.setViewportSize({ width: 1440, height: 900 });
     await page.goto(`${hub}/history/`);
-    const loop = page.locator(".cycle");
-    const items = loop.getByRole("listitem");
+    const items = page.locator(".cycle-list").getByRole("listitem");
     await expect(items).toHaveCount(6);
     await expect(items.first()).toHaveText("Knowledge makes planning better.");
-    await expect(loop.locator("ol li img")).toHaveCount(6);
-    await expect(loop.locator(".track")).toBeVisible();
-    // The ring goes round: the first item sits above the fourth, and the second to the right of the sixth.
-    const box = async (index: number) => (await items.nth(index).boundingBox()) ?? { x: 0, y: 0 };
+    const ring = page.locator(".cycle-ring");
+    await expect(ring).toBeVisible();
+    await expect(ring).toHaveAttribute("aria-hidden", "true");
+    const nodes = ring.locator(".node");
+    await expect(nodes).toHaveText(["Knowledge", "Planning", "The work", "Review", "Trust", "Reach"]);
+    // The ring goes round: the first sits above the fourth, and the second to the right of the sixth.
+    const box = async (index: number) => (await nodes.nth(index).boundingBox()) ?? { x: 0, y: 0 };
     expect((await box(0)).y).toBeLessThan((await box(3)).y);
     expect((await box(1)).x).toBeGreaterThan((await box(5)).x);
   });
@@ -91,16 +93,16 @@ test.describe("the history page", () => {
   test("unrolls the loop into a column on a phone, which points back to the start", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${hub}/history/`);
-    const loop = page.locator(".cycle");
-    await expect(loop.locator(".track")).toBeHidden();
-    await expect(loop.locator(".again")).toHaveText("↺ and back to knowledge");
+    await expect(page.locator(".cycle-ring")).toBeHidden();
+    await expect(page.locator(".cycle-list li img")).toHaveCount(6);
+    await expect(page.locator(".cycle-again")).toHaveText("↺ and back to knowledge");
   });
 
   test("holds the loop's light still for someone who asked for less motion", async ({ browser }) => {
     const context = await browser.newContext({ reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
     const page = await context.newPage();
     await page.goto(`${hub}/history/`);
-    await expect(page.locator(".cycle .traveller")).toBeHidden();
+    await expect(page.locator(".cycle-ring .traveller")).toBeHidden();
     await context.close();
   });
 
@@ -109,7 +111,7 @@ test.describe("the history page", () => {
       const context = await browser.newContext({ colorScheme });
       const page = await context.newPage();
       await page.goto(`${hub}/history/`);
-      const images = page.locator(".story .art img, .story .cycle img");
+      const images = page.locator(".story .art img, .story .cycle-ring img");
       // The pictures further down load as they come into view.
       for (const image of await images.all()) {
         await image.scrollIntoViewIfNeeded();

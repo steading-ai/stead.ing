@@ -1,9 +1,11 @@
 ---
-// A numbered list drawn as a loop: each item a picture on a ring, with an
-// arrow from each to the next and the last leading back to the first, and an
-// ember light travelling round that lights each in its turn. It stays an
-// ordered list, so it reads the same without the drawing. On a narrow screen
-// the ring unrolls into a column that ends by pointing back to the start.
+// A numbered list drawn as a loop. The list keeps the words, numbered, and
+// stays where it is in the page; beside it the ring draws the same items as
+// pictures with their names, an arrow from each to the next and the last back
+// to the first, and an ember light going round that lights each item, on the
+// ring and in the list, in its turn. The ring only repeats the list, so it is
+// hidden from screen readers. On a narrow screen there is no ring: each item
+// carries its own picture, and the list ends by pointing back to the start.
 interface Picture {
   light: string;
   dark: string;
@@ -20,38 +22,57 @@ interface Props {
 
 const { items, center } = Astro.props;
 
-// The ring on a wide screen, in CSS pixels: the box, the ring's centre and its radius.
-const BOX = { width: 640, height: 720 };
-const RING = { x: 320, y: 330, r: 240 };
+// The ring, in CSS pixels: the box, the ring's centre and its radius.
+const BOX = { width: 520, height: 548 };
+const RING = { x: 260, y: 262, r: 192 };
+/** Half a picture's height, which hangs above the point on the ring; its name hangs below. */
+const HALF = 64;
+const NAME = { line: 22, letter: 9.5 };
 /** One turn of the light, in seconds. */
 const TURN = 12;
-/** Half a picture's height, which hangs above the point on the ring; its words hang below. */
-const HALF = 64;
-const LABEL = { width: 184, line: 22, letters: 24 };
+
+const plain = (html: string) => html.replace(/<[^>]+>/g, "").trim();
+/** An item's name: the words it leads with in bold, or else its first word. */
+const nameOf = (html: string) => plain(/<strong>([\s\S]*?)<\/strong>/.exec(html)?.[1] ?? "") || (plain(html).split(/\s/)[0] ?? "");
+
 const at = (index: number, half = 0) => {
   const angle = ((-90 + ((index + half) * 360) / items.length) * Math.PI) / 180;
   return { x: RING.x + RING.r * Math.cos(angle), y: RING.y + RING.r * Math.sin(angle), degrees: (angle * 180) / Math.PI };
 };
-const plain = (html: string) => html.replace(/<[^>]+>/g, "");
-// Where each item's words sit, roughly: under its picture, as many lines as its words need.
-const labels = items.map((item, index) => {
-  const point = at(index);
-  const height = Math.ceil(plain(item.html).length / LABEL.letters) * LABEL.line + 8;
-  return { left: point.x - LABEL.width / 2, right: point.x + LABEL.width / 2, top: point.y + HALF, bottom: point.y + HALF + height };
+const nodes = items.map((item, index) => ({ ...item, name: nameOf(item.html), point: at(index) }));
+// Where each name sits, under its picture.
+const labels = nodes.map(({ name, point }) => {
+  const half = (name.length * NAME.letter) / 2 + 8;
+  return { left: point.x - half, right: point.x + half, top: point.y + HALF, bottom: point.y + HALF + NAME.line + 6 };
 });
 const clearance = (x: number, y: number) =>
   Math.min(...labels.map((box) => Math.hypot(Math.max(box.left - x, 0, x - box.right), Math.max(box.top - y, 0, y - box.bottom))));
-// Each arrow goes where its stretch of ring is furthest from any item's words, so none hides under them.
+// Each arrow goes where its stretch of ring is furthest from any name, so none hides under one.
 const arrows = items.map((_, index) => {
   const candidates = Array.from({ length: 21 }, (_, step) => at(index, 0.25 + step * 0.025));
   return candidates.reduce((best, candidate) => (clearance(candidate.x, candidate.y) > clearance(best.x, best.y) ? candidate : best));
 });
-const first = plain(items[0]?.html ?? "").split(/\s/)[0] ?? "";
+const timing = `--turn:${TURN}s;--count:${items.length}`;
 ---
 
-<div class="cycle not-prose" style={`--turn:${TURN}s;--count:${items.length}`}>
-  <svg class="track" viewBox={`0 0 ${BOX.width} ${BOX.height}`} aria-hidden="true">
-    <circle cx={RING.x} cy={RING.y} r={RING.r}></circle>
+<ol class="cycle-list not-prose" style={timing}>
+  {
+    nodes.map((node, index) => (
+      <li style={`--i:${index}`}>
+        <picture>
+          <source srcset={node.picture.dark} media="(prefers-color-scheme: dark)" />
+          <img src={node.picture.light} alt="" width={node.picture.width} height={node.picture.height} loading="lazy" decoding="async" />
+        </picture>
+        <p set:html={node.html} />
+      </li>
+    ))
+  }
+</ol>
+<p class="cycle-again not-prose" aria-hidden="true">↺ and back to {nodes[0]?.name.toLowerCase()}</p>
+
+<div class="cycle-ring not-prose" aria-hidden="true" style={timing}>
+  <svg viewBox={`0 0 ${BOX.width} ${BOX.height}`}>
+    <circle class="track" cx={RING.x} cy={RING.y} r={RING.r}></circle>
     {arrows.map((arrow) => <path class="head" d="M-7 -6 L5 0 L-7 6 Z" transform={`translate(${arrow.x.toFixed(1)} ${arrow.y.toFixed(1)}) rotate(${(arrow.degrees + 90).toFixed(1)})`} />)}
     <circle class="traveller" r="6">
       <animateMotion dur={`${TURN}s`} repeatCount="indefinite" path={`M${RING.x} ${RING.y - RING.r} a${RING.r} ${RING.r} 0 1 1 0 ${2 * RING.r} a${RING.r} ${RING.r} 0 1 1 0 ${-2 * RING.r}`}></animateMotion>
@@ -65,102 +86,110 @@ const first = plain(items[0]?.html ?? "").split(/\s/)[0] ?? "";
       </picture>
     )
   }
-  <ol>
-    {
-      items.map((item, index) => {
-        const point = at(index);
-        return (
-          <li style={`--i:${index};--x:${point.x.toFixed(1)}px;--y:${point.y.toFixed(1)}px`}>
-            <picture>
-              <source srcset={item.picture.dark} media="(prefers-color-scheme: dark)" />
-              <img src={item.picture.light} alt="" width={item.picture.width} height={item.picture.height} loading="lazy" decoding="async" />
-            </picture>
-            <p set:html={item.html} />
-          </li>
-        );
-      })
-    }
-  </ol>
-  <p class="again" aria-hidden="true">↺ and back to {first.toLowerCase()}</p>
+  {
+    nodes.map((node, index) => (
+      <div class="node" style={`--i:${index};--x:${node.point.x.toFixed(1)}px;--y:${node.point.y.toFixed(1)}px`}>
+        <picture>
+          <source srcset={node.picture.dark} media="(prefers-color-scheme: dark)" />
+          <img src={node.picture.light} alt="" width={node.picture.width} height={node.picture.height} loading="lazy" decoding="async" />
+        </picture>
+        <span>{node.name}</span>
+      </div>
+    ))
+  }
 </div>
 
 <style>
-  .cycle {
-    position: relative;
-    margin-block: 1.5rem;
-  }
-  .cycle img {
+  img {
     display: block;
     image-rendering: pixelated;
   }
-  .track {
-    display: none;
-  }
-  .center {
-    display: none;
-  }
 
-  /* Narrow: a column of the items, each its picture and words, that ends by pointing back to the first. */
-  ol {
+  /* The list: each item's words, numbered. On a narrow screen each carries its picture too. */
+  .cycle-list {
     display: grid;
     gap: 0.25rem;
-    margin: 0;
+    margin: 1.5rem 0 0;
     padding: 0;
+    counter-reset: step;
     list-style: none;
   }
-  li {
+  .cycle-list li {
     display: grid;
     grid-template-columns: 128px minmax(0, 1fr);
     align-items: center;
     gap: 1rem;
+    counter-increment: step;
   }
-  li + li::before {
-    content: "↓";
-    grid-column: 1;
-    justify-self: center;
-    margin-block: -0.5rem;
-    color: var(--muted);
-  }
-  li + li {
-    grid-template-rows: auto auto;
-  }
-  li + li picture {
-    grid-row: 2;
-  }
-  li + li p {
-    grid-row: 2;
-  }
-  li p {
+  .cycle-list p {
     font-size: 1rem;
-    line-height: 1.4;
+    line-height: 1.45;
   }
-  li p :global(strong) {
+  .cycle-list p :global(strong) {
     font-family: var(--font-mono);
     font-weight: 600;
   }
-  .again {
+  .cycle-again {
     margin-top: 0.75rem;
     color: var(--muted);
     font-family: var(--font-mono);
     font-size: 0.9rem;
   }
+  .cycle-ring {
+    display: none;
+  }
 
-  /* Wide: the ring itself. */
+  /*
+   * Wide: the ring draws the pictures, so the list is words alone, numbered
+   * the way the ring goes round, and each line lights with its picture.
+   */
   @media (min-width: 64rem) {
-    .cycle {
-      width: 640px;
-      height: 720px;
-      max-width: 100%;
+    .cycle-list {
+      gap: 0.35rem;
+    }
+    .cycle-list li {
+      position: relative;
+      display: block;
+      padding: 0.45rem 0.75rem 0.45rem 2.75rem;
+      border-radius: 0.5rem;
+      animation: row var(--turn) linear infinite;
+      animation-delay: calc(var(--i) * var(--turn) / var(--count));
+    }
+    .cycle-list li::before {
+      content: counter(step);
+      position: absolute;
+      top: 0.55rem;
+      left: 0.75rem;
+      width: 1.4rem;
+      height: 1.4rem;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--on-ember);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      line-height: 1.4rem;
+      text-align: center;
+    }
+    .cycle-list picture,
+    .cycle-again {
+      display: none;
+    }
+
+    .cycle-ring {
+      position: relative;
+      display: block;
+      width: 520px;
+      height: 548px;
       margin-inline: auto;
     }
-    .track {
+    svg {
       position: absolute;
       inset: 0;
-      display: block;
-      width: 640px;
-      height: 720px;
+      width: 520px;
+      height: 548px;
     }
-    .track circle:not(.traveller) {
+    .track {
       fill: none;
       stroke: var(--line);
       stroke-width: 2;
@@ -175,35 +204,24 @@ const first = plain(items[0]?.html ?? "").split(/\s/)[0] ?? "";
     }
     .center {
       position: absolute;
-      left: 320px;
-      top: 330px;
-      display: block;
+      left: 260px;
+      top: 262px;
       translate: -50% -50%;
     }
-    ol {
-      display: block;
-    }
-    li,
-    li + li {
+    .node {
       position: absolute;
       left: var(--x);
       top: var(--y);
-      display: block;
-      width: 11.5rem;
+      display: grid;
+      justify-items: center;
+      gap: 0.2rem;
       translate: -50% -64px;
-      text-align: center;
     }
-    li + li::before {
-      content: none;
-    }
-    li picture {
+    .node picture {
       position: relative;
-      display: block;
-      width: 128px;
-      margin-inline: auto;
     }
     /* Each item lights as the travelling light reaches it. */
-    li picture::before {
+    .node picture::before {
       content: "";
       position: absolute;
       inset: 8px;
@@ -214,16 +232,14 @@ const first = plain(items[0]?.html ?? "").split(/\s/)[0] ?? "";
       animation: lit var(--turn) linear infinite;
       animation-delay: calc(var(--i) * var(--turn) / var(--count));
     }
-    /* The words stand on the section's own ground, so the ring passes behind them. */
-    li p {
-      margin-top: 0.4rem;
-      padding: 0.1rem 0.35rem;
+    .node span {
+      padding: 0 0.4rem;
       border-radius: 0.35rem;
       background: var(--band, var(--ground));
-      font-size: 0.925rem;
-    }
-    .again {
-      display: none;
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
     }
   }
   @keyframes lit {
@@ -237,6 +253,19 @@ const first = plain(items[0]?.html ?? "").split(/\s/)[0] ?? "";
     20%,
     100% {
       opacity: 0;
+    }
+  }
+  @keyframes row {
+    0% {
+      background: transparent;
+    }
+    3%,
+    12% {
+      background: color-mix(in srgb, var(--ember) 10%, transparent);
+    }
+    20%,
+    100% {
+      background: transparent;
     }
   }
   @media (prefers-reduced-motion: reduce) {

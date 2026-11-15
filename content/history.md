@@ -57,9 +57,9 @@ Every piece made the others better, which meant there was never a clear first st
 3. **The work** makes more to review.
 4. **Review** needs fences you can trust.
 5. **Trust** needs agents that never hold your keys.
-6. **Reach**, talking to your agents from anywhere, makes it all usable, and turns up more to know.
+6. **Reach**, talking to your agents from anywhere, makes it all usable and turns up more to know.
 
-No single piece could solve the problem.
+**No single piece could solve the problem.**
 
 ## So I tried to build it all
 
