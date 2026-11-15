@@ -175,4 +175,9 @@ export const docSchema = z.object({
   kicker: z.string().min(1).optional(),
   /** A story's pictures, beside the section whose heading has this id, or `top` beside the title. */
   art: z.record(z.string(), daylit).optional(),
+  /**
+   * A section whose numbered list is a loop, drawn as a ring: a picture for
+   * each item, in order, and one for the middle.
+   */
+  cycle: z.record(z.string(), z.object({ items: z.array(daylit).min(2), center: daylit.optional() })).optional(),
 });
