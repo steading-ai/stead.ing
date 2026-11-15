@@ -1,4 +1,5 @@
 import { cpSync, createReadStream, mkdirSync } from "node:fs";
+import type { IncomingMessage, ServerResponse } from "node:http";
 import { dirname, extname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { satteri } from "@astrojs/markdown-satteri";
@@ -17,6 +18,20 @@ const PICTURE_TYPES: Record<string, string> = {
   ".webp": "image/webp",
   ".avif": "image/avif",
 };
+
+/**
+ * The dev server answers for the pictures beside a site's pages at the same
+ * addresses a build copies them to, so a page shows its pictures before it is
+ * built. A Vite plugin's own middleware runs before Astro's routing, which
+ * would otherwise add the trailing slash every page address has and answer 404.
+ */
+const picturesByAddress = new Map([...SITE.images].map(([file, address]) => [address, file]));
+function servePagePicture(request: IncomingMessage, response: ServerResponse, next: () => void) {
+  const file = picturesByAddress.get(decodeURIComponent((request.url ?? "").split("?")[0] ?? ""));
+  if (!file) return next();
+  response.setHeader("Content-Type", PICTURE_TYPES[extname(file).toLowerCase()] ?? "application/octet-stream");
+  createReadStream(join(SITE.contentDir, file)).pipe(response);
+}
 
 const targets = {
   root: SITE.contentDir,
@@ -46,16 +61,6 @@ export default defineConfig({
       // The pictures beside a site's pages are served where the pages point at them.
       name: "steading-images",
       hooks: {
-        // The dev server answers for them at the same addresses, so a page shows its pictures before it is built.
-        "astro:server:setup": ({ server }) => {
-          const byAddress = new Map([...SITE.images].map(([file, address]) => [address, file]));
-          server.middlewares.use((request, response, next) => {
-            const file = byAddress.get(decodeURIComponent((request.url ?? "").split("?")[0] ?? ""));
-            if (!file) return next();
-            response.setHeader("Content-Type", PICTURE_TYPES[extname(file).toLowerCase()] ?? "application/octet-stream");
-            createReadStream(join(SITE.contentDir, file)).pipe(response);
-          });
-        },
         "astro:build:done": ({ dir }) => {
           for (const [file, address] of SITE.images) {
             const to = join(fileURLToPath(dir), address);
@@ -66,5 +71,15 @@ export default defineConfig({
       },
     },
   ],
-  vite: { plugins: [tailwindcss()] },
+  vite: {
+    plugins: [
+      tailwindcss(),
+      {
+        name: "steading-page-pictures",
+        configureServer(server) {
+          server.middlewares.use(servePagePicture);
+        },
+      },
+    ],
+  },
 });
