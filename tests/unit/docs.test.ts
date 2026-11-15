@@ -3,7 +3,7 @@ import { docMarkdown, navigation, ordered, toDoc } from "../../src/lib/docs.ts";
 import { NO_SETTINGS, pathOf } from "../../src/lib/pages.ts";
 
 /** A page of a project's docs, from its place under docs/ ("" is the README). */
-function page(route: string, body: string, data: { title?: string; description?: string; order?: number } = {}, index = false) {
+function page(route: string, body: string, data: { title?: string; description?: string; order?: number; nav?: string } = {}, index = false) {
   const group = index ? route : route.includes("/") ? (route.split("/")[0] as string) : "";
   const file = route === "" ? "README.md" : `docs/${route}${index ? "/index" : ""}.md`;
   return toDoc({ file, route, path: pathOf("project", route), group, index, body, data });
@@ -22,6 +22,13 @@ describe("toDoc", () => {
     const readme = page("", "# Skift\n\nWhat it is.");
     expect(readme.title).toBe("Skift");
     expect(readme.label).toBe("Overview");
+  });
+
+  it("names a page in the navigation by its shorter name, where it gives one", () => {
+    const story = page("history", "# There was no *right place* to start.", { title: "There was no right place to start", nav: "History" });
+    expect(story.label).toBe("History");
+    expect(story.title).toBe("There was no right place to start");
+    expect(page("a", "# Heading", { title: "Front" }).label).toBe("Front");
   });
 
   it("knows where the Markdown twin lives", () => {

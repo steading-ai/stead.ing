@@ -2,6 +2,7 @@
 import type { GetStaticPaths } from "astro";
 import { render } from "astro:content";
 import OnThisPage from "../components/OnThisPage.astro";
+import StoryPage from "../components/StoryPage.astro";
 import { getPages, type LoadedDoc } from "../lib/content.ts";
 import type { NavItem, NavSection } from "../lib/docs.ts";
 import { contents } from "../lib/toc.ts";
@@ -29,6 +30,12 @@ const within = (item: NavItem) => item.doc.path === doc.path || (item.pages ?? [
 const holds = (section: NavSection) => section.items.some(within);
 ---
 
+{
+  doc.entry?.data.layout === "story" ? (
+    <Base title={doc.title} description={doc.data.description} path={doc.path} markdownPath={doc.markdown} bleed>
+      <StoryPage doc={doc} />
+    </Base>
+  ) : (
 <Base title={doc.title} description={doc.data.description} path={doc.path} markdownPath={doc.markdown}>
   <div class:list={["layout", { contents: headings.length > 0 }]}>
     <nav aria-label="Pages" class="pages">
@@ -98,6 +105,8 @@ const holds = (section: NavSection) => section.items.some(within);
     {headings.length > 0 && <OnThisPage headings={headings} placement="beside" />}
   </div>
 </Base>
+  )
+}
 
 <script>
   import { start } from "../lib/pages-client.ts";

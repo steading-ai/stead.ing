@@ -154,10 +154,25 @@ export const landingSchema = z.strictObject({
 
 export type Landing = z.infer<typeof landingSchema>;
 
+/** A picture drawn twice, for the light and the dark color scheme, by its path in the content folder. */
+const daylit = z.object({ light: z.string().min(1), dark: z.string().min(1) });
+
 /** Frontmatter is optional. A page with none takes its title from its first heading. */
 export const docSchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().min(1).optional(),
   /** Position in the navigation; lower comes first. Pages without one sort after, by title. */
   order: z.number().optional(),
+  /** A shorter name for the navigation than the page's title. */
+  nav: z.string().min(1).optional(),
+  /**
+   * `story`: the page reads as a run of wide sections, one per `##` heading,
+   * with no navigation beside it, for a page that tells a story rather than
+   * documents something.
+   */
+  layout: z.enum(["story"]).optional(),
+  /** A few words above a story's title: "The origin story". */
+  kicker: z.string().min(1).optional(),
+  /** A story's pictures, beside the section whose heading has this id, or `top` beside the title. */
+  art: z.record(z.string(), daylit).optional(),
 });
