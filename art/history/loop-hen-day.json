@@ -1,0 +1,30 @@
+{
+  "background": "transparent",
+  "endpoint": "edits",
+  "generated": "2026-11-15T01:40:33+00:00",
+  "model": "gpt-image-2.6-sunburst",
+  "output_format": "png",
+  "output_sha256": "d7de7ac8e84639f901f65850c6cf2a1a3f6a7a6bc4d0d80e553b6ea1cceb8e23",
+  "prompt": "A single sprite for a cosy homesteading game, centered on a transparent background with generous empty space around it: a plump little hen sitting contentedly in a round straw nest beside one brown egg, seen in a gentle three-quarter view. Charming and a little wry, not cartoonish. Pixel art in the same style as the reference: the polish of a lovingly hand-made indie game, a strict even grid with every art pixel exactly 4 by 4 screen pixels, no anti-aliasing, no blur, consistent one-art-pixel dark outlines, hand-placed dithering in the shadows, readable silhouettes, a small cohesive palette of warm colors with honey wood, cream, sage green, brass, and a single burnt-orange accent (#B84A16) on one small detail per object. No people, no text or letters anywhere, no logos, no frames, no sparkles, no stars.",
+  "quality": "high",
+  "references": [
+    {
+      "file": "day.png",
+      "sha256": "cd8989b35552b8f5b41bdf014e667c4cebe96979048f5b1abf6f04d240f66d4a"
+    }
+  ],
+  "size": "1024x1024",
+  "usage": {
+    "input_tokens": 1737,
+    "input_tokens_details": {
+      "image_tokens": 1536,
+      "text_tokens": 201
+    },
+    "output_tokens": 1756,
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0
+    },
+    "total_tokens": 3493
+  }
+}

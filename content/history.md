@@ -14,6 +14,24 @@ art:
   the-work-isnt-done:
     light: history/plot-day.png
     dark: history/plot-night.png
+cycle:
+  the-chicken-and-egg-loop:
+    center:
+      light: history/loop-hen-day.png
+      dark: history/loop-hen-night.png
+    items:
+      - light: history/loop-knowledge-day.png
+        dark: history/loop-knowledge-night.png
+      - light: history/loop-planning-day.png
+        dark: history/loop-planning-night.png
+      - light: history/loop-work-day.png
+        dark: history/loop-work-night.png
+      - light: history/loop-review-day.png
+        dark: history/loop-review-night.png
+      - light: history/loop-trust-day.png
+        dark: history/loop-trust-night.png
+      - light: history/loop-reach-day.png
+        dark: history/loop-reach-night.png
 ---
 
 # There was no *right place* to start

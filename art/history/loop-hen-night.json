@@ -1,0 +1,30 @@
+{
+  "background": "transparent",
+  "endpoint": "edits",
+  "generated": "2026-11-15T01:41:37+00:00",
+  "model": "gpt-image-2.6-sunburst",
+  "output_format": "png",
+  "output_sha256": "ede2e941f4ddb7de1c503f16de29edec33906efe6e1e6f162c19f6265d54172b",
+  "prompt": "The same hen in her nest beside the egg, at night: keep every object exactly where it is, at the same size, in the same pose and the same pixel-art style (a strict even grid, no anti-aliasing, consistent one-art-pixel outlines, hand-placed dithering). Each is lit warmly from one side as if by a lantern just out of frame, with deep plum and blue-grey shadows on the other side, and a thin warm-cream rim of light along its silhouette so it reads clearly on a very dark background. Palette for the dark theme: deep warm brown-black (#1A1612), dark umber (#241F19), muted taupe (#A8998A), cream highlights (#EFE6D2), and warm orange light (#E8743B). Keep the transparent background and the empty space around each object. No people, no text or letters, no logos, no frames, no grid lines, no stars, no moon, no sparkles. The hen is settled and drowsy.",
+  "quality": "high",
+  "references": [
+    {
+      "file": "center-day.png",
+      "sha256": "d7de7ac8e84639f901f65850c6cf2a1a3f6a7a6bc4d0d80e553b6ea1cceb8e23"
+    }
+  ],
+  "size": "1024x1024",
+  "usage": {
+    "input_tokens": 1252,
+    "input_tokens_details": {
+      "image_tokens": 1024,
+      "text_tokens": 228
+    },
+    "output_tokens": 1756,
+    "output_tokens_details": {
+      "image_tokens": 1756,
+      "text_tokens": 0
+    },
+    "total_tokens": 3008
+  }
+}

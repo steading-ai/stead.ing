@@ -112,7 +112,8 @@ describe("the hub", () => {
   const root = join(DIST, "steading");
 
   it.runIf(existsSync(root))("ships the history page's pictures, a day and a night of each", () => {
-    for (const scene of ["desk", "workshop", "plot"]) {
+    const loop = ["knowledge", "planning", "work", "review", "trust", "reach", "hen"].map((item) => `loop-${item}`);
+    for (const scene of ["desk", "workshop", "plot", ...loop]) {
       for (const time of ["day", "night"]) expect(existsSync(join(root, "history", `${scene}-${time}.png`)), `${scene}-${time}`).toBe(true);
     }
     expect(readFileSync(join(root, "history", "index.html"), "utf8")).toContain('media="(prefers-color-scheme: dark)"');

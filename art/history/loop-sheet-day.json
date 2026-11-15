@@ -1,0 +1,30 @@
+{
+  "background": "transparent",
+  "endpoint": "edits",
+  "generated": "2026-11-15T01:40:39+00:00",
+  "model": "gpt-image-2.6-sunburst",
+  "output_format": "png",
+  "output_sha256": "06d8d0cc8104848bd18cbfca3a0674a228705256bf15d5c45cc960f99f308583",
+  "prompt": "A sprite sheet of six separate objects for a cosy homesteading game, arranged in a 3 by 2 grid: each object centered in its own square cell, the same size as the others, with generous empty space around it and nothing touching the edges of its cell or another object, all on a transparent background. Top row, left to right: (1) an old leather-bound almanac lying open on a small wooden lectern, a ribbon bookmark hanging down; (2) a hand-drawn paper plan of a small homestead, half unrolled, with a pencil and two seed packets on it; (3) a wooden wheelbarrow full of dark soil with a spade leaning against it. Bottom row, left to right: (4) a brass magnifying glass held at an angle over a young seedling in a clay pot; (5) a short stretch of sturdy wooden fence with a gate shut by a brass padlock, and its key hanging on a nail beside it; (6) a rural mailbox on a wooden post with its flag up, a letter peeking out, and a small brass bell hanging from it. Each object in a gentle three-quarter view. Pixel art in the same style as the reference: the polish of a lovingly hand-made indie game, a strict even grid with every art pixel exactly 4 by 4 screen pixels, no anti-aliasing, no blur, consistent one-art-pixel dark outlines, hand-placed dithering in the shadows, readable silhouettes, a small cohesive palette of warm colors with honey wood, cream, sage green, brass, and a single burnt-orange accent (#B84A16) on one small detail per object. No people, no text or letters anywhere, no numbers, no logos, no user interface, no grid lines, no frames, no sparkles, no stars.",
+  "quality": "high",
+  "references": [
+    {
+      "file": "day.png",
+      "sha256": "cd8989b35552b8f5b41bdf014e667c4cebe96979048f5b1abf6f04d240f66d4a"
+    }
+  ],
+  "size": "1536x1024",
+  "usage": {
+    "input_tokens": 1932,
+    "input_tokens_details": {
+      "image_tokens": 1536,
+      "text_tokens": 396
+    },
+    "output_tokens": 1372,
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0
+    },
+    "total_tokens": 3304
+  }
+}
