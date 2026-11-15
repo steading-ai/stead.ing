@@ -111,6 +111,13 @@ for (const [name, origin] of Object.entries(SITES)) {
 describe("the hub", () => {
   const root = join(DIST, "steading");
 
+  it.runIf(existsSync(root))("ships the history page's pictures, a day and a night of each", () => {
+    for (const scene of ["desk", "workshop", "plot"]) {
+      for (const time of ["day", "night"]) expect(existsSync(join(root, "history", `${scene}-${time}.png`)), `${scene}-${time}`).toBe(true);
+    }
+    expect(readFileSync(join(root, "history", "index.html"), "utf8")).toContain('media="(prefers-color-scheme: dark)"');
+  });
+
   it.runIf(existsSync(root))("has every page the other sites' footers link to", async () => {
     const { HUB_PAGES } = await import("../../src/site.ts");
     for (const page of HUB_PAGES) expect(existsSync(join(root, page.path, "index.html")), page.path).toBe(true);

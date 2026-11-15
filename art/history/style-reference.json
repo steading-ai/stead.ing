@@ -1,0 +1,25 @@
+{
+  "background": "transparent",
+  "endpoint": "generations",
+  "generated": "2026-11-15T00:44:04+00:00",
+  "model": "gpt-image-2.6-sunburst",
+  "output_format": "png",
+  "output_sha256": "5c896de3f4a1fd43dbdb27d2aeb94bf739d2648e187dd96e78dd284eef4055ed",
+  "prompt": "A quiet home workspace, seen in a gentle three-quarter view: a wooden desk in front of a tall window, an open laptop showing a dark terminal with a few lines of abstract, unreadable code and a small burnt-orange cursor, a ceramic mug, a small potted plant with trailing leaves, a short stack of notebooks with a few sticky notes, a pair of headphones, and an articulated desk lamp that is switched off. Through the window: soft rooftops and a few trees in calm late-morning daylight. Isolated as a vignette on a transparent background: the desk, window and objects form one compact composition with clean edges and nothing else around it. Style: detailed pixel art on a strict, even pixel grid, every pixel square and the same size, no anti-aliasing, limited palette with light dithering in the shadows, in the manner of a cosy modern indie game. Palette: warm cream (#F4EFE6), paper white (#FFFCF6), near-black ink (#1C1A17), warm greys (#6E665B, #DDD5C7), muted sage green for the plant, and a single burnt-orange accent (#B84A16) on the cursor and one or two small details. The mood is calm, warm, and well kept: lived-in but tidy, the desk of one person with more ideas than hours. No people, no animals, no text or letters anywhere, no logos, no robots, no glowing brains, no sparkles, no stars, no lens flares.",
+  "quality": "high",
+  "references": [],
+  "size": "1536x1024",
+  "usage": {
+    "input_tokens": 320,
+    "input_tokens_details": {
+      "image_tokens": 0,
+      "text_tokens": 320
+    },
+    "output_tokens": 1372,
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0
+    },
+    "total_tokens": 1692
+  }
+}

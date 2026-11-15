@@ -1,0 +1,30 @@
+{
+  "background": "transparent",
+  "endpoint": "edits",
+  "generated": "2026-11-15T01:10:24+00:00",
+  "model": "gpt-image-2.6-sunburst",
+  "output_format": "png",
+  "output_sha256": "194af113c9ceb393857a6072099e8fc200d6e7a74c2fb83abdb2c60e570eabb2",
+  "prompt": "The same workshop at night. Keep the exact composition, camera, framing, every object and its position, and the same pixel-art style: a strict, even grid, no anti-aliasing, consistent one-art-pixel outlines, hand-placed dithering. A single bare bulb hangs over the workbench and casts a warm amber-orange pool of light; a few tiny orange indicator lights glow on the half-built machines; the grimy window is dark plum with no stars and no moon; the high shelf with the sketchbook and the seedling falls into shadow, still just visible. Palette for the dark theme: deep warm brown-black (#1A1612), dark umber (#241F19), muted taupe (#A8998A), cream highlights (#EFE6D2), and warm orange light (#E8743B). Keep the transparent background around the vignette, with nothing outside it. No people, no animals, no text, no logos, no stars, no moon, no sparkles.",
+  "quality": "high",
+  "references": [
+    {
+      "file": "day.png",
+      "sha256": "53c726f9b6cf73b3ab2978acb7f6d922a940dd9bd93502b1a4750289a5cbf4b9"
+    }
+  ],
+  "size": "1536x1024",
+  "usage": {
+    "input_tokens": 1757,
+    "input_tokens_details": {
+      "image_tokens": 1536,
+      "text_tokens": 221
+    },
+    "output_tokens": 1372,
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0
+    },
+    "total_tokens": 3129
+  }
+}

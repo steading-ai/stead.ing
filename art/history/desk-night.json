@@ -1,0 +1,30 @@
+{
+  "background": "transparent",
+  "endpoint": "edits",
+  "generated": "2026-11-15T00:53:24+00:00",
+  "model": "gpt-image-2.6-sunburst",
+  "output_format": "png",
+  "output_sha256": "eddabe66da25cc9962cfffda0388b58951e5ac622dbc8accf357b64b5ae9a57a",
+  "prompt": "The same scene at night. Through the window, the homestead sleeps under a deep plum-brown sky with no stars and no moon: the barn and fruit trees are dark silhouettes, and one window of the farmhouse glows warm. In the room, the desk lamp is switched on and casts a warm amber-orange pool of light across the desk and the open sketchbook; the laptop screen glows softly; the room falls into warm shadow away from the lamp. Keep the exact composition, camera, framing, every object and its position, and the same pixel-art style: the strict, even grid of 4 by 4 screen pixels per art pixel, no anti-aliasing, consistent one-art-pixel outlines, hand-placed dithering. Palette for the dark theme: deep warm brown-black (#1A1612), dark umber (#241F19), muted taupe (#A8998A), cream highlights (#EFE6D2), deep plum and blue-grey night shadows, and warm orange light (#E8743B). Keep the transparent background around the vignette, with nothing outside it. No people, no animals, no text, no logos, no stars, no moon, no sparkles, no fireflies.",
+  "quality": "high",
+  "references": [
+    {
+      "file": "day.png",
+      "sha256": "cd8989b35552b8f5b41bdf014e667c4cebe96979048f5b1abf6f04d240f66d4a"
+    }
+  ],
+  "size": "1536x1024",
+  "usage": {
+    "input_tokens": 1802,
+    "input_tokens_details": {
+      "image_tokens": 1536,
+      "text_tokens": 266
+    },
+    "output_tokens": 1372,
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0
+    },
+    "total_tokens": 3174
+  }
+}

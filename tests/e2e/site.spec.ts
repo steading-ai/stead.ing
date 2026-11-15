@@ -55,6 +55,50 @@ test.describe("the hub's story", () => {
   });
 });
 
+test.describe("the history page", () => {
+  test("is called History in the header, and still answers the hub's same-wall link", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    await expect(page.getByRole("banner").getByRole("link", { name: "History", exact: true })).toHaveAttribute("href", "/history/");
+    await expect(page.getByRole("main").getByRole("link", { name: /We hit the same wall/ })).toHaveAttribute("href", "/history/");
+  });
+
+  test("tells the story in sections, each reachable from the top", async ({ page }) => {
+    await page.goto(`${hub}/history/`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("There was no right place to start");
+    await expect(page).toHaveTitle("There was no right place to start · steading");
+    const chips = page.getByRole("navigation", { name: "On this page" }).getByRole("link");
+    await expect(chips).toHaveCount(7);
+    await chips.filter({ hasText: "Why it matters" }).click();
+    await expect(page).toHaveURL(/#why-it-matters$/);
+    await expect(page.locator("#why-it-matters")).toBeInViewport();
+  });
+
+  for (const [colorScheme, time] of [["light", "day"], ["dark", "night"]] as const) {
+    test(`shows the ${time} pictures in ${colorScheme} mode`, async ({ browser }) => {
+      const context = await browser.newContext({ colorScheme });
+      const page = await context.newPage();
+      await page.goto(`${hub}/history/`);
+      const images = page.locator(".story .art img");
+      // The pictures further down load as they come into view.
+      for (const image of await images.all()) {
+        await image.scrollIntoViewIfNeeded();
+        await expect(image).toHaveJSProperty("complete", true);
+      }
+      const shown = await images.evaluateAll((all) => all.map((image) => (image as HTMLImageElement).currentSrc));
+      expect(shown).toHaveLength(3);
+      for (const src of shown) expect(src).toMatch(new RegExp(`-${time}\\.png$`));
+      await context.close();
+    });
+  }
+
+  test("has a Markdown twin with the whole story", async ({ request }) => {
+    const twin = await (await request.get(`${hub}/history.md`)).text();
+    expect(twin).toContain("# There was no *right place* to start\n");
+    expect(twin).toContain("## The work isn't done");
+    expect(twin).not.toContain("<picture");
+  });
+});
+
 test.describe("keyboard", () => {
   test("the first Tab stop skips to the content", async ({ page }) => {
     await page.goto(`${hub}/`);

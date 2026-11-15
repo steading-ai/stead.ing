@@ -83,6 +83,7 @@ export const absolute = (path: string) => new URL(path, SITE.origin).href;
 export const HUB_PAGES = [
   { path: "/open-for-good/", label: "Open for good" },
   { path: "/how-we-work/", label: "How we work" },
+  { path: "/history/", label: "History" },
 ] as const;
 
 export const MEDIA_TYPES = {
