@@ -4,8 +4,9 @@
 // pictures with their names, an arrow from each to the next and the last back
 // to the first, and an ember light going round that lights each item, on the
 // ring and in the list, in its turn. The ring only repeats the list, so it is
-// hidden from screen readers. On a narrow screen there is no ring: each item
-// carries its own picture, and the list ends by pointing back to the start.
+// hidden from screen readers. Until the window is wide enough for the ring
+// beside the words there is no ring: each item carries its own picture, in two
+// columns or one, and the list ends by pointing back to the start.
 interface Picture {
   light: string;
   dark: string;
@@ -138,12 +139,23 @@ const timing = `--turn:${TURN}s;--count:${items.length}`;
   .cycle-ring {
     display: none;
   }
+  @media (min-width: 48rem) {
+    .cycle-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 2rem;
+    }
+  }
 
   /*
-   * Wide: the ring draws the pictures, so the list is words alone, numbered
-   * the way the ring goes round, and each line lights with its picture.
+   * Wide enough for the ring beside the words: the ring draws the pictures, so
+   * the list is words alone, numbered the way the ring goes round, and each
+   * line lights with its picture. The pictures are pixel art and cannot shrink,
+   * so narrower than this there is no ring.
    */
-  @media (min-width: 64rem) {
+  @media (min-width: 80rem) {
+    .cycle-list {
+      grid-template-columns: none;
+    }
     .cycle-list {
       gap: 0.35rem;
     }

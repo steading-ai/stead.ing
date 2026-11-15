@@ -90,6 +90,18 @@ test.describe("the history page", () => {
     expect((await box(1)).x).toBeGreaterThan((await box(5)).x);
   });
 
+  test("sets the loop's pictures in two columns until the ring fits beside its words", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.goto(`${hub}/history/`);
+    await expect(page.locator(".cycle-ring")).toBeHidden();
+    const items = page.locator(".cycle-list li");
+    const box = async (index: number) => (await items.nth(index).boundingBox()) ?? { x: 0, y: 0 };
+    const [first, second, third] = [await box(0), await box(1), await box(2)];
+    expect(second.y).toBeCloseTo(first.y, 0);
+    expect(second.x).toBeGreaterThan(first.x);
+    expect(third.y).toBeGreaterThan(first.y);
+  });
+
   test("unrolls the loop into a column on a phone, which points back to the start", async ({ page }) => {
     await page.setViewportSize({ width: 390, height: 844 });
     await page.goto(`${hub}/history/`);

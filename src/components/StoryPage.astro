@@ -193,7 +193,8 @@ const parts = await Promise.all(sections.map(async (section) => ({ ...section, a
   .words {
     min-width: 0;
   }
-  @media (min-width: 64rem) {
+  /* Side by side only where the words beside a 512-pixel picture keep a readable width; narrower, the picture follows its words. */
+  @media (min-width: 80rem) {
     .top {
       grid-template-columns: minmax(0, 1fr) 512px;
     }
@@ -215,10 +216,16 @@ const parts = await Promise.all(sections.map(async (section) => ({ ...section, a
   }
   /*
    * A section with no picture has the width of the page to itself: its words
-   * keep their measure on the left, a quotation stands beside them, and steps
-   * and tables take the whole width.
+   * keep their measure, and tables and lists of steps may take the rest. Wide
+   * enough, a quotation stands beside the words.
    */
-  @media (min-width: 64rem) {
+  .inner:not(.pictured) .prose {
+    max-width: none;
+  }
+  .inner:not(.pictured) .prose > :global(:not(.table-scroll, table, ol, .cycle-ring)) {
+    max-width: 68ch;
+  }
+  @media (min-width: 80rem) {
     .inner:not(.pictured) .prose {
       display: grid;
       grid-template-columns: minmax(0, 62ch) minmax(0, 1fr);
@@ -242,15 +249,12 @@ const parts = await Promise.all(sections.map(async (section) => ({ ...section, a
     .inner:not(.pictured) .prose > :global(ol:not(.cycle-list)) {
       grid-template-columns: repeat(3, minmax(0, 1fr));
     }
-    .has-cycle .prose > :global(.cycle-ring) {
-      grid-column: 1 / -1;
-      margin-top: 2rem;
-    }
-  }
-  /* Wide enough for both, a loop's ring stands beside its words, and the words keep their list. */
-  @media (min-width: 80rem) {
+    /* A loop's ring stands beside its words, and the words keep their list. */
     .inner.has-cycle .prose {
       grid-template-columns: minmax(0, 1fr) 520px;
+    }
+    .inner.has-cycle .prose > :global(.cycle-list) {
+      grid-column: 1;
     }
     .inner.has-cycle .prose > :global(.cycle-ring) {
       grid-column: 2;
