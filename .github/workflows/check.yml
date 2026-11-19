@@ -28,7 +28,7 @@ jobs:
           persist-credentials: false
 
       - name: Install tools
-        uses: jdx/mise-action@v5.2.8
+        uses: jdx/mise-action@v5.2.9
 
       - name: Install dependencies
         run: pnpm install --frozen-lockfile
