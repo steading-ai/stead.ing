@@ -17,7 +17,7 @@ concurrency:
 jobs:
   hk:
     name: hk check and pre-push
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 15
     permissions:
       contents: read
@@ -45,7 +45,7 @@ jobs:
   # Builds a project's site the way a project's repository will, without publishing.
   action:
     name: site action builds a project
-    runs-on: ubuntu-24.04
+    runs-on: ubuntu-26.04
     timeout-minutes: 10
     permissions:
       contents: read
