@@ -90,7 +90,7 @@ quickstart:
   steps:
     - title: Set it up
       body: Paste this into your agent.
-      prompt: true
+      prompt: setup
     - title: Run it
       body: Do the **first** thing.
       code: skift ready
