@@ -17,7 +17,7 @@ import PromptBox from "./PromptBox.astro";
 import WorksBetterWith from "./WorksBetterWith.astro";
 
 interface Props {
-  landing: Landing & { prompt: string };
+  landing: Landing & { prompt: string; setupPrompt: string };
   /** Whether the project has docs to send people to. */
   docs: boolean;
 }
@@ -138,7 +138,7 @@ const band = (name: (typeof present)[number][0]) => ["band", { "band-surface": s
                 <p set:html={inline(step.body)} />
                 {step.prompt && (
                   <div class="again">
-                    <PromptBox prompt={landing.prompt} id={`prompt-step-${index + 1}`} />
+                    <PromptBox prompt={step.prompt === "setup" ? landing.setupPrompt : landing.prompt} id={`prompt-step-${index + 1}`} />
                   </div>
                 )}
                 {step.code && (
