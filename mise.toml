@@ -2,7 +2,7 @@
 # installs only node and pnpm from this file; the rest serve hk.pkl.
 [tools]
 node = "26.13.1"
-pnpm = "12.22.0"
+pnpm = "12.23.0"
 hk = "2.13.0"
 pkl = "0.33.1"
 jactionlint = "2.6.0"
