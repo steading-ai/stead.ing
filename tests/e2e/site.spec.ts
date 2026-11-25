@@ -380,13 +380,13 @@ test.describe("color", () => {
 });
 
 test.describe("a project's front page", () => {
-  test("repeats the prompt in the quick start, where it is needed, and it copies there too", async ({ page, context }) => {
+  test("offers the setup prompt in the quick start, where it is needed, and it copies there too", async ({ page, context }) => {
     await context.grantPermissions(["clipboard-read", "clipboard-write"]);
     await page.goto(`${fixture}/`);
     const step = page.locator("#quickstart").locator("xpath=..").getByRole("listitem").first();
     await step.getByRole("button", { name: "Copy" }).click();
     expect(await page.evaluate(() => navigator.clipboard.readText())).toBe(
-      "Read https://skift.stead.ing/llms.txt and help me figure out if skift is a good fit for my work.",
+      "Read https://skift.stead.ing/llms.txt and set skift up on this machine for me. Ask before you change anything, then run each step yourself rather than handing me commands, and finish by checking that it works.",
     );
   });
 

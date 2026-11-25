@@ -37,6 +37,7 @@ Nothing is written twice. The README people read on GitHub is the docs' overview
 | `summary` | yes | One paragraph under it. Also the description in `llms.txt`. |
 | `fit` | no | Who the project suits and who it does not, as statements of fact. Goes in `llms.txt`. |
 | `prompt` | no | Replaces the prompt every site offers, which asks whether the project is a good fit for the reader's work ([`src/lib/prompt.ts`](src/lib/prompt.ts)). It should only point at the site's `llms.txt`. |
+| `setupPrompt` | no | Replaces the prompt a quick start step offers with `prompt: setup`, which asks the reader's agent to set the project up for them, with their go-ahead, and check it works ([`src/lib/prompt.ts`](src/lib/prompt.ts)). It should only point at the site's `llms.txt`. |
 | `install` | no | `command`, and an optional `note` under it. |
 | `facts` | no | Short labels under the prompt: "Open source", "Built in Go". |
 | `demo` | no | A small plan to draw in the hero: a `title`, and `nodes`, each with a `ref`, `title`, `kind`, `priority`, `state`, `who`, `note`, and the refs it `waits` on. |
@@ -44,7 +45,7 @@ Nothing is written twice. The README people read on GitHub is the docs' overview
 | `video` | no | A demonstration: a `caption`, and a `url` once there is one. Until then the page holds its place. |
 | `offers` | no | What the project offers: a `title`, and `items` of `title` and `body`. |
 | `thinking` | no | How the project thinks about its problem: a `title`, and `items` of `title`, `body`, and an `href` into the docs. |
-| `quickstart` | no | The first few minutes: a `title`, and `steps` of `title`, `body`, optional `code`, and `prompt: true` to show the site's prompt and its copy button in that step. |
+| `quickstart` | no | The first few minutes: a `title`, and `steps` of `title`, `body`, optional `code`, and `prompt: true` to show the site's prompt and its copy button in that step, or `prompt: setup` to show the setup prompt instead. |
 | `starts` | no | "Pick your starting point": a list of `title` and `body`. |
 | `not` | no | "What it is not": a list of `title`, `body` (why not), and `use` (the id of the project to use for that). |
 | `instead` | no | A line after the "is not" table, saying what the project is for. |

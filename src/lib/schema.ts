@@ -24,6 +24,8 @@ export const landingSchema = z.strictObject({
   summary: facts,
   /** Replaces the prompt every site offers (src/lib/prompt.ts). It should only point at this site's llms.txt. */
   prompt: z.string().min(1).optional(),
+  /** Replaces the setup prompt a quick start step can offer (src/lib/prompt.ts). It should only point at this site's llms.txt. */
+  setupPrompt: z.string().min(1).optional(),
   /** Who the project suits and who it does not, as statements of fact. Published in llms.txt. */
   fit: facts.optional(),
   install: z.strictObject({ command: z.string().min(1), note: z.string().optional() }).optional(),
@@ -106,8 +108,11 @@ export const landingSchema = z.strictObject({
             title: z.string().min(1),
             body: z.string().min(1),
             code: z.string().min(1).optional(),
-            /** Show the site's prompt, with its copy button, in this step. A step never sends the reader elsewhere on the page for it. */
-            prompt: z.boolean().optional(),
+            /**
+             * Show a prompt, with its copy button, in this step: `true` for the site's prompt, `setup` for the one
+             * asking the agent to set the project up. A step never sends the reader elsewhere on the page for it.
+             */
+            prompt: z.union([z.boolean(), z.literal("setup")]).optional(),
           }),
         )
         .min(1),

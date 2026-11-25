@@ -5,17 +5,22 @@ import { PROJECTS } from "../projects.ts";
 import { SITE } from "../site.ts";
 import type { SiteInfo } from "./discovery.ts";
 import { type Doc, type NavSection, navigation, ordered, toDoc } from "./docs.ts";
-import { promptFor } from "./prompt.ts";
+import { promptFor, setupPromptFor } from "./prompt.ts";
 import type { Landing } from "./schema.ts";
 
 /** A page with what Astro needs to render it. A folder's generated page has no entry: it only lists. */
 export type LoadedDoc = Doc & { entry?: CollectionEntry<"docs"> };
 
-/** site.yaml, with the prompt filled in from the template when the site does not write its own. */
-export async function getLanding(): Promise<Landing & { prompt: string }> {
+/** site.yaml, with the prompts filled in from the templates when the site does not write its own. */
+export async function getLanding(): Promise<Landing & { prompt: string; setupPrompt: string }> {
   const [entry] = await getCollection("landing");
   if (!entry) throw new Error(`${SITE.contentDir}/site.yaml did not load.`);
-  return { ...entry.data, prompt: entry.data.prompt ?? promptFor({ origin: SITE.origin, name: SITE.project.name, isHub: SITE.isHub }) };
+  const site = { origin: SITE.origin, name: SITE.project.name, isHub: SITE.isHub };
+  return {
+    ...entry.data,
+    prompt: entry.data.prompt ?? promptFor(site),
+    setupPrompt: entry.data.setupPrompt ?? setupPromptFor(site),
+  };
 }
 
 const fileOf = (entry: CollectionEntry<"docs">) => {
