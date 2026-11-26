@@ -9,6 +9,7 @@ mkdirSync(join(root, "guide"));
 writeFileSync(join(root, "index.html"), "home");
 writeFileSync(join(root, "guide", "index.html"), "guide");
 writeFileSync(join(root, "guide.md"), "# guide");
+writeFileSync(join(root, "_..abc123.css"), "a stylesheet Astro named after a [...slug] page");
 
 describe("fileFor", () => {
   it("answers a folder with its index.html", () => {
@@ -20,10 +21,16 @@ describe("fileFor", () => {
     expect(fileFor(root, "/guide.md")).toBe(join(root, "guide.md"));
   });
 
+  it("answers a file whose name has dots in it", () => {
+    expect(fileFor(root, "/_..abc123.css")).toBe(join(root, "_..abc123.css"));
+  });
+
   it("has nothing for a folder without its slash, a missing page, or a path that climbs out", () => {
     expect(fileFor(root, "/guide")).toBeUndefined();
     expect(fileFor(root, "/nope/")).toBeUndefined();
     expect(fileFor(root, "/../etc/passwd")).toBeUndefined();
     expect(fileFor(root, "/%2e%2e/%2e%2e/etc/passwd")).toBeUndefined();
+    expect(fileFor(root, "/guide/../../etc/passwd")).toBeUndefined();
+    expect(fileFor(root, "..%2f..%2fetc/passwd")).toBeUndefined();
   });
 });

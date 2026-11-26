@@ -55,6 +55,95 @@ test.describe("the hub's story", () => {
   });
 });
 
+test.describe("the history page", () => {
+  test("is called History in the header, and still answers the hub's same-wall link", async ({ page }) => {
+    await page.goto(`${hub}/`);
+    await expect(page.getByRole("banner").getByRole("link", { name: "History", exact: true })).toHaveAttribute("href", "/history/");
+    await expect(page.getByRole("main").getByRole("link", { name: /We hit the same wall/ })).toHaveAttribute("href", "/history/");
+  });
+
+  test("tells the story in sections, each reachable from the top", async ({ page }) => {
+    await page.goto(`${hub}/history/`);
+    await expect(page.getByRole("heading", { level: 1 })).toHaveText("There was no right place to start");
+    await expect(page).toHaveTitle("There was no right place to start · steading");
+    const chips = page.getByRole("navigation", { name: "On this page" }).getByRole("link");
+    await expect(chips).toHaveCount(7);
+    await chips.filter({ hasText: "Why it matters" }).click();
+    await expect(page).toHaveURL(/#why-it-matters$/);
+    await expect(page.locator("#why-it-matters")).toBeInViewport();
+  });
+
+  test("draws the chicken-and-egg loop as a ring, and keeps it a numbered list", async ({ page }) => {
+    await page.setViewportSize({ width: 1440, height: 900 });
+    await page.goto(`${hub}/history/`);
+    const items = page.locator(".cycle-list").getByRole("listitem");
+    await expect(items).toHaveCount(6);
+    await expect(items.first()).toHaveText("Knowledge makes planning better.");
+    const ring = page.locator(".cycle-ring");
+    await expect(ring).toBeVisible();
+    await expect(ring).toHaveAttribute("aria-hidden", "true");
+    const nodes = ring.locator(".node");
+    await expect(nodes).toHaveText(["Knowledge", "Planning", "The work", "Review", "Trust", "Reach"]);
+    // The ring goes round: the first sits above the fourth, and the second to the right of the sixth.
+    const box = async (index: number) => (await nodes.nth(index).boundingBox()) ?? { x: 0, y: 0 };
+    expect((await box(0)).y).toBeLessThan((await box(3)).y);
+    expect((await box(1)).x).toBeGreaterThan((await box(5)).x);
+  });
+
+  test("sets the loop's pictures in two columns until the ring fits beside its words", async ({ page }) => {
+    await page.setViewportSize({ width: 1024, height: 900 });
+    await page.goto(`${hub}/history/`);
+    await expect(page.locator(".cycle-ring")).toBeHidden();
+    const items = page.locator(".cycle-list li");
+    const box = async (index: number) => (await items.nth(index).boundingBox()) ?? { x: 0, y: 0 };
+    const [first, second, third] = [await box(0), await box(1), await box(2)];
+    expect(second.y).toBeCloseTo(first.y, 0);
+    expect(second.x).toBeGreaterThan(first.x);
+    expect(third.y).toBeGreaterThan(first.y);
+  });
+
+  test("unrolls the loop into a column on a phone, which points back to the start", async ({ page }) => {
+    await page.setViewportSize({ width: 390, height: 844 });
+    await page.goto(`${hub}/history/`);
+    await expect(page.locator(".cycle-ring")).toBeHidden();
+    await expect(page.locator(".cycle-list li img")).toHaveCount(6);
+    await expect(page.locator(".cycle-again")).toHaveText("↺ and back to knowledge");
+  });
+
+  test("holds the loop's light still for someone who asked for less motion", async ({ browser }) => {
+    const context = await browser.newContext({ reducedMotion: "reduce", viewport: { width: 1440, height: 900 } });
+    const page = await context.newPage();
+    await page.goto(`${hub}/history/`);
+    await expect(page.locator(".cycle-ring .traveller")).toBeHidden();
+    await context.close();
+  });
+
+  for (const [colorScheme, time] of [["light", "day"], ["dark", "night"]] as const) {
+    test(`shows the ${time} pictures in ${colorScheme} mode`, async ({ browser }) => {
+      const context = await browser.newContext({ colorScheme });
+      const page = await context.newPage();
+      await page.goto(`${hub}/history/`);
+      const images = page.locator(".story .art img, .story .cycle-ring img");
+      // The pictures further down load as they come into view.
+      for (const image of await images.all()) {
+        await image.scrollIntoViewIfNeeded();
+        await expect(image).toHaveJSProperty("complete", true);
+      }
+      const shown = await images.evaluateAll((all) => all.map((image) => (image as HTMLImageElement).currentSrc));
+      expect(shown).toHaveLength(10);
+      for (const src of shown) expect(src).toMatch(new RegExp(`-${time}\\.png$`));
+      await context.close();
+    });
+  }
+
+  test("has a Markdown twin with the whole story", async ({ request }) => {
+    const twin = await (await request.get(`${hub}/history.md`)).text();
+    expect(twin).toContain("# There was no *right place* to start\n");
+    expect(twin).toContain("## The work isn't done");
+    expect(twin).not.toContain("<picture");
+  });
+});
+
 test.describe("keyboard", () => {
   test("the first Tab stop skips to the content", async ({ page }) => {
     await page.goto(`${hub}/`);

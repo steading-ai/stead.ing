@@ -1,0 +1,288 @@
+---
+// A numbered list drawn as a loop. The list keeps the words, numbered, and
+// stays where it is in the page; beside it the ring draws the same items as
+// pictures with their names, an arrow from each to the next and the last back
+// to the first, and an ember light going round that lights each item, on the
+// ring and in the list, in its turn. The ring only repeats the list, so it is
+// hidden from screen readers. Until the window is wide enough for the ring
+// beside the words there is no ring: each item carries its own picture, in two
+// columns or one, and the list ends by pointing back to the start.
+interface Picture {
+  light: string;
+  dark: string;
+  width: number | undefined;
+  height: number | undefined;
+}
+
+interface Props {
+  /** Each item's words, as the page rendered them, and its picture. */
+  items: { html: string; picture: Picture }[];
+  /** A picture in the middle of the ring. */
+  center?: Picture | undefined;
+}
+
+const { items, center } = Astro.props;
+
+// The ring, in CSS pixels: the box, the ring's centre and its radius.
+const BOX = { width: 520, height: 548 };
+const RING = { x: 260, y: 262, r: 192 };
+/** Half a picture's height, which hangs above the point on the ring; its name hangs below. */
+const HALF = 64;
+const NAME = { line: 22, letter: 9.5 };
+/** One turn of the light, in seconds. */
+const TURN = 12;
+
+const plain = (html: string) => html.replace(/<[^>]+>/g, "").trim();
+/** An item's name: the words it leads with in bold, or else its first word. */
+const nameOf = (html: string) => plain(/<strong>([\s\S]*?)<\/strong>/.exec(html)?.[1] ?? "") || (plain(html).split(/\s/)[0] ?? "");
+
+const at = (index: number, half = 0) => {
+  const angle = ((-90 + ((index + half) * 360) / items.length) * Math.PI) / 180;
+  return { x: RING.x + RING.r * Math.cos(angle), y: RING.y + RING.r * Math.sin(angle), degrees: (angle * 180) / Math.PI };
+};
+const nodes = items.map((item, index) => ({ ...item, name: nameOf(item.html), point: at(index) }));
+// Where each name sits, under its picture.
+const labels = nodes.map(({ name, point }) => {
+  const half = (name.length * NAME.letter) / 2 + 8;
+  return { left: point.x - half, right: point.x + half, top: point.y + HALF, bottom: point.y + HALF + NAME.line + 6 };
+});
+const clearance = (x: number, y: number) =>
+  Math.min(...labels.map((box) => Math.hypot(Math.max(box.left - x, 0, x - box.right), Math.max(box.top - y, 0, y - box.bottom))));
+// Each arrow goes where its stretch of ring is furthest from any name, so none hides under one.
+const arrows = items.map((_, index) => {
+  const candidates = Array.from({ length: 21 }, (_, step) => at(index, 0.25 + step * 0.025));
+  return candidates.reduce((best, candidate) => (clearance(candidate.x, candidate.y) > clearance(best.x, best.y) ? candidate : best));
+});
+const timing = `--turn:${TURN}s;--count:${items.length}`;
+---
+
+<ol class="cycle-list not-prose" style={timing}>
+  {
+    nodes.map((node, index) => (
+      <li style={`--i:${index}`}>
+        <picture>
+          <source srcset={node.picture.dark} media="(prefers-color-scheme: dark)" />
+          <img src={node.picture.light} alt="" width={node.picture.width} height={node.picture.height} loading="lazy" decoding="async" />
+        </picture>
+        <p set:html={node.html} />
+      </li>
+    ))
+  }
+</ol>
+<p class="cycle-again not-prose" aria-hidden="true">↺ and back to {nodes[0]?.name.toLowerCase()}</p>
+
+<div class="cycle-ring not-prose" aria-hidden="true" style={timing}>
+  <svg viewBox={`0 0 ${BOX.width} ${BOX.height}`}>
+    <circle class="track" cx={RING.x} cy={RING.y} r={RING.r}></circle>
+    {arrows.map((arrow) => <path class="head" d="M-7 -6 L5 0 L-7 6 Z" transform={`translate(${arrow.x.toFixed(1)} ${arrow.y.toFixed(1)}) rotate(${(arrow.degrees + 90).toFixed(1)})`} />)}
+    <circle class="traveller" r="6">
+      <animateMotion dur={`${TURN}s`} repeatCount="indefinite" path={`M${RING.x} ${RING.y - RING.r} a${RING.r} ${RING.r} 0 1 1 0 ${2 * RING.r} a${RING.r} ${RING.r} 0 1 1 0 ${-2 * RING.r}`}></animateMotion>
+    </circle>
+  </svg>
+  {
+    center && (
+      <picture class="center">
+        <source srcset={center.dark} media="(prefers-color-scheme: dark)" />
+        <img src={center.light} alt="" width={center.width} height={center.height} loading="lazy" decoding="async" />
+      </picture>
+    )
+  }
+  {
+    nodes.map((node, index) => (
+      <div class="node" style={`--i:${index};--x:${node.point.x.toFixed(1)}px;--y:${node.point.y.toFixed(1)}px`}>
+        <picture>
+          <source srcset={node.picture.dark} media="(prefers-color-scheme: dark)" />
+          <img src={node.picture.light} alt="" width={node.picture.width} height={node.picture.height} loading="lazy" decoding="async" />
+        </picture>
+        <span>{node.name}</span>
+      </div>
+    ))
+  }
+</div>
+
+<style>
+  img {
+    display: block;
+    image-rendering: pixelated;
+  }
+
+  /* The list: each item's words, numbered. On a narrow screen each carries its picture too. */
+  .cycle-list {
+    display: grid;
+    gap: 0.25rem;
+    margin: 1.5rem 0 0;
+    padding: 0;
+    counter-reset: step;
+    list-style: none;
+  }
+  .cycle-list li {
+    display: grid;
+    grid-template-columns: 128px minmax(0, 1fr);
+    align-items: center;
+    gap: 1rem;
+    counter-increment: step;
+  }
+  .cycle-list p {
+    font-size: 1rem;
+    line-height: 1.45;
+  }
+  .cycle-list p :global(strong) {
+    font-family: var(--font-mono);
+    font-weight: 600;
+  }
+  .cycle-again {
+    margin-top: 0.75rem;
+    color: var(--muted);
+    font-family: var(--font-mono);
+    font-size: 0.9rem;
+  }
+  .cycle-ring {
+    display: none;
+  }
+  @media (min-width: 48rem) {
+    .cycle-list {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      column-gap: 2rem;
+    }
+  }
+
+  /*
+   * Wide enough for the ring beside the words: the ring draws the pictures, so
+   * the list is words alone, numbered the way the ring goes round, and each
+   * line lights with its picture. The pictures are pixel art and cannot shrink,
+   * so narrower than this there is no ring.
+   */
+  @media (min-width: 80rem) {
+    .cycle-list {
+      grid-template-columns: none;
+    }
+    .cycle-list {
+      gap: 0.35rem;
+    }
+    .cycle-list li {
+      position: relative;
+      display: block;
+      padding: 0.45rem 0.75rem 0.45rem 2.75rem;
+      border-radius: 0.5rem;
+      animation: row var(--turn) linear infinite;
+      animation-delay: calc(var(--i) * var(--turn) / var(--count));
+    }
+    .cycle-list li::before {
+      content: counter(step);
+      position: absolute;
+      top: 0.55rem;
+      left: 0.75rem;
+      width: 1.4rem;
+      height: 1.4rem;
+      border-radius: 50%;
+      background: var(--accent);
+      color: var(--on-ember);
+      font-family: var(--font-mono);
+      font-size: 0.8rem;
+      font-weight: 600;
+      line-height: 1.4rem;
+      text-align: center;
+    }
+    .cycle-list picture,
+    .cycle-again {
+      display: none;
+    }
+
+    .cycle-ring {
+      position: relative;
+      display: block;
+      width: 520px;
+      height: 548px;
+      margin-inline: auto;
+    }
+    svg {
+      position: absolute;
+      inset: 0;
+      width: 520px;
+      height: 548px;
+    }
+    .track {
+      fill: none;
+      stroke: var(--line);
+      stroke-width: 2;
+      stroke-dasharray: 2 8;
+      stroke-linecap: round;
+    }
+    .head {
+      fill: var(--muted);
+    }
+    .traveller {
+      fill: var(--ember);
+    }
+    .center {
+      position: absolute;
+      left: 260px;
+      top: 262px;
+      translate: -50% -50%;
+    }
+    .node {
+      position: absolute;
+      left: var(--x);
+      top: var(--y);
+      display: grid;
+      justify-items: center;
+      gap: 0.2rem;
+      translate: -50% -64px;
+    }
+    .node picture {
+      position: relative;
+    }
+    /* Each item lights as the travelling light reaches it. */
+    .node picture::before {
+      content: "";
+      position: absolute;
+      inset: 8px;
+      z-index: -1;
+      border-radius: 50%;
+      background: radial-gradient(closest-side, color-mix(in srgb, var(--ember) 30%, transparent), transparent);
+      opacity: 0;
+      animation: lit var(--turn) linear infinite;
+      animation-delay: calc(var(--i) * var(--turn) / var(--count));
+    }
+    .node span {
+      padding: 0 0.4rem;
+      border-radius: 0.35rem;
+      background: var(--band, var(--ground));
+      font-family: var(--font-mono);
+      font-size: 0.9rem;
+      font-weight: 600;
+      white-space: nowrap;
+    }
+  }
+  @keyframes lit {
+    0% {
+      opacity: 0;
+    }
+    3%,
+    12% {
+      opacity: 1;
+    }
+    20%,
+    100% {
+      opacity: 0;
+    }
+  }
+  @keyframes row {
+    0% {
+      background: transparent;
+    }
+    3%,
+    12% {
+      background: color-mix(in srgb, var(--ember) 10%, transparent);
+    }
+    20%,
+    100% {
+      background: transparent;
+    }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .traveller {
+      display: none;
+    }
+  }
+</style>

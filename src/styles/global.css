@@ -124,16 +124,19 @@ h3,
 }
 /* The words a heading leans on: underscored by one stroke of the site's color. The page's headline sets them in italic too. */
 .display em,
-.display-2 em {
+.display-2 em,
+.story-top h1 em {
   position: relative;
   font-style: normal;
   white-space: nowrap;
 }
-.display em {
+.display em,
+.story-top h1 em {
   font-style: italic;
 }
 .display em::after,
-.display-2 em::after {
+.display-2 em::after,
+.story-top h1 em::after {
   content: "";
   position: absolute;
   inset-inline: 0.05em;

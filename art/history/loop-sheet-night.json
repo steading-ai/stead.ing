@@ -1,0 +1,30 @@
+{
+  "background": "transparent",
+  "endpoint": "edits",
+  "generated": "2026-11-15T01:41:36+00:00",
+  "model": "gpt-image-2.6-sunburst",
+  "output_format": "png",
+  "output_sha256": "8ad12219569919f6ced6f96ccb6293929518ef57d99fd7713d56d48bc45cde47",
+  "prompt": "The same sprite sheet of six objects at night: keep every object exactly where it is, at the same size, in the same pose and the same pixel-art style (a strict even grid, no anti-aliasing, consistent one-art-pixel outlines, hand-placed dithering). Each is lit warmly from one side as if by a lantern just out of frame, with deep plum and blue-grey shadows on the other side, and a thin warm-cream rim of light along its silhouette so it reads clearly on a very dark background. Palette for the dark theme: deep warm brown-black (#1A1612), dark umber (#241F19), muted taupe (#A8998A), cream highlights (#EFE6D2), and warm orange light (#E8743B). Keep the transparent background and the empty space around each object. No people, no text or letters, no logos, no frames, no grid lines, no stars, no moon, no sparkles.",
+  "quality": "high",
+  "references": [
+    {
+      "file": "sheet-day.png",
+      "sha256": "06d8d0cc8104848bd18cbfca3a0674a228705256bf15d5c45cc960f99f308583"
+    }
+  ],
+  "size": "1536x1024",
+  "usage": {
+    "input_tokens": 1752,
+    "input_tokens_details": {
+      "image_tokens": 1536,
+      "text_tokens": 216
+    },
+    "output_tokens": 1372,
+    "output_tokens_details": {
+      "image_tokens": 1372,
+      "text_tokens": 0
+    },
+    "total_tokens": 3124
+  }
+}

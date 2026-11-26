@@ -8,7 +8,7 @@ import { leadingTitle, markdownPath } from "./markdown.ts";
 import { type DocsSettings, type Layout, NO_SETTINGS, type PageSource, pathOf } from "./pages.ts";
 
 export interface DocInput extends PageSource {
-  data: { title?: string | undefined; description?: string | undefined; order?: number | undefined };
+  data: { title?: string | undefined; description?: string | undefined; order?: number | undefined; nav?: string | undefined };
   body: string;
 }
 
@@ -36,7 +36,7 @@ export function toDoc(input: DocInput): Doc {
     ...input,
     markdown: markdownPath(input.path),
     title: input.data.title ?? heading ?? fallback,
-    label: input.route === "" ? "Overview" : (input.data.title ?? heading ?? fallback),
+    label: input.route === "" ? "Overview" : (input.data.nav ?? input.data.title ?? heading ?? fallback),
     hasHeading: heading !== undefined,
   };
 }

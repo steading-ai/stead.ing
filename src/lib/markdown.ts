@@ -129,9 +129,12 @@ export function scrollWideTables() {
 
 const LEADING_H1 = /^\s*#\s+(.+?)\s*#*\s*(?:\r?\n|$)/;
 
-/** A page's first-line `# Title`, if it opens with one. */
+/** Emphasis, strong emphasis and code marked with `*`, `**` or backticks, which a title in plain text leaves out. */
+const INLINE_MARKS = /(\*\*|\*|`)(.+?)\1/g;
+
+/** A page's first-line `# Title`, if it opens with one, in plain text: "There was no *right place* to start" is titled without the stars. */
 export function leadingTitle(body: string): string | undefined {
-  return LEADING_H1.exec(body)?.[1];
+  return LEADING_H1.exec(body)?.[1]?.replace(INLINE_MARKS, "$2");
 }
 
 const escapeHtml = (text: string) =>

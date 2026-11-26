@@ -89,6 +89,12 @@ describe("leadingTitle", () => {
     expect(leadingTitle("\n\n# Spaced out #\nBody")).toBe("Spaced out");
   });
 
+  it("reads it as plain text, without the marks that style it", () => {
+    expect(leadingTitle("# There was no *right place* to start\n")).toBe("There was no right place to start");
+    expect(leadingTitle("# A **bold** claim about `skift`")).toBe("A bold claim about skift");
+    expect(leadingTitle("# snake_case stays")).toBe("snake_case stays");
+  });
+
   it("ignores headings that aren't first, or aren't level one", () => {
     expect(leadingTitle("Intro\n\n# Later")).toBeUndefined();
     expect(leadingTitle("## Section")).toBeUndefined();
